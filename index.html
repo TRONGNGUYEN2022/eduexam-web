@@ -8,10 +8,10 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- jQuery (Cần cho MathQuill) -->
+  <!-- jQuery (Cho MathQuill) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <!-- MathQuill CSS & JS (Trình soạn thảo toán học trực quan như Word / MathType) -->
+  <!-- MathQuill CSS & JS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
 
@@ -37,7 +37,7 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Style Thanh công cụ toán học 2 hàng chuẩn ảnh mẫu */
+    /* Thanh công cụ toán học 2 hàng trực quan */
     .math-palette-grid {
       display: inline-flex;
       border: 1px solid #94a3b8;
@@ -55,13 +55,8 @@
       padding: 0 3px;
       gap: 2px;
     }
-    .math-col-group:last-child {
-      border-right: none;
-    }
-    .math-row {
-      display: flex;
-      gap: 2px;
-    }
+    .math-col-group:last-child { border-right: none; }
+    .math-row { display: flex; gap: 2px; }
     .math-cell-btn {
       width: 32px;
       height: 28px;
@@ -78,15 +73,10 @@
       user-select: none;
       padding: 0;
     }
-    .math-cell-btn:hover {
-      background: #e0e7ff;
-      border-color: #6366f1;
-    }
-    .math-cell-btn:active {
-      background: #c7d2fe;
-    }
+    .math-cell-btn:hover { background: #e0e7ff; border-color: #6366f1; }
+    .math-cell-btn:active { background: #c7d2fe; }
 
-    /* Khối ô vuông Placeholder màu xanh như ảnh */
+    /* Ô vuông xanh placeholder */
     .ph-box {
       display: inline-block;
       width: 9px;
@@ -97,7 +87,6 @@
       vertical-align: middle;
     }
 
-    /* Style Khung Soạn Thảo MathQuill */
     .mathquill-editor-field {
       min-height: 120px;
       width: 100%;
@@ -293,7 +282,7 @@
           </div>
         </div>
 
-        <!-- Khối Tùy Chọn Đáp Án Phần Tự Luận -->
+        <!-- Khối Tùy Chọn Đáp Án Tự Luận -->
         <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-300 space-y-2">
           <label class="block font-bold text-emerald-950 flex items-center justify-between">
             <span><i class="fa-solid fa-pen-to-square text-emerald-700"></i> Đáp án & Lời giải Tự luận</span>
@@ -396,7 +385,7 @@
             </div>
           </div>
 
-          <!-- Phần III: Tự luận kèm Khung Soạn Thảo Rich-Text Như Word -->
+          <!-- Phần III: Tự luận kèm Bàn phím MathQuill -->
           <div>
             <div class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN III. TỰ LUẬN (3,0 điểm)
@@ -432,6 +421,7 @@
             </table>
           </div>
 
+          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết Tự Luận -->
           <div id="answerKeySection" class="mt-8 pt-6 border-t-2 border-indigo-200 space-y-4">
             <p class="text-slate-400 italic text-center text-xs">Hướng dẫn giải và barem điểm chi tiết sẽ hiển thị tại đây sau khi sinh đề.</p>
           </div>
@@ -441,7 +431,7 @@
     </main>
   </div>
 
-  <!-- JavaScript Xử lý -->
+  <!-- JavaScript -->
   <script>
     const API_BASE_URL = "https://eduexam-backend.onrender.com";
     let currentExamData = null;
@@ -450,10 +440,7 @@
     let timerInterval = null;
     let timeRemaining = 45 * 60;
 
-    // Quản lý các trường soạn thảo MathQuill
     const mathFieldInstances = {};
-    let currentActiveMathField = null;
-
     const MQ = MathQuill.getInterface(2);
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -743,9 +730,6 @@
       document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. Số nguyên tố nhỏ nhất là số 2.\n2. Phép tính $A = 2^3 \\cdot 5 - 15 = 40 - 15 = 25$.\n3. Một đội tình nguyện có từ 100 đến 150 người, khi chia thành hàng 4, hàng 5, hàng 6 đều vừa đủ. Tính số người.";
     }
 
-    // =========================================================================
-    // HÀM TẠO ĐỀ BẰNG AI GEMINI
-    // =========================================================================
     async function triggerGenerate() {
       const btn = document.getElementById('btnGenerate');
       const subject = document.getElementById('subject').value;
@@ -822,9 +806,6 @@
       }
     }
 
-    // =========================================================================
-    // HỆ THỐNG PHÒNG THI ONLINE
-    // =========================================================================
     function toggleExamMode() {
       if (!currentExamData) {
         alert('Vui lòng tạo đề trước khi bật chế độ thi online!');
@@ -880,13 +861,9 @@
       document.getElementById('timerCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
-    // =========================================================================
-    // HÀM CHÈN CÔNG THỨC TOÁN TRỰC TIẾP VÀO MATHQUILL FIELD
-    // =========================================================================
     function insertMathCmd(idx, latexCmd, writeCmd = null) {
       const field = mathFieldInstances[`essayField_${idx}`];
       if (!field) return;
-      
       field.focus();
       if (writeCmd) {
         field.write(writeCmd);
@@ -901,7 +878,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI LÊN VIEW VỚI THANH TOÁN HỌC 2 HÀNG CHUẨN ĐẸP NHƯ ẢNH MẪU
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -975,7 +952,7 @@
         }).join('');
       }
 
-      // 3. Render Phần III (Tự luận kèm Bàn Phím Công Thức 2 Hàng Trực Quan Như Ảnh Mẫu)
+      // 3. Render Phần III (Tự luận kèm Bàn Phím MathQuill)
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
@@ -986,10 +963,8 @@
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
               <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
               
-              <!-- BÀN PHÍM CÔNG THỨC TOÁN TRỰC QUAN 2 HÀNG CHUẨN ẢNH MẪU -->
+              <!-- BÀN PHÍM CÔNG THỨC TOÁN TRỰC QUAN 2 HÀNG -->
               <div class="math-palette-grid">
-                
-                <!-- Nhóm 1: Phân số & Căn -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '\\\\frac')" class="math-cell-btn" title="Phân số">
@@ -1009,7 +984,6 @@
                   </div>
                 </div>
 
-                <!-- Nhóm 2: Số mũ & Chỉ số dưới -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '^')" class="math-cell-btn" title="Lũy thừa / Số mũ">
@@ -1023,7 +997,6 @@
                   </div>
                 </div>
 
-                <!-- Nhóm 3: Dấu ngoặc -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '(')" class="math-cell-btn" title="Ngoặc tròn">(<span class="ph-box"></span>)</button>
@@ -1037,7 +1010,6 @@
                   </div>
                 </div>
 
-                <!-- Nhóm 4: Phép toán cơ bản -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '+')" class="math-cell-btn" title="Cộng">+</button>
@@ -1049,7 +1021,6 @@
                   </div>
                 </div>
 
-                <!-- Nhóm 5: Quan hệ & So sánh -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '\\\\ge')" class="math-cell-btn" title="Lớn hơn hoặc bằng">≥</button>
@@ -1061,7 +1032,6 @@
                   </div>
                 </div>
 
-                <!-- Nhóm 6: Ký hiệu toán học & Hy Lạp -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '\\\\pi')" class="math-cell-btn" title="Số Pi">π</button>
@@ -1073,7 +1043,6 @@
                   </div>
                 </div>
 
-                <!-- Nhóm 7: Logic & Tập hợp -->
                 <div class="math-col-group">
                   <div class="math-row">
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '\\\\neq')" class="math-cell-btn" title="Khác">≠</button>
@@ -1084,27 +1053,18 @@
                     <button type="button" onmousedown="event.preventDefault()" onclick="insertMathCmd(${idx}, '\\\\Leftrightarrow')" class="math-cell-btn" title="Tương đương">⟺</button>
                   </div>
                 </div>
-
               </div>
 
-              <!-- KHUNG SOẠN THẢO MATHQUILL TRỰC QUAN -->
+              <!-- Khung soạn thảo MathQuill -->
               <div id="essayField_${idx}" class="mathquill-editor-field"></div>
             </div>
           `;
         }).join('');
 
-        // Khởi tạo các khung MathQuill sau khi DOM render
         p3List.forEach((q, idx) => {
           const el = document.getElementById(`essayField_${idx}`);
           if (el) {
-            const mathField = MQ.MathField(el, {
-              spaceBehavesLikeTab: false,
-              handlers: {
-                edit: function() {
-                  currentActiveMathField = mathField;
-                }
-              }
-            });
+            const mathField = MQ.MathField(el, { spaceBehavesLikeTab: false });
             mathFieldInstances[`essayField_${idx}`] = mathField;
           }
         });
@@ -1132,11 +1092,13 @@
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (XỬ LÝ DỨT ĐIỂM DẤU $)
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          const sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
+          let sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
+          sol = sol.replace(/\\\$/g, '$');
+          
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1150,7 +1112,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${g.step || g.content || ''} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${(g.step || g.content || '').replace(/\\\$/g, '$')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1163,7 +1125,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          const exp = q.explanation || '';
+          let exp = (q.explanation || '').replace(/\\\$/g, '$');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1188,10 +1150,10 @@
         `;
       }
 
-      // 6. KaTeX Render công thức Toán trên đề thi
+      // 6. Quét KaTeX toàn bộ trang (sau khi DOM hoàn tất)
       setTimeout(() => {
         if (window.renderMathInElement) {
-          renderMathInElement(document.getElementById('examBody'), {
+          renderMathInElement(document.getElementById('examContainer'), {
             delimiters: [
               { left: "$$", right: "$$", display: true },
               { left: "$", right: "$", display: false }
@@ -1199,13 +1161,13 @@
             throwOnError: false
           });
         }
-      }, 100);
+      }, 250);
     }
 
     // =========================================================================
-    // HÀM 1: 1-CLICK SAO CHÉP RICH-TEXT & MATHML DÁN TRỰC TIẾP VÀO WORD (CTRL + V)
+    // 1-CLICK SAO CHÉP TOÀN BỘ ĐỀ THI & ĐÁP ÁN CHUẨN NATIVE VÀO WORD (CTRL + V)
     // =========================================================================
-    async function copyExamForWord() {
+    function copyExamForWord() {
       if (!currentExamData) {
         alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi sao chép!');
         return;
@@ -1217,48 +1179,42 @@
       const btn = document.getElementById('btnCopyWord');
       const originalHtml = btn.innerHTML;
 
+      // 1. Tạm thời ẩn các thanh công cụ toán học của học sinh
+      const mathPalettes = examEl.querySelectorAll('.math-palette-grid, .mq-editable-field');
+      mathPalettes.forEach(el => el.style.display = 'none');
+
+      // 2. Tạo vùng chọn (Selection) bao trọn toàn bộ tờ đề thi
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNode(examEl);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // 3. Thực hiện lệnh Copy native của trình duyệt
       try {
-        const clone = examEl.cloneNode(true);
-        const htmlKatexElements = clone.querySelectorAll('.katex-html');
-        htmlKatexElements.forEach(el => el.remove());
-
-        const mathElements = clone.querySelectorAll('math');
-        mathElements.forEach(m => {
-          m.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
-        });
-
-        const htmlContent = clone.innerHTML;
-        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
-        const blobText = new Blob([clone.innerText], { type: 'text/plain' });
-
-        const clipboardItem = new ClipboardItem({
-          'text/html': blobHtml,
-          'text/plain': blobText
-        });
-
-        await navigator.clipboard.write([clipboardItem]);
-
-        btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
-        btn.className = "bg-green-700 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5";
-
-        setTimeout(() => {
-          btn.innerHTML = originalHtml;
-          btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
-        }, 3500);
-
+        const success = document.execCommand('copy');
+        if (success) {
+          btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
+          btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5";
+          
+          setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
+          }, 3000);
+        } else {
+          throw new Error("Không thể copy");
+        }
       } catch (err) {
-        const range = document.createRange();
-        range.selectNode(examEl);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        document.execCommand('copy');
-        window.getSelection().removeAllRanges();
-        alert('Đã sao chép toàn bộ đề thi! Mở Word và bấm phím Ctrl + V để dán.');
+        alert('Vui lòng bôi đen toàn bộ trang và bấm Ctrl + C.');
+      } finally {
+        // Khôi phục lại hiển thị ban đầu
+        mathPalettes.forEach(el => el.style.display = '');
+        selection.removeAllRanges();
       }
     }
 
     // =========================================================================
-    // HÀM 2: TẢI FILE WORD (.DOC) MHTML NATIVE CHUẨN ĐẸP
+    // TẢI FILE WORD (.DOC) MHTML NATIVE
     // =========================================================================
     function exportExamToWordNativeDoc() {
       if (!currentExamData) {
@@ -1270,16 +1226,13 @@
       if (!examEl) return;
 
       const clone = examEl.cloneNode(true);
-      const htmlKatexElements = clone.querySelectorAll('.katex-html');
-      htmlKatexElements.forEach(el => el.remove());
-
-      const mathElements = clone.querySelectorAll('math');
-      mathElements.forEach(m => {
+      clone.querySelectorAll('.math-palette-grid, .mq-editable-field').forEach(el => el.remove());
+      clone.querySelectorAll('.katex-html').forEach(el => el.remove());
+      clone.querySelectorAll('math').forEach(m => {
         m.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
       });
 
       const cleanHtml = clone.innerHTML;
-
       const mhtmlDoc = `MIME-Version: 1.0
 Content-Type: multipart/related; boundary="----=_NextPart_EduExamDoc"
 
@@ -1304,8 +1257,8 @@ Content-Type: text/html; charset="utf-8"
 <![endif]-->
 <style>
 @page Section1 {
-  size: 595.3pt 841.9pt; /* Khổ A4 */
-  margin: 56.7pt 56.7pt 56.7pt 70.85pt; /* Trái 2.5cm, Phải 2.0cm, Trên 2.0cm, Dưới 2.0cm */
+  size: 595.3pt 841.9pt;
+  margin: 56.7pt 56.7pt 56.7pt 70.85pt;
   mso-header-margin: 35.4pt;
   mso-footer-margin: 35.4pt;
 }
@@ -1316,20 +1269,11 @@ body {
   line-height: 1.35;
   color: #000000;
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-td, th {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 12pt;
-}
+table { width: 100%; border-collapse: collapse; }
+td, th { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
 p { margin: 0 0 5pt 0; }
 strong { font-weight: bold; }
-math {
-  font-family: 'Cambria Math', 'Times New Roman', serif;
-  font-size: 13pt;
-}
+math { font-family: 'Cambria Math', 'Times New Roman', serif; font-size: 13pt; }
 </style>
 </head>
 <body>
@@ -1360,7 +1304,7 @@ math {
     }
 
     // =========================================================================
-    // HÀM 3: TẢI FILE WORD (.DOCX) NGUYÊN BẢN QUA BACKEND PYTHON-DOCX
+    // TẢI FILE WORD (.DOCX) CHUẨN BACKEND
     // =========================================================================
     async function downloadWordDocxPython() {
       if (!currentExamData) {
