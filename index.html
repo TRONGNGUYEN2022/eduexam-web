@@ -170,7 +170,7 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Năm học</label>
-              <input type="text" id="schoolYear" value="2026 - 2027" oninput="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
+              <input type="text" id="schoolYear" value="2025 - 2026" oninput="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Mã đề hiển thị</label>
@@ -280,7 +280,7 @@
     <!-- Main View: Tờ Đề Thi / Phòng Thi Trực Tuyến -->
     <main class="flex-1 bg-slate-200/80 p-3 sm:p-6 md:overflow-y-auto flex flex-col items-center">
       
-      <!-- Thanh Điều Khiển Phòng Thi Online -->
+      <!-- Thanh Điều Khiển Phòng Thi Online (Chỉ hiện khi học sinh bấm BẬT THI) -->
       <div id="onlineBar" class="hidden w-full max-w-4xl bg-indigo-900 text-white px-4 py-3 rounded-t shadow flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-400">
         <div class="flex items-center gap-3">
           <span class="bg-red-600 px-2.5 py-0.5 rounded text-xs font-bold animate-pulse tracking-wide">ĐANG THI TRỰC TUYẾN</span>
@@ -361,7 +361,7 @@
           --- HẾT ĐỀ THI ---
         </div>
 
-        <!-- Bảng Đáp Án & Barem Giáo Viên -->
+        <!-- Bảng Đáp Án & Barem Giáo Viên (Tự ẩn khi bật Chế Độ Thi Online) -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
           <h3 class="text-center font-bold text-xs sm:text-sm mb-3 uppercase">BẢNG ĐÁP ÁN & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU</h3>
           
@@ -401,18 +401,7 @@
     let timerInterval = null;
     let timeRemaining = 45 * 60;
 
-    // Tự động gửi ping nhẹ đánh thức server Render khi mở trang
-    window.addEventListener('DOMContentLoaded', () => {
-      fetch(`${API_BASE_URL}/`).catch(() => {});
-      loadListOptions('school', 'schoolSelect');
-      loadListOptions('dept', 'deptSelect');
-      loadListOptions('examTitle', 'examTitleSelect');
-      updateTopicList();
-      syncHeaderPreview();
-      handleModelChange();
-      handleEssayModeChange();
-    });
-
+    // DANH MỤC TRƯỜNG & TỔ CHUYÊN MÔN TP.HCM
     const DEFAULT_CONFIGS = {
       school: [
         "TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)",
@@ -443,6 +432,7 @@
       ]
     };
 
+    // DANH MỤC BÀI HỌC SGK GDPT 2018 CHI TIẾT
     const CURRICULUM_TOPICS = {
       "Toán học": {
         6: [
@@ -689,6 +679,16 @@
       document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. Số nguyên tố nhỏ nhất là số 2.\n2. Phép tính $A = 2^3 \\cdot 5 - 15 = 40 - 15 = 25$.\n3. Một đội tình nguyện có từ 100 đến 150 người, khi chia thành hàng 4, hàng 5, hàng 6 đều vừa đủ. Tính số người.";
     }
 
+    window.addEventListener('DOMContentLoaded', () => {
+      loadListOptions('school', 'schoolSelect');
+      loadListOptions('dept', 'deptSelect');
+      loadListOptions('examTitle', 'examTitleSelect');
+      updateTopicList();
+      syncHeaderPreview();
+      handleModelChange();
+      handleEssayModeChange();
+    });
+
     // =========================================================================
     // HÀM TẠO ĐỀ BẰNG AI GEMINI
     // =========================================================================
@@ -853,12 +853,12 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI LÊN VIEW (MẶC ĐỊNH KHÔNG TÍCH ĐÁP ÁN ĐỂ HỌC SINH KHÔNG HIỂU LẦM)
+    // RENDER ĐỀ THI LÊN VIEW
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
-      // 1. Render Phần I (Trắc nghiệm 4 lựa chọn - BỎ TRỐNG LỰA CHỌN)
+      // 1. Render Phần I (Trắc nghiệm 4 lựa chọn)
       const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part1 || [];
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
@@ -870,7 +870,7 @@
           } else if (q.options) {
             ['A', 'B', 'C', 'D'].forEach(k => {
               if (q.options[k] || q.options[k.toLowerCase()]) {
-                opts.push({ id: k, text: q.options[k] || q.options[k.toLowerCase()] });
+                opts.push({ id: k, text: q.options[k] || q.options[k.toLowerCase()], is_correct: (q.correct_answer === k) });
               }
             });
           }
@@ -881,7 +881,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-4">
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
-                    <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
+                    <input type="radio" name="student_p1_q${idx}" value="${o.id}" ${!isStudentExamMode && o.is_correct ? 'checked' : ''} class="accent-indigo-600">
                     <span><strong>${o.id}.</strong> ${o.text || o.content || ''}</span>
                   </label>
                 `).join('')}
@@ -891,13 +891,14 @@
         }).join('');
       }
 
-      // 2. Render Phần II (Đúng / Sai - BỎ TRỐNG LỰA CHỌN)
+      // 2. Render Phần II (Đúng / Sai)
       const p2List = exam.part_2_tf || exam.part2_true_false || exam.part2 || [];
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
           const prompt = q.prompt || q.content || q.question_text || '';
           const st = q.statements || {};
+          const ans = q.answers || {};
 
           return `
             <div class="space-y-2 bg-slate-50/50 p-2 rounded">
@@ -905,16 +906,17 @@
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
                   const val = st[k] || st[k.toUpperCase()] || '';
+                  const isCorrect = (ans[k] === true || ans[k.toUpperCase()] === true);
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
                       <div class="flex items-center gap-3 shrink-0">
                         <label class="flex items-center gap-1 text-xs cursor-pointer">
-                          <input type="radio" name="student_p2_q${idx}_${k}" value="Đ" class="accent-emerald-600">
+                          <input type="radio" name="student_p2_q${idx}_${k}" value="Đ" ${!isStudentExamMode && isCorrect ? 'checked' : ''} class="accent-emerald-600">
                           <span class="font-semibold text-emerald-700">Đúng</span>
                         </label>
                         <label class="flex items-center gap-1 text-xs cursor-pointer">
-                          <input type="radio" name="student_p2_q${idx}_${k}" value="S" class="accent-rose-600">
+                          <input type="radio" name="student_p2_q${idx}_${k}" value="S" ${!isStudentExamMode && !isCorrect ? 'checked' : ''} class="accent-rose-600">
                           <span class="font-semibold text-rose-700">Sai</span>
                         </label>
                       </div>
@@ -927,7 +929,7 @@
         }).join('');
       }
 
-      // 3. Render Phần III (Tự luận kèm Khung Soạn Thảo Rich-Text Như Word)
+      // 3. Render Phần III (Tự luận kèm Khung Soạn Thảo Rich-Text)
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
