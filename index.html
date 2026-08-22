@@ -74,7 +74,7 @@
     }
     .imatheq-btn:active { background: #c7d2fe; }
 
-    /* Ô vuông xanh placeholder */
+    /* Ô vuông placeholder */
     .ph-box {
       display: inline-block;
       width: 9px;
@@ -862,7 +862,7 @@
     }
 
     // =========================================================================
-    // HỆ THỐNG BÀN PHÍM iMathEQ VISUAL KEYBOARD
+    // HỆ THỐNG BÀN PHÍM iMathEQ
     // =========================================================================
     function insertMathSymbol(editorId, latexCode) {
       const editor = document.getElementById(editorId);
@@ -907,35 +907,29 @@
     }
 
     // =========================================================================
-    // BỘ PHÂN GIẢI CHUỖI TOÁN TRỰC TIẾP SANG KATEX HTML (PARSE TRỰC TIẾP)
+    // HÀM QUÉT VÀ RENDER KATEX TOÀN BỘ TỜ ĐỀ THI
     // =========================================================================
-    function parseMathToHtml(rawText) {
+    function renderMathEverywhere() {
+      const examContainer = document.getElementById('examContainer');
+      if (examContainer && window.renderMathInElement) {
+        renderMathInElement(examContainer, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ],
+          throwOnError: false,
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        });
+      }
+    }
+
+    function cleanString(rawText) {
       if (!rawText) return '';
       let text = String(rawText);
-      
-      // Khôi phục các ký tự bị escape từ JSON
       text = text.replace(/\\\$/g, '$');
-      text = text.replace(/\\times/g, '\\times ');
       text = text.replace(/\t/g, ' ');
-
-      // 1. Render công thức block $$...$$
-      text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, expr) => {
-        try {
-          return katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false });
-        } catch (e) {
-          return match;
-        }
-      });
-
-      // 2. Render công thức inline $...$
-      text = text.replace(/\$([^\$]+?)\$/g, (match, expr) => {
-        try {
-          return katex.renderToString(expr.trim(), { displayMode: false, throwOnError: false });
-        } catch (e) {
-          return match;
-        }
-      });
-
       return text;
     }
 
@@ -950,7 +944,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = parseMathToHtml(q.content || q.question_text || '');
+          const qText = cleanString(q.content || q.question_text || '');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -969,7 +963,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${parseMathToHtml(o.text || o.content || '')}</span>
+                    <span><strong>${o.id}.</strong> ${cleanString(o.text || o.content || '')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -983,7 +977,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = parseMathToHtml(q.prompt || q.content || q.question_text || '');
+          const prompt = cleanString(q.prompt || q.content || q.question_text || '');
           const st = q.statements || {};
 
           return `
@@ -991,7 +985,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = parseMathToHtml(st[k] || st[k.toUpperCase()] || '');
+                  const val = cleanString(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1014,12 +1008,12 @@
         }).join('');
       }
 
-      // 3. Render Phần III (Tự luận kèm Bàn Phím iMathEQ Trực Quan)
+      // 3. Render Phần III (Tự luận)
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = parseMathToHtml(q.content || q.question_text || '');
+          const qText = cleanString(q.content || q.question_text || '');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1040,7 +1034,6 @@
 
                 <!-- Bảng phím Toán iMathEQ trực quan -->
                 <div class="imatheq-panel">
-                  <!-- Phân số & Căn -->
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\frac{a}{b}')" class="imatheq-btn" title="Phân số">
                     <div class="flex flex-col items-center leading-none text-[9px]"><span class="ph-box mb-[1px]"></span><span class="w-3.5 h-[1px] bg-black"></span><span class="ph-box mt-[1px]"></span></div>
                   </button>
@@ -1050,22 +1043,16 @@
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\sqrt[n]{x}')" class="imatheq-btn" title="Căn bậc n">
                     <span class="text-[9px]"><span class="ph-box scale-75"></span>√<span class="ph-box"></span></span>
                   </button>
-
-                  <!-- Số mũ & Chỉ số -->
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', 'x^2')" class="imatheq-btn" title="Số mũ">
                     <span class="text-xs"><span class="ph-box"></span><span class="ph-box scale-75 -translate-y-1.5 -ml-0.5"></span></span>
                   </button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', 'x_n')" class="imatheq-btn" title="Chỉ số dưới">
                     <span class="text-xs"><span class="ph-box"></span><span class="ph-box scale-75 translate-y-1.5 -ml-0.5"></span></span>
                   </button>
-
-                  <!-- Dấu ngoặc -->
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '( x )')" class="imatheq-btn" title="Ngoặc tròn">(<span class="ph-box"></span>)</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '[ x ]')" class="imatheq-btn" title="Ngoặc vuông">[<span class="ph-box"></span>]</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '| x |')" class="imatheq-btn" title="Trị tuyệt đối">|<span class="ph-box"></span>|</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\{ x \\\\}')" class="imatheq-btn" title="Ngoặc nhọn">{<span class="ph-box"></span>}</button>
-
-                  <!-- Phép tính & So sánh -->
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '+')" class="imatheq-btn" title="Cộng">+</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '-')" class="imatheq-btn" title="Trừ">−</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\cdot')" class="imatheq-btn" title="Nhân">·</button>
@@ -1074,8 +1061,6 @@
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\ge')" class="imatheq-btn" title="Lớn hơn hoặc bằng">≥</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\neq')" class="imatheq-btn" title="Khác">≠</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '^{\\\\circ}')" class="imatheq-btn" title="Độ góc">°</button>
-
-                  <!-- Ký hiệu nâng cao -->
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\pi')" class="imatheq-btn" title="Số Pi">π</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\in')" class="imatheq-btn" title="Thuộc">∈</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\notin')" class="imatheq-btn" title="Không thuộc">∉</button>
@@ -1113,11 +1098,11 @@
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (PARSE SẠCH BẰNG parseMathToHtml)
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = parseMathToHtml(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          let sol = cleanString(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1131,7 +1116,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${parseMathToHtml(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${cleanString(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1144,7 +1129,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = parseMathToHtml(q.explanation || '');
+          let exp = cleanString(q.explanation || '');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1168,6 +1153,11 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
+
+      // 6. Quét KaTeX trên TOÀN BỘ examContainer (gồm cả Đề, Đáp án và Barem)
+      setTimeout(renderMathEverywhere, 50);
+      setTimeout(renderMathEverywhere, 200);
+      setTimeout(renderMathEverywhere, 500);
     }
 
     // =========================================================================
@@ -1185,18 +1175,18 @@
       const btn = document.getElementById('btnCopyWord');
       const originalHtml = btn.innerHTML;
 
-      // 1. Tạm thời ẩn các thanh công cụ bàn phím của học sinh
+      // 1. Tạm thời ẩn thanh công cụ của học sinh
       const imatheqContainers = examEl.querySelectorAll('.imatheq-container');
       imatheqContainers.forEach(el => el.style.display = 'none');
 
-      // 2. Tạo vùng chọn bao trọn toàn bộ tờ đề thi
+      // 2. Bôi đen vùng đề thi
       const selection = window.getSelection();
       const range = document.createRange();
       range.selectNode(examEl);
       selection.removeAllRanges();
       selection.addRange(range);
 
-      // 3. Thực hiện lệnh Copy native của trình duyệt
+      // 3. Sao chép chuẩn Native
       try {
         const success = document.execCommand('copy');
         if (success) {
