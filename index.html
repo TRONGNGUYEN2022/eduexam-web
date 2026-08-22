@@ -15,10 +15,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
 
-  <!-- KaTeX -->
+  <!-- KaTeX (Tải trực tiếp không dùng defer để tránh lỗi bất đồng bộ) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
   
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -314,7 +314,7 @@
       </div>
     </aside>
 
-    <!-- Main View: Tờ Đề Thi / Phòng Thi Trực Tuyến -->
+    <!-- Main View -->
     <main class="flex-1 bg-slate-200/80 p-3 sm:p-6 md:overflow-y-auto flex flex-col items-center">
       
       <!-- Thanh Điều Khiển Phòng Thi Online -->
@@ -383,7 +383,7 @@
             </div>
           </div>
 
-          <!-- Phần III: Tự luận kèm Bàn phím MathQuill -->
+          <!-- Phần III: Tự luận -->
           <div>
             <div class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN III. TỰ LUẬN (3,0 điểm)
@@ -419,7 +419,7 @@
             </table>
           </div>
 
-          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết Tự Luận -->
+          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết -->
           <div id="answerKeySection" class="mt-8 pt-6 border-t-2 border-indigo-200 space-y-4">
             <p class="text-slate-400 italic text-center text-xs">Hướng dẫn giải và barem điểm chi tiết sẽ hiển thị tại đây sau khi sinh đề.</p>
           </div>
@@ -876,31 +876,22 @@
     }
 
     // =========================================================================
-    // HÀM CHUYỂN ĐỔI CHUỖI TOÁN SANG KATEX TRỰC TIẾP (FIX DỨT ĐIỂM DẤU $)
+    // HÀM QUÉT VÀ RENDER TOÀN DIỆN KATEX
     // =========================================================================
-    function formatMathText(rawText) {
-      if (!rawText) return '';
-      let text = String(rawText).replace(/\\\$/g, '$');
-      
-      // Chuyển đổi công thức block $$...$$
-      text = text.replace(/\$\$([\s\S]*?)\$\$/g, function(match, math) {
-        try {
-          return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
-        } catch (e) {
-          return match;
-        }
-      });
-      
-      // Chuyển đổi công thức inline $...$
-      text = text.replace(/\$([^\$\n]+?)\$/g, function(match, math) {
-        try {
-          return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
-        } catch (e) {
-          return match;
-        }
-      });
-      
-      return text;
+    function triggerKaTeXRender(containerEl) {
+      if (!containerEl) return;
+      if (window.renderMathInElement) {
+        renderMathInElement(containerEl, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ],
+          throwOnError: false,
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+        });
+      }
     }
 
     // =========================================================================
@@ -914,7 +905,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = formatMathText(q.content || q.question_text || '');
+          const qText = (q.content || q.question_text || '').replace(/\\\$/g, '$');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -933,7 +924,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${formatMathText(o.text || o.content || '')}</span>
+                    <span><strong>${o.id}.</strong> ${(o.text || o.content || '').replace(/\\\$/g, '$')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -947,7 +938,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = formatMathText(q.prompt || q.content || q.question_text || '');
+          const prompt = (q.prompt || q.content || q.question_text || '').replace(/\\\$/g, '$');
           const st = q.statements || {};
 
           return `
@@ -955,7 +946,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = formatMathText(st[k] || st[k.toUpperCase()] || '');
+                  const val = (st[k] || st[k.toUpperCase()] || '').replace(/\\\$/g, '$');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -978,18 +969,17 @@
         }).join('');
       }
 
-      // 3. Render Phần III (Tự luận kèm Bàn Phím MathQuill)
+      // 3. Render Phần III (Tự luận)
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = formatMathText(q.content || q.question_text || '');
+          const qText = (q.content || q.question_text || '').replace(/\\\$/g, '$');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
               <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
               
-              <!-- BÀN PHÍM CÔNG THỨC TOÁN TRỰC QUAN 2 HÀNG -->
               <div class="math-palette-grid">
                 <div class="math-col-group">
                   <div class="math-row">
@@ -1081,7 +1071,6 @@
                 </div>
               </div>
 
-              <!-- Khung soạn thảo MathQuill -->
               <div id="essayField_${idx}" class="mathquill-editor-field"></div>
             </div>
           `;
@@ -1122,7 +1111,7 @@
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          const sol = formatMathText(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          let sol = (q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.').replace(/\\\$/g, '$');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1136,7 +1125,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${formatMathText(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${(g.step || g.content || '').replace(/\\\$/g, '$')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1149,7 +1138,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          const exp = formatMathText(q.explanation || '');
+          let exp = (q.explanation || '').replace(/\\\$/g, '$');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1173,12 +1162,18 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
+
+      // 6. Quét KaTeX toàn bộ tờ đề thi (kèm cơ chế Retry nhiều lần)
+      const runRender = () => triggerKaTeXRender(document.getElementById('examContainer'));
+      setTimeout(runRender, 50);
+      setTimeout(runRender, 200);
+      setTimeout(runRender, 500);
     }
 
     // =========================================================================
     // 1-CLICK SAO CHÉP TOÀN BỘ ĐỀ THI & ĐÁP ÁN DÁN WORD THÀNH EQUATION (CTRL + V)
     // =========================================================================
-    async function copyExamForWord() {
+    function copyExamForWord() {
       if (!currentExamData) {
         alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi sao chép!');
         return;
@@ -1190,47 +1185,36 @@
       const btn = document.getElementById('btnCopyWord');
       const originalHtml = btn.innerHTML;
 
+      // 1. Tạm thời ẩn các thanh công cụ và khung soạn thảo của học sinh
+      const mathPalettes = examEl.querySelectorAll('.math-palette-grid, .mq-editable-field');
+      mathPalettes.forEach(el => el.style.display = 'none');
+
+      // 2. Tạo vùng chọn (Selection) bao trọn toàn bộ tờ đề thi
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNode(examEl);
+      selection.removeAllRanges();
+      selection.addRange(range);
+
+      // 3. Thực hiện lệnh Copy native của trình duyệt
       try {
-        const clone = examEl.cloneNode(true);
-        
-        // Loại bỏ thanh công cụ và khung soạn thảo của học sinh
-        clone.querySelectorAll('.math-palette-grid, .mq-editable-field').forEach(el => el.remove());
-
-        // Loại bỏ giao diện giả lập KaTeX HTML, chuẩn hóa thẻ MathML cho Word
-        clone.querySelectorAll('.katex-html').forEach(el => el.remove());
-        clone.querySelectorAll('math').forEach(m => {
-          m.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
-        });
-
-        const htmlContent = clone.innerHTML;
-        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
-        const blobText = new Blob([clone.innerText], { type: 'text/plain' });
-
-        const clipboardItem = new ClipboardItem({
-          'text/html': blobHtml,
-          'text/plain': blobText
-        });
-
-        await navigator.clipboard.write([clipboardItem]);
-
-        btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
-        btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5";
-
-        setTimeout(() => {
-          btn.innerHTML = originalHtml;
-          btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
-        }, 3000);
-
+        const success = document.execCommand('copy');
+        if (success) {
+          btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
+          btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5";
+          
+          setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
+          }, 3000);
+        } else {
+          throw new Error("Không thể copy");
+        }
       } catch (err) {
-        // Fallback chọn vùng bôi đen
-        const selection = window.getSelection();
-        const range = document.createRange();
-        range.selectNode(examEl);
+        alert('Vui lòng bôi đen toàn bộ trang và bấm Ctrl + C.');
+      } finally {
+        mathPalettes.forEach(el => el.style.display = '');
         selection.removeAllRanges();
-        selection.addRange(range);
-        document.execCommand('copy');
-        selection.removeAllRanges();
-        alert('Đã sao chép toàn bộ đề thi! Mở Word và bấm phím Ctrl + V để dán.');
       }
     }
 
