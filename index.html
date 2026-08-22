@@ -906,7 +906,40 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM (ĐỒNG BỘ NGUYÊN BẢN CẢ TRÊN & DƯỚI)
+    // BỘ PHÂN GIẢI CHUỖI TOÁN TRỰC TIẾP KATEX (HỖ TRỢ TOÀN DIỆN CẢ SỐ ÂM & ĐA THỨC)
+    // =========================================================================
+    function formatFormulaText(rawText) {
+      if (!rawText) return '';
+      let text = String(rawText);
+      
+      // Khôi phục escape bị lỗi
+      text = text.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
+      text = text.replace(/\\text\{m\}/g, '\\text{m}');
+      text = text.replace(/\t/g, ' ');
+
+      // 1. Phân giải công thức $$...$$
+      text = text.replace(/\$\$([\s\S]*?)\$\$/g, function(match, formula) {
+        try {
+          return katex.renderToString(formula.trim(), { displayMode: true, throwOnError: false });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      // 2. Phân giải công thức $...$ (Cho phép nhận cả số âm, dấu trừ, biến đơn)
+      text = text.replace(/\$([^\$\n\r]+?)\$/g, function(match, formula) {
+        try {
+          return katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      return text;
+    }
+
+    // =========================================================================
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -916,7 +949,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = formatFormulaText(q.content || q.question_text || '');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -935,7 +968,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${o.text || o.content || ''}</span>
+                    <span><strong>${o.id}.</strong> ${formatFormulaText(o.text || o.content || '')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -949,7 +982,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = q.prompt || q.content || q.question_text || '';
+          const prompt = formatFormulaText(q.prompt || q.content || q.question_text || '');
           const st = q.statements || {};
 
           return `
@@ -957,7 +990,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = st[k] || st[k.toUpperCase()] || '';
+                  const val = formatFormulaText(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -985,7 +1018,7 @@
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = formatFormulaText(q.content || q.question_text || '');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1067,11 +1100,11 @@
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (DÙNG ĐÚNG LOGIC NHƯ PHẦN I, II, III BÊN TRÊN)
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (DÙNG formatFormulaText ĐỒNG BỘ 100%)
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
+          let sol = formatFormulaText(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1085,7 +1118,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${g.step || g.content || ''} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${formatFormulaText(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1098,7 +1131,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = q.explanation || '';
+          let exp = formatFormulaText(q.explanation || '');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1122,27 +1155,6 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
-
-      // 6. QUÉT TOÀN BỘ TỜ ĐỀ THI BẰNG KATEX AUTO-RENDER VỚI DELIMITERS ĐẦY ĐỦ
-      const runKaTeX = () => {
-        const root = document.getElementById('examContainer');
-        if (root && window.renderMathInElement) {
-          renderMathInElement(root, {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "$", right: "$", display: false },
-              { left: "\\(", right: "\\)", display: false },
-              { left: "\\[", right: "\\]", display: true }
-            ],
-            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"],
-            throwOnError: false
-          });
-        }
-      };
-
-      setTimeout(runKaTeX, 50);
-      setTimeout(runKaTeX, 200);
-      setTimeout(runKaTeX, 500);
     }
 
     // =========================================================================
