@@ -906,19 +906,20 @@
     }
 
     // =========================================================================
-    // HÀM CHUẨN HÓA DỮ LIỆU ĐỒNG BỘ
+    // HÀM CHUẨN HÓA DỮ LIỆU ĐỒNG BỘ CHO CẢ ĐỀ & ĐÁP ÁN
     // =========================================================================
     function cleanMath(rawText) {
       if (!rawText) return '';
       let text = String(rawText);
-      // Xử lý escape bị dư do JSON serialization
+      // Xóa tất cả escape bị dư
       text = text.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
+      text = text.replace(/\text\{m\}/g, '\\text{m}');
       text = text.replace(/\t/g, ' ');
       return text;
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM (ĐỒNG BỘ NGUYÊN BẢN CẢ TRÊN VÀ DƯỚI)
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1082,7 +1083,7 @@
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (DÙNG ĐÚNG LOGIC NHƯ PHẦN I, II, III)
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (ĐỒNG BỘ HOÀN TOÀN CÔNG THỨC)
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
@@ -1138,7 +1139,7 @@
         `;
       }
 
-      // 6. QUÉT KATEX TOÀN BỘ TỜ ĐỀ THI (#examContainer CHỨA CẢ ĐỀ & ĐÁP ÁN)
+      // 6. QUÉT KATEX TRỰC TIẾP TRÊN PHẦN TỬ CHA #examContainer
       const doRender = () => {
         const root = document.getElementById('examContainer');
         if (root && window.renderMathInElement) {
