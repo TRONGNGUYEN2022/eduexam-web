@@ -5,41 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Thi Online GDPT 2018 (TP.HCM)</title>
   
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Cấu hình MathJax 3 (Chuyên trị lỗi Delimiter và ký tự rớt ngoài dấu $) -->
+  <!-- MathJax 3 Cấu hình -->
   <script>
     window.MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true,
-        processEnvironments: true
+        processEscapes: true
       },
       options: {
-        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option'],
-        ignoreHtmlClass: 'tex2jax_ignore',
-        processHtmlClass: 'tex2jax_process'
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
       }
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-  <!-- KaTeX hỗ trợ riêng cho Bàn phím iMathEQ ảo -->
+  <!-- KaTeX cho thanh công cụ iMathEQ ảo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #1e293b; }
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
-    
     .hidden { display: none !important; }
     .sidebar-scroll { max-height: calc(100vh - 170px); overflow-y: auto; }
     @media (max-width: 768px) {
@@ -56,7 +49,6 @@
       flex-direction: column;
       gap: 6px;
     }
-
     .imatheq-panel {
       display: flex;
       flex-wrap: wrap;
@@ -66,7 +58,6 @@
       border-radius: 4px;
       border: 1px solid #e2e8f0;
     }
-
     .imatheq-btn {
       min-width: 32px;
       height: 30px;
@@ -99,7 +90,6 @@
       border-radius: 1px;
       vertical-align: middle;
     }
-
     .essay-editor {
       min-height: 140px;
       outline: none;
@@ -457,16 +447,6 @@
     let isStudentExamMode = false;
     let timerInterval = null;
     let timeRemaining = 45 * 60;
-
-    // Chuẩn hóa văn bản trước khi đưa vào DOM
-    function formatRawMathText(raw) {
-      if (!raw) return '';
-      let str = String(raw);
-      str = str.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
-      str = str.replace(/\t/g, ' ');
-      str = str.replace(/\$\s*\$/g, ' ');
-      return str;
-    }
 
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
@@ -942,7 +922,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = formatRawMathText(q.content || q.question_text || '');
+          const qText = q.content || q.question_text || '';
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -961,7 +941,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${formatRawMathText(o.text || o.content || '')}</span>
+                    <span><strong>${o.id}.</strong> ${o.text || o.content || ''}</span>
                   </label>
                 `).join('')}
               </div>
@@ -975,7 +955,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = formatRawMathText(q.prompt || q.content || q.question_text || '');
+          const prompt = q.prompt || q.content || q.question_text || '';
           const st = q.statements || {};
 
           return `
@@ -983,7 +963,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = formatRawMathText(st[k] || st[k.toUpperCase()] || '');
+                  const val = st[k] || st[k.toUpperCase()] || '';
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1011,7 +991,7 @@
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = formatRawMathText(q.content || q.question_text || '');
+          const qText = q.content || q.question_text || '';
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1097,7 +1077,7 @@
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = formatRawMathText(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          let sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1111,7 +1091,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${formatRawMathText(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${g.step || g.content || ''} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1124,7 +1104,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = formatRawMathText(q.explanation || '');
+          let exp = q.explanation || '';
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1149,12 +1129,19 @@
         `;
       }
 
-      // 6. GỌI MATHJAX 3 QUÉT TOÀN BỘ DOM (CƠ CHẾ MẠNH MẼ VÀ TỰ SỬA LỖI TỐT NHẤT THẾ GIỚI)
-      if (window.MathJax && window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([document.getElementById('examContainer')]).catch((err) => {
-          console.warn('MathJax error:', err);
-        });
-      }
+      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi
+      const triggerMathJax = () => {
+        const root = document.getElementById('examContainer');
+        if (root && window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise([root]).catch((err) => {
+            console.warn('MathJax error:', err);
+          });
+        }
+      };
+
+      setTimeout(triggerMathJax, 50);
+      setTimeout(triggerMathJax, 300);
+      setTimeout(triggerMathJax, 800);
     }
 
     // =========================================================================
