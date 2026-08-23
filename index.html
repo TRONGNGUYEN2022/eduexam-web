@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Thi Online GDPT 2018 (TP.HCM)</title>
+  <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Đề Thi Chuẩn Equation (TP.HCM)</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- MathJax 3 Cấu hình -->
+  <!-- MathJax 3 Cấu hình chuẩn -->
   <script>
     window.MathJax = {
       tex: {
@@ -156,6 +156,9 @@
         <button id="tabBtnNotebook" onclick="switchTab('notebook')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-book-bookmark text-amber-500"></i> Notebook Ma trận
         </button>
+        <button id="tabBtnDB" onclick="switchTab('db')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-database text-emerald-600"></i> Kho CSDL
+        </button>
       </div>
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
@@ -290,6 +293,21 @@
           </div>
         </div>
 
+        <!-- TAB 3: KHO CƠ SỞ DỮ LIỆU ĐỀ THI -->
+        <div id="panelDB" class="hidden space-y-2.5 bg-emerald-50/70 p-3 rounded-lg border border-emerald-300">
+          <label class="block font-bold text-emerald-950 flex items-center justify-between">
+            <span><i class="fa-solid fa-server text-emerald-700"></i> Kho Đề Chuẩn Equation CSDL</span>
+          </label>
+          <div class="space-y-2">
+            <button onclick="loadSampleDatabaseExam()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold p-2 rounded text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-download"></i> Nạp Đề Mẫu Chuẩn (Test vd.html)
+            </button>
+            <button onclick="saveCurrentExamToLocalDB()" class="w-full bg-white border border-emerald-600 text-emerald-800 hover:bg-emerald-50 font-bold p-2 rounded text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu Đề Này Vào Kho Lưu Trữ
+            </button>
+          </div>
+        </div>
+
         <!-- Khối Tùy Chọn Đáp Án Tự Luận -->
         <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-300 space-y-2">
           <label class="block font-bold text-emerald-950 flex items-center justify-between">
@@ -378,7 +396,7 @@
             </div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh trả lời từ câu 1 đến câu 4. Mỗi câu hỏi chỉ chọn một phương án chính xác nhất.</p>
             <div class="space-y-4 text-xs sm:text-sm" id="part1Container">
-              <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" để tạo câu hỏi trắc nghiệm...</p>
+              <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" hoặc nạp từ CSDL để tạo câu hỏi trắc nghiệm...</p>
             </div>
           </div>
 
@@ -389,7 +407,7 @@
             </div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh chọn Đúng (Đ) hoặc Sai (S) cho mỗi ý a), b), c), d).</p>
             <div class="text-xs sm:text-sm space-y-3" id="part2Container">
-              <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" để tạo câu hỏi đúng sai...</p>
+              <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" hoặc nạp từ CSDL để tạo câu hỏi đúng sai...</p>
             </div>
           </div>
 
@@ -399,7 +417,7 @@
               PHẦN III. TỰ LUẬN (3,0 điểm)
             </div>
             <div class="space-y-4 text-xs sm:text-sm" id="part3Container">
-              <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" để tạo câu hỏi tự luận...</p>
+              <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" hoặc nạp từ CSDL để tạo câu hỏi tự luận...</p>
             </div>
           </div>
         </div>
@@ -690,19 +708,27 @@
       activeTab = tab;
       const btnQ = document.getElementById('tabBtnQuick');
       const btnN = document.getElementById('tabBtnNotebook');
+      const btnD = document.getElementById('tabBtnDB');
       const panelQ = document.getElementById('panelQuick');
       const panelN = document.getElementById('panelNotebook');
+      const panelD = document.getElementById('panelDB');
+
+      btnQ.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
+      btnN.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
+      btnD.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
+      panelQ.classList.add('hidden');
+      panelN.classList.add('hidden');
+      panelD.classList.add('hidden');
 
       if (tab === 'quick') {
-        btnQ.className = "flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 cursor-pointer";
-        btnN.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
+        btnQ.className = "flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center justify-center gap-1.5 cursor-pointer";
         panelQ.classList.remove('hidden');
-        panelN.classList.add('hidden');
-      } else {
+      } else if (tab === 'notebook') {
         btnN.className = "flex-1 pb-2 border-b-2 border-amber-600 text-amber-700 font-bold flex items-center justify-center gap-1.5 cursor-pointer";
-        btnQ.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
-        panelQ.classList.add('hidden');
         panelN.classList.remove('hidden');
+      } else if (tab === 'db') {
+        btnD.className = "flex-1 pb-2 border-b-2 border-emerald-600 text-emerald-700 font-bold flex items-center justify-center gap-1.5 cursor-pointer";
+        panelD.classList.remove('hidden');
       }
     }
 
@@ -733,6 +759,92 @@
 
     function fillSampleSources() {
       document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. Số nguyên tố nhỏ nhất là số 2.\n2. Phép tính $A = 2^3 \\cdot 5 - 15 = 40 - 15 = 25$.\n3. Một đội tình nguyện có từ 100 đến 150 người, khi chia thành hàng 4, hàng 5, hàng 6 đều vừa đủ. Tính số người.";
+    }
+
+    // =========================================================================
+    // BƯỚC TRUNG GIAN QUAN TRỌNG: PIPELINE CHUẨN HÓA LATEX EQUATION TỪ DỮ LIỆU AI
+    // =========================================================================
+    function sanitizeMathString(text) {
+      if (!text) return '';
+      if (typeof text !== 'string') text = String(text);
+
+      let str = text;
+
+      // 1. Chuẩn hóa các dấu hiển thị công thức LaTeX
+      str = str.replace(/\\\[/g, '$$').replace(/\\\]/g, '$$')
+               .replace(/\\\(/g, '$').replace(/\\\)/g, '$');
+
+      // 2. Sửa lỗi JSON escape bị mất dấu gạch chéo ngược
+      str = str.replace(/\brac\{/g, '\\frac{')
+               .replace(/\bqrt\{/g, '\\sqrt{')
+               .replace(/\bcdot\b/g, '\\cdot')
+               .replace(/\btimes\b/g, '\\times')
+               .replace(/\bmathbb\{/g, '\\mathbb{');
+
+      // 3. Tự động bao bọc $ $ cho các biểu thức toán học nếu AI trả về chuỗi trần
+      if (!str.includes('$')) {
+        const mathKeywords = /\\(frac|sqrt|times|cdot|approx|ne|le|ge|in|notin|subset|cap|cup|degree|vec|angle|parallel|perp|pm)/g;
+        if (mathKeywords.test(str)) {
+          str = `$${str}$`;
+        }
+      }
+
+      return str;
+    }
+
+    function sanitizeExamData(data) {
+      if (!data) return data;
+
+      // 1. Chuẩn hóa Phần I
+      const p1List = data.part_1_mcq || data.part1_multiple_choice || data.part1 || [];
+      p1List.forEach(q => {
+        if (q.content) q.content = sanitizeMathString(q.content);
+        if (q.question_text) q.question_text = sanitizeMathString(q.question_text);
+        if (q.explanation) q.explanation = sanitizeMathString(q.explanation);
+
+        if (Array.isArray(q.options)) {
+          q.options.forEach(opt => {
+            if (opt.text) opt.text = sanitizeMathString(opt.text);
+            if (opt.content) opt.content = sanitizeMathString(opt.content);
+          });
+        } else if (q.options && typeof q.options === 'object') {
+          Object.keys(q.options).forEach(k => {
+            q.options[k] = sanitizeMathString(q.options[k]);
+          });
+        }
+      });
+
+      // 2. Chuẩn hóa Phần II
+      const p2List = data.part_2_tf || data.part2_true_false || data.part2 || [];
+      p2List.forEach(q => {
+        if (q.prompt) q.prompt = sanitizeMathString(q.prompt);
+        if (q.content) q.content = sanitizeMathString(q.content);
+        if (q.question_text) q.question_text = sanitizeMathString(q.question_text);
+        if (q.explanation) q.explanation = sanitizeMathString(q.explanation);
+
+        if (q.statements && typeof q.statements === 'object') {
+          Object.keys(q.statements).forEach(k => {
+            q.statements[k] = sanitizeMathString(q.statements[k]);
+          });
+        }
+      });
+
+      // 3. Chuẩn hóa Phần III & Barem điểm
+      const p3List = data.part_3_essay || data.part3_essay || data.part3 || [];
+      p3List.forEach(q => {
+        if (q.content) q.content = sanitizeMathString(q.content);
+        if (q.question_text) q.question_text = sanitizeMathString(q.question_text);
+        if (q.solution) q.solution = sanitizeMathString(q.solution);
+        if (q.answer) q.answer = sanitizeMathString(q.answer);
+
+        const guideList = q.scoring_guide || q.guide || [];
+        guideList.forEach(g => {
+          if (g.step) g.step = sanitizeMathString(g.step);
+          if (g.content) g.content = sanitizeMathString(g.content);
+        });
+      });
+
+      return data;
     }
 
     async function triggerGenerate() {
@@ -789,11 +901,19 @@
 
         const result = await response.json();
         if (result.status === 'success' || result.base_exam) {
-          currentExamData = result;
-          const examObj = result.base_exam || result;
+          
+          // BƯỚC TRUNG GIAN: Làm sạch và chuẩn hóa toàn bộ dữ liệu trước khi lưu và hiển thị
+          const rawExam = result.base_exam || result;
+          const cleanedExam = sanitizeExamData(rawExam);
+
+          currentExamData = {
+            ...result,
+            base_exam: cleanedExam
+          };
+
           const matrixObj = result.answer_matrix || {};
           
-          renderExamToView(examObj, matrixObj);
+          renderExamToView(cleanedExam, matrixObj);
           syncHeaderPreview();
           
           if (window.innerWidth < 768) {
@@ -809,6 +929,81 @@
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề</span>`;
         btn.disabled = false;
       }
+    }
+
+    // =========================================================================
+    // TÍCH HỢP ĐỔ DỮ LIỆU ĐỘNG TỪ CSDL (DATABASE)
+    // =========================================================================
+    function loadSampleDatabaseExam() {
+      // Dữ liệu mẫu chuẩn Equation tương đương file vd.html
+      const sampleDB = {
+        part_1_mcq: [
+          {
+            content: "Số nào sau đây là nghiệm của phương trình $x^2 - 4 = 0$?",
+            options: [
+              { id: "A", text: "$x = 2$" },
+              { id: "B", text: "$x = -3$" },
+              { id: "C", text: "$x = 4$" },
+              { id: "D", text: "$x = 0$" }
+            ]
+          }
+        ],
+        part_2_tf: [
+          {
+            prompt: "Cho biểu thức $A = \\left(\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}}\\right) : \\frac{\\sqrt{x}+1}{x-1}$ với $x > 0, x \\neq 1$.",
+            statements: {
+              a: "Điều kiện xác định của $A$ là $x > 0$ và $x \\neq 1$.",
+              b: "Rút gọn biểu thức $A$ ta được kết quả $A = \\frac{x-1}{\\sqrt{x}}$.",
+              c: "Khi $x = 4$ thì giá trị của $A$ bằng $\\frac{5}{2}$.",
+              d: "Có đúng một giá trị của $x$ để biểu thức $A = 0$."
+            },
+            answers: { a: "Đ", b: "Đ", c: "S", d: "S" },
+            explanation: "a) Đúng: $x > 0$ để $\\sqrt{x}$ xác định và mẫu $x - \\sqrt{x} \\neq 0$; $x \\neq 1$ để mẫu $\\sqrt{x}-1 \\neq 0$ và $x-1 \\neq 0$. b) Đúng: Trong ngoặc $\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{\\sqrt{x}(\\sqrt{x}-1)} = \\frac{x - 1}{\\sqrt{x}(\\sqrt{x}-1)} = \\frac{\\sqrt{x}+1}{\\sqrt{x}}$. Nhân chia: $A = \\frac{\\sqrt{x}+1}{\\sqrt{x}} \\cdot \\frac{x-1}{\\sqrt{x}+1} = \\frac{x-1}{\\sqrt{x}}$. c) Sai: Với $x = 4$, $A = \\frac{4-1}{\\sqrt{4}} = \\frac{3}{2} \\neq \\frac{5}{2}$. d) Sai: $A = 0 \\Leftrightarrow \\frac{x-1}{\\sqrt{x}} = 0 \\Leftrightarrow x - 1 = 0 \\Leftrightarrow x = 1$."
+          }
+        ],
+        part_3_essay: [
+          {
+            points: 1.5,
+            content: "Giải phương trình sau: $\\sqrt{4(x - 2)} - \\sqrt{x - 2} = 3$.",
+            solution: "1. Điều kiện xác định: $x - 2 \\ge 0 \\Leftrightarrow x \\ge 2$. 2. Biến đổi phương trình: $\\sqrt{4(x - 2)} - \\sqrt{x - 2} = 3 \\Leftrightarrow 2\\sqrt{x - 2} - \\sqrt{x - 2} = 3 \\Leftrightarrow \\sqrt{x - 2} = 3$. 3. Bình phương hai vế: $x - 2 = 9 \\Leftrightarrow x = 11$. Đối chiếu điều kiện $x = 11 \\ge 2$ (thỏa mãn). Vậy phương trình có nghiệm $x = 11$.",
+            scoring_guide: [
+              { step: "Bước 1: Điều kiện xác định $x \\ge 2$", points: "0.5 đ" },
+              { step: "Bước 2: Rút gọn về dạng $\\sqrt{x - 2} = 3$", points: "0.5 đ" },
+              { step: "Bước 3: Tìm ra nghiệm $x = 11$ và kết luận", points: "0.5 đ" }
+            ]
+          },
+          {
+            points: 1.5,
+            content: "Cho biểu thức $P = \\frac{\\sqrt{x} + 2}{\\sqrt{x} - 1}$. Tìm các số nguyên $x$ để biểu thức $P$ nhận giá trị nguyên.",
+            solution: "Ta có: $P = \\frac{\\sqrt{x} - 1 + 3}{\\sqrt{x} - 1} = 1 + \\frac{3}{\\sqrt{x} - 1}$. Để $P \\in \\mathbb{Z}$ với $x \\in \\mathbb{Z}$ thì $\\frac{3}{\\sqrt{x} - 1} \\in \\mathbb{Z} \\Leftrightarrow \\sqrt{x} - 1 \\in \\text{Ư}(3) = \\{-3; -1; 1; 3\\}$. Lập bảng: + $\\sqrt{x} - 1 = -1 \\Leftrightarrow x = 0$; + $\\sqrt{x} - 1 = 1 \\Leftrightarrow x = 4$; + $\\sqrt{x} - 1 = 3 \\Leftrightarrow x = 16$. Vậy $x \\in \\{0; 4; 16\\}$.",
+            scoring_guide: [
+              { step: "Bước 1: Biến đổi $P = 1 + \\frac{3}{\\sqrt{x} - 1}$", points: "0.5 đ" },
+              { step: "Bước 2: Tìm các giá trị của $\\sqrt{x} - 1$", points: "0.5 đ" },
+              { step: "Bước 3: Kết luận tập hợp $x \\in \\{0; 4; 16\\}$", points: "0.5 đ" }
+            ]
+          }
+        ]
+      };
+
+      currentExamData = {
+        base_exam: sampleDB,
+        answer_matrix: {
+          "101": { "Câu 1": "A", "Câu 2": "B", "Câu 3": "C", "Câu 4": "D" },
+          "102": { "Câu 1": "B", "Câu 2": "C", "Câu 3": "D", "Câu 4": "A" }
+        }
+      };
+
+      renderExamToView(currentExamData.base_exam, currentExamData.answer_matrix);
+      alert("Đã nạp thành công đề thi chuẩn Equation từ Kho CSDL!");
+    }
+
+    function saveCurrentExamToLocalDB() {
+      if (!currentExamData) {
+        alert("Chưa có đề thi để lưu vào cơ sở dữ liệu!");
+        return;
+      }
+      localStorage.setItem("eduexam_saved_exam", JSON.stringify(currentExamData));
+      alert("Đã lưu đề thi hiện tại vào bộ nhớ CSDL LocalStorage!");
     }
 
     function toggleExamMode() {
@@ -912,7 +1107,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM (CƠ CHẾ ĐỒNG BỘ MATHJAX)
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1129,19 +1324,16 @@
         `;
       }
 
-      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi
-      const triggerMathJax = () => {
-        const root = document.getElementById('examContainer');
-        if (root && window.MathJax && window.MathJax.typesetPromise) {
-          window.MathJax.typesetPromise([root]).catch((err) => {
-            console.warn('MathJax error:', err);
-          });
+      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi (chuẩn như vd.html)
+      const root = document.getElementById('examContainer');
+      if (root && window.MathJax && window.MathJax.typesetPromise) {
+        if (window.MathJax.typesetClear) {
+          window.MathJax.typesetClear([root]);
         }
-      };
-
-      setTimeout(triggerMathJax, 50);
-      setTimeout(triggerMathJax, 300);
-      setTimeout(triggerMathJax, 800);
+        window.MathJax.typesetPromise([root]).catch((err) => {
+          console.warn('MathJax error:', err);
+        });
+      }
     }
 
     // =========================================================================
@@ -1149,7 +1341,7 @@
     // =========================================================================
     function copyExamForWord() {
       if (!currentExamData) {
-        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi sao chép!');
+        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" hoặc nạp từ CSDL trước khi sao chép!');
         return;
       }
 
@@ -1194,7 +1386,7 @@
     // =========================================================================
     function exportExamToWordNativeDoc() {
       if (!currentExamData) {
-        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi xuất file Word!');
+        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" hoặc nạp từ CSDL trước khi xuất file Word!');
         return;
       }
 
@@ -1279,7 +1471,7 @@ strong { font-weight: bold; }
     // =========================================================================
     async function downloadWordDocxPython() {
       if (!currentExamData) {
-        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi xuất file Word!');
+        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" hoặc nạp từ CSDL trước khi xuất file Word!');
         return;
       }
 
