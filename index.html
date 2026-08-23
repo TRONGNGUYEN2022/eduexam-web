@@ -8,10 +8,9 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core & Auto-Render -->
+  <!-- KaTeX Core (Chỉ cần KaTeX thuần) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
   
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -442,33 +441,37 @@
     let timerInterval = null;
     let timeRemaining = 45 * 60;
 
-    // HÀM CHUẨN HÓA & KHẮC PHỤC TRIỆT ĐỂ LỖI DELIMITER TOÁN CỦA AI
-    function cleanMathAndFixDelimiters(raw) {
-      if (!raw) return '';
-      let str = String(raw);
+    // =========================================================================
+    // CƠ CHẾ TOKEN TOKENIZER GEMINI CHUẨN XÁC TUYỆT ĐỐI (KHÔNG BAO GIỜ BỊ LỖI KATEX)
+    // =========================================================================
+    function geminiRenderMath(rawText) {
+      if (!rawText) return '';
+      let text = String(rawText);
 
-      // 1. Phục hồi escape JSON
-      str = str.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
-      str = str.replace(/\t/g, ' ');
+      // Làm sạch escape
+      text = text.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
+      text = text.replace(/\t/g, ' ');
 
-      // 2. Gộp các cặp dấu $ đứng sát nhau ($ $ hoặc $ $) thành 1 khoảng trắng
-      str = str.replace(/\$\s*\$/g, ' ');
+      // Tách chuỗi theo dấu $
+      let parts = text.split('$');
+      let resultHtml = '';
 
-      // 3. Tự động bọc lại các ký hiệu toán học bị AI vứt ra ngoài dấu $
-      const mathKeywords = [
-        '\\\\Leftrightarrow', '\\\\Rightarrow', '\\\\neq', '\\\\ge', '\\\\le',
-        '\\\\in', '\\\\notin', '\\\\subset', '\\\\cap', '\\\\cup',
-        '\\\\sqrt\\{[^}]+\\}', '\\\\frac\\{[^}]+\\}\\{[^}]+\\}', '\\\\cdot'
-      ];
-      mathKeywords.forEach(pattern => {
-        const regex = new RegExp(`(?<!\\$)\\s*(${pattern})\\s*(?!\\$)`, 'g');
-        str = str.replace(regex, ' $$1 ');
-      });
-
-      // 4. Xóa khoảng trắng sát dấu $ để tránh KaTeX hiểu nhầm là tiền tệ
-      str = str.replace(/\$\s+/g, '$').replace(/\s+\$/g, '$');
-
-      return str;
+      for (let i = 0; i < parts.length; i++) {
+        // Vị trí chẵn là Text thường, vị trí lẻ là Công thức toán
+        if (i % 2 === 0) {
+          resultHtml += parts[i];
+        } else {
+          let mathExpr = parts[i].trim();
+          if (mathExpr) {
+            try {
+              resultHtml += katex.renderToString(mathExpr, { displayMode: false, throwOnError: false });
+            } catch (e) {
+              resultHtml += `<span class="font-mono text-indigo-700">$${mathExpr}$</span>`;
+            }
+          }
+        }
+      }
+      return resultHtml;
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -945,7 +948,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = cleanMathAndFixDelimiters(q.content || q.question_text || '');
+          const qText = geminiRenderMath(q.content || q.question_text || '');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -964,7 +967,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${cleanMathAndFixDelimiters(o.text || o.content || '')}</span>
+                    <span><strong>${o.id}.</strong> ${geminiRenderMath(o.text || o.content || '')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -978,7 +981,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = cleanMathAndFixDelimiters(q.prompt || q.content || q.question_text || '');
+          const prompt = geminiRenderMath(q.prompt || q.content || q.question_text || '');
           const st = q.statements || {};
 
           return `
@@ -986,7 +989,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = cleanMathAndFixDelimiters(st[k] || st[k.toUpperCase()] || '');
+                  const val = geminiRenderMath(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1014,7 +1017,7 @@
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = cleanMathAndFixDelimiters(q.content || q.question_text || '');
+          const qText = geminiRenderMath(q.content || q.question_text || '');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1096,11 +1099,11 @@
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (ĐỒNG BỘ DÙNG geminiRenderMath)
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = cleanMathAndFixDelimiters(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          let sol = geminiRenderMath(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1114,7 +1117,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${cleanMathAndFixDelimiters(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${geminiRenderMath(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1127,7 +1130,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = cleanMathAndFixDelimiters(q.explanation || '');
+          let exp = geminiRenderMath(q.explanation || '');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1151,27 +1154,6 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
-
-      // 6. QUÉT TOÀN BỘ DOM BẰNG KATEX VỚI ĐẦY ĐỦ CẤU HÌNH DELIMITERS
-      const runKaTeX = () => {
-        const root = document.getElementById('examContainer');
-        if (root && window.renderMathInElement) {
-          renderMathInElement(root, {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "$", right: "$", display: false },
-              { left: "\\(", right: "\\)", display: false },
-              { left: "\\[", right: "\\]", display: true }
-            ],
-            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"],
-            throwOnError: false
-          });
-        }
-      };
-
-      setTimeout(runKaTeX, 60);
-      setTimeout(runKaTeX, 300);
-      setTimeout(runKaTeX, 800);
     }
 
     // =========================================================================
@@ -1189,18 +1171,15 @@
       const btn = document.getElementById('btnCopyWord');
       const originalHtml = btn.innerHTML;
 
-      // 1. Tạm thời ẩn thanh công cụ của học sinh
       const imatheqContainers = examEl.querySelectorAll('.imatheq-container');
       imatheqContainers.forEach(el => el.style.display = 'none');
 
-      // 2. Bôi đen vùng đề thi
       const selection = window.getSelection();
       const range = document.createRange();
       range.selectNode(examEl);
       selection.removeAllRanges();
       selection.addRange(range);
 
-      // 3. Sao chép chuẩn Native
       try {
         const success = document.execCommand('copy');
         if (success) {
