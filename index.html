@@ -7,7 +7,7 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Temml: Chuyển đổi trực tiếp LaTeX sang Native MathML (<math>) cho Word Equation chuẩn 100% -->
+  <!-- Temml: Chuyển đổi trực tiếp LaTeX sang Native MathML (<math>) cho Word Equation -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/temml@0.10.22/dist/Temml-Latin-Modern.css">
   <script src="https://cdn.jsdelivr.net/npm/temml@0.10.22/dist/temml.min.js"></script>
 
@@ -28,13 +28,11 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* MathML equation styling */
     math {
       font-family: 'Cambria Math', 'Times New Roman', serif;
       font-size: 1.05em;
     }
 
-    /* iMathEQ Visual Keyboard Toolbar */
     .imatheq-container {
       background: #f8fafc;
       border: 1px solid #94a3b8;
@@ -118,7 +116,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Native MathML Engine & Soạn Thảo Khảo Thí GDPT 2018</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Native MathML Preview & Xuất Đáp Án Pandoc DOCX</p>
       </div>
     </div>
     
@@ -130,7 +128,7 @@
         <i class="fa-solid fa-copy text-amber-300"></i> <span>Sao chép Equation</span>
       </button>
       <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-file-word"></i> <span>Tải .doc</span>
+        <i class="fa-solid fa-file-word"></i> <span>Tải Đề .doc</span>
       </button>
     </div>
   </header>
@@ -141,14 +139,14 @@
     <!-- Sidebar Cấu hình -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 md:p-5 flex flex-col gap-3 shrink-0 shadow-sm">
       
-      <!-- Khối Cấu Hình API Key Google Gemini -->
+      <!-- API Key -->
       <div class="bg-amber-50/90 p-2.5 rounded-lg border border-amber-300 space-y-1">
         <label class="block font-bold text-amber-950 text-[11px] flex items-center justify-between">
           <span><i class="fa-solid fa-key text-amber-600"></i> Google Gemini API Key</span>
-          <span class="text-[10px] text-amber-700 font-normal">Lưu trên máy client</span>
+          <span class="text-[10px] text-amber-700 font-normal">Lưu client</span>
         </label>
         <div class="flex gap-1">
-          <input type="password" id="geminiApiKeyInput" placeholder="Dán API Key (AIzaSy...)..." onchange="saveApiKey()" class="flex-1 border border-amber-300 rounded p-1.5 bg-white text-xs font-mono focus:ring-1 focus:ring-amber-500">
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." onchange="saveApiKey()" class="flex-1 border border-amber-300 rounded p-1.5 bg-white text-xs font-mono focus:ring-1 focus:ring-amber-500">
           <button onclick="toggleApiKeyVisibility()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 px-2 rounded text-xs"><i id="apiKeyEyeIcon" class="fa-solid fa-eye"></i></button>
         </div>
       </div>
@@ -164,40 +162,32 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- Khối Chọn Model Gemini -->
+        <!-- Chọn Model -->
         <div class="bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-900 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Direct)</span>
             <span id="modelBadge" class="text-[10px] bg-indigo-200 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">2.5 Flash</span>
           </label>
-          <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-950 focus:ring-1 focus:ring-indigo-500">
-            <optgroup label="⚡ Dòng Tiêu Chuẩn Ổn Định (Khuyên dùng)">
+          <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-950">
+            <optgroup label="⚡ Dòng Tiêu Chuẩn (Khuyên dùng)">
               <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh & Chuẩn Equation)</option>
               <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu & Barem chi tiết)</option>
               <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Siêu nhanh)</option>
               <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
             </optgroup>
-            <optgroup label="🚀 Dòng Thế Hệ Mới (Gemini 3.x)">
+            <optgroup label="🚀 Dòng Thế Hệ Mới">
               <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
               <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
               <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-              <option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
-            </optgroup>
-            <optgroup label="⚙️ Tùy biến">
-              <option value="__custom__">Nhập mã Model tùy chỉnh khác...</option>
             </optgroup>
           </select>
-          <div id="customModelBox" class="hidden">
-            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs mt-1">
-          </div>
         </div>
 
         <!-- Khối Trường / Đơn vị TP.HCM -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-600">Trường THCS (TP.HCM)</label>
-            <select id="schoolSelect" onchange="handleSelectChange('school')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-            </select>
+            <select id="schoolSelect" onchange="handleSelectChange('school')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
             <div id="customSchoolBox" class="mt-1 hidden flex gap-1">
               <input type="text" id="customSchoolInput" placeholder="Ví dụ: THCS NGUYỄN VĂN TRỖI..." class="flex-1 border border-indigo-300 rounded p-1 text-xs">
               <button onclick="saveCustomOption('school')" class="bg-indigo-600 text-white px-2 rounded text-[11px] font-semibold">Lưu</button>
@@ -207,13 +197,11 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Tổ chuyên môn</label>
-              <select id="deptSelect" onchange="handleSelectChange('dept')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-              </select>
+              <select id="deptSelect" onchange="handleSelectChange('dept')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Kỳ kiểm tra</label>
-              <select id="examTitleSelect" onchange="handleSelectChange('examTitle')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-              </select>
+              <select id="examTitleSelect" onchange="handleSelectChange('examTitle')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
             </div>
           </div>
 
@@ -266,8 +254,7 @@
         <div id="panelQuick" class="space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK</label>
-            <select id="topicSelect" onchange="handleTopicSelectChange()" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs">
-            </select>
+            <select id="topicSelect" onchange="handleTopicSelectChange()" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs"></select>
           </div>
           <div id="customTopicContainer" class="hidden">
             <input type="text" id="customTopicInput" placeholder="Nhập chủ đề tùy chỉnh..." class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs">
@@ -281,7 +268,7 @@
               <span>1. Khung Ma Trận Đặc Tả</span>
               <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu nhận biết); Phần 2 (1 câu đúng sai rút gọn); Phần 3 (Bài 1: 1.5đ rút gọn, Bài 2: 1.5đ toán thực tế)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu nhận biết); Phần 2 (1 câu đúng sai); Phần 3 (Bài 1: 1.5đ rút gọn, Bài 2: 1.5đ toán thực tế)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
 
           <div>
@@ -293,13 +280,13 @@
           </div>
         </div>
 
-        <!-- Khối Tùy Chọn Đáp Án Tự Luận -->
+        <!-- Tùy Chọn Lời Giải Tự Luận -->
         <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-300 space-y-2">
           <label class="block font-bold text-emerald-950 flex items-center justify-between">
             <span><i class="fa-solid fa-pen-to-square text-emerald-700"></i> Đáp án & Lời giải Tự luận</span>
           </label>
           
-          <select id="essayModeSelect" onchange="handleEssayModeChange()" class="w-full border border-emerald-300 rounded p-1.5 bg-white text-xs font-semibold text-emerald-950 focus:ring-1 focus:ring-emerald-500">
+          <select id="essayModeSelect" onchange="handleEssayModeChange()" class="w-full border border-emerald-300 rounded p-1.5 bg-white text-xs font-semibold text-emerald-950">
             <option value="ai_auto" selected>✨ AI tự động giải chi tiết & chia barem điểm</option>
             <option value="teacher_only">📝 Sử dụng đáp án nạp vào & AI chuẩn hóa barem</option>
             <option value="hybrid">🤝 Kết hợp: AI đối chiếu đáp án nạp vào & mở rộng</option>
@@ -413,7 +400,14 @@
 
         <!-- Bảng Đáp Án & Barem Giáo Viên -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
-          <h3 class="text-center font-bold text-xs sm:text-sm mb-3 uppercase">BẢNG ĐÁP ÁN & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU</h3>
+          <div class="flex items-center justify-between pb-3 border-b border-slate-300 mb-4">
+            <h3 class="font-bold text-xs sm:text-sm uppercase text-slate-800">
+              BẢNG ĐÁP ÁN & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU
+            </h3>
+            <button onclick="downloadAnswersDocxPandoc()" id="btnDownloadAnswersPandoc" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-1.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
+              <i class="fa-solid fa-file-word text-amber-300"></i> <span>Tải Đáp Án .docx (Pandoc)</span>
+            </button>
+          </div>
           
           <div class="overflow-x-auto w-full">
             <table class="w-full text-xs text-center border-collapse border border-slate-400 min-w-[300px]" style="border: 1px solid #64748b;">
@@ -444,6 +438,7 @@
 
   <!-- JavaScript Xử Lý -->
   <script>
+    const API_BASE_URL = "https://eduexam-backend.onrender.com";
     let currentExamData = null;
     let activeTab = 'quick';
     let isStudentExamMode = false;
@@ -676,38 +671,26 @@
 
     function handleModelChange() {
       const select = document.getElementById('geminiModelSelect');
-      const customBox = document.getElementById('customModelBox');
       const badge = document.getElementById('modelBadge');
       const val = select.value;
 
-      if (val === '__custom__') {
-        customBox.classList.remove('hidden');
-        badge.innerText = "Custom";
-        badge.className = "text-[10px] bg-purple-200 text-purple-800 font-semibold px-1.5 py-0.5 rounded";
+      if (val.includes('3.7')) {
+        badge.innerText = "3.7 Ultra";
+        badge.className = "text-[10px] bg-amber-300 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm";
+      } else if (val.includes('3.6') || val.includes('3.5')) {
+        badge.innerText = "3.x Fast";
+        badge.className = "text-[10px] bg-blue-200 text-blue-900 font-semibold px-1.5 py-0.5 rounded";
+      } else if (val.includes('pro')) {
+        badge.innerText = "Pro Logic";
+        badge.className = "text-[10px] bg-rose-200 text-rose-900 font-semibold px-1.5 py-0.5 rounded";
       } else {
-        customBox.classList.add('hidden');
-        if (val.includes('3.7')) {
-          badge.innerText = "3.7 Ultra";
-          badge.className = "text-[10px] bg-amber-300 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm";
-        } else if (val.includes('3.6') || val.includes('3.5')) {
-          badge.innerText = "3.x Fast";
-          badge.className = "text-[10px] bg-blue-200 text-blue-900 font-semibold px-1.5 py-0.5 rounded";
-        } else if (val.includes('pro')) {
-          badge.innerText = "Pro Logic";
-          badge.className = "text-[10px] bg-rose-200 text-rose-900 font-semibold px-1.5 py-0.5 rounded";
-        } else {
-          badge.innerText = "2.5 Flash";
-          badge.className = "text-[10px] bg-indigo-200 text-indigo-900 font-semibold px-1.5 py-0.5 rounded";
-        }
+        badge.innerText = "2.5 Flash";
+        badge.className = "text-[10px] bg-indigo-200 text-indigo-900 font-semibold px-1.5 py-0.5 rounded";
       }
     }
 
     function getSelectedModel() {
-      const select = document.getElementById('geminiModelSelect');
-      if (select.value === '__custom__') {
-        return document.getElementById('customModelInput').value.trim() || 'gemini-2.5-flash';
-      }
-      return select.value;
+      return document.getElementById('geminiModelSelect').value;
     }
 
     function switchTab(tab) {
@@ -1261,6 +1244,66 @@ QUY TẮC BẮT BUỘC:
     }
 
     // =========================================================================
+    // XUẤT ĐÁP ÁN RA FILE WORD .DOCX QUA PANDOC BACKEND
+    // =========================================================================
+    async function downloadAnswersDocxPandoc() {
+      if (!currentExamData) {
+        alert("Vui lòng tạo đề trước khi tải file đáp án!");
+        return;
+      }
+
+      const btn = document.getElementById('btnDownloadAnswersPandoc');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Pandoc đang xuất...</span>`;
+
+      const base = currentExamData.base_exam || currentExamData;
+      const p2 = base.part_2_tf || [];
+      const p3 = base.part_3_essay || [];
+      const matrix = currentExamData.answer_matrix || {};
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/exams/export-answers-pandoc`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject: document.getElementById('subject').value,
+            grade: parseInt(document.getElementById('grade').value),
+            exam_title: getSelectedText('examTitle'),
+            school_name: getSelectedText('school'),
+            part_2_tf: p2,
+            part_3_essay: p3,
+            answer_matrix: matrix
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Server báo lỗi (${response.status}): ${errText}`);
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `Dap_An_Barem_${document.getElementById('subject').value}_Lop_${document.getElementById('grade').value}.docx`;
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(blobUrl);
+        }, 1200);
+
+      } catch (err) {
+        alert("Lỗi xuất đáp án .docx qua Pandoc: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+
+    // =========================================================================
     // 1-CLICK SAO CHÉP TOÀN BỘ SANG WORD EQUATION (CTRL + V)
     // =========================================================================
     function copyExamForWord() {
@@ -1292,7 +1335,7 @@ QUY TẮC BẮT BUỘC:
           
           setTimeout(() => {
             btn.innerHTML = originalHtml;
-            btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
+            btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
           }, 3000);
         } else {
           throw new Error("Không thể copy");
