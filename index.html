@@ -5,22 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Thi Online GDPT 2018 (TP.HCM)</title>
   
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- MathJax 3 Cấu hình -->
+  <!-- Cấu hình MathJax 3 bắt buộc nạp TRƯỚC script MathJax -->
   <script>
     window.MathJax = {
       tex: {
         inlineMath: [['$', '$'], ['\\(', '\\)']],
         displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true
+        processEscapes: true,
+        processEnvironments: true
       },
       options: {
         skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      startup: {
+        typeset: false
       }
     };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- KaTeX cho thanh công cụ iMathEQ ảo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
@@ -439,7 +443,7 @@
     </main>
   </div>
 
-  <!-- JavaScript -->
+  <!-- JavaScript Xử Lý -->
   <script>
     const API_BASE_URL = "https://eduexam-backend.onrender.com";
     let currentExamData = null;
@@ -736,7 +740,7 @@
     }
 
     // =========================================================================
-    // PIPELINE SỬA VÀ BỌC EQUATION CHUẨN XÁC TỪ VD.HTML
+    // PIPELINE SỬA VÀ BỌC EQUATION LATEX CHUẨN XÁC
     // =========================================================================
     function sanitizeMathString(text) {
       if (!text) return '';
@@ -902,7 +906,6 @@
           if (window.innerWidth < 768) {
             document.getElementById('examContainer').scrollIntoView({ behavior: 'smooth' });
           }
-          alert(`Đã hoàn tất tạo đề bằng ${selectedModel}!`);
         } else {
           alert('Có lỗi xảy ra: ' + (result.message || 'Không thể tạo đề'));
         }
@@ -1015,7 +1018,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM (CƠ CHẾ ĐỒNG BỘ MATHJAX)
+    // RENDER ĐỀ THI & TYPESET MATHJAX ĐỒNG BỘ
     // =========================================================================
     async function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1100,7 +1103,6 @@
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
               <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
               
-              <!-- BÀN PHÍM iMathEQ VISUAL PANEL -->
               <div class="imatheq-container">
                 <div class="flex items-center gap-1 pb-1 border-b border-slate-200">
                   <button type="button" onmousedown="event.preventDefault()" onclick="execEditor('bold', 'essayBox_${idx}')" class="imatheq-btn !w-7 !h-6 text-xs font-bold" title="In đậm">B</button>
@@ -1233,15 +1235,19 @@
       }
 
       // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi
-      const root = document.getElementById('examContainer');
-      if (root && window.MathJax && window.MathJax.typesetPromise) {
-        if (window.MathJax.typesetClear) {
-          window.MathJax.typesetClear([root]);
+      requestAnimationFrame(async () => {
+        const root = document.getElementById('examContainer');
+        if (root && window.MathJax && window.MathJax.typesetPromise) {
+          try {
+            if (window.MathJax.typesetClear) {
+              window.MathJax.typesetClear([root]);
+            }
+            await window.MathJax.typesetPromise([root]);
+          } catch (err) {
+            console.error('MathJax typeset error:', err);
+          }
         }
-        await window.MathJax.typesetPromise([root]).catch((err) => {
-          console.warn('MathJax error:', err);
-        });
-      }
+      });
     }
 
     // =========================================================================
