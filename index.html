@@ -3,25 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Thi Online GDPT 2018 (TP.HCM)</title>
+  <title>EduExam THCS Pro - Hệ Thống Khảo Thí GDPT 2018 (TP.HCM)</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Cấu hình MathJax 3 Engine đồng bộ -->
-  <script>
-    window.MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']],
-        displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        processEscapes: true,
-        processEnvironments: true
-      },
-      options: {
-        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-      }
-    };
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- KaTeX CSS + JS Core -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -36,10 +24,8 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* MathML equation styling */
-    math {
-      font-family: 'Cambria Math', 'Times New Roman', serif;
-      font-size: 1.05em;
+    .katex {
+      font-size: 1.05em !important;
     }
 
     /* iMathEQ Visual Keyboard Toolbar */
@@ -126,7 +112,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">MathJax 3 Typesetting Engine & Word Native Equation</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Enforced JSON Schema & KaTeX Native Renderer</p>
       </div>
     </div>
     
@@ -183,7 +169,7 @@
           </label>
           <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-950">
             <optgroup label="⚡ Dòng Tiêu Chuẩn (Khuyên dùng)">
-              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh & Chuẩn Equation)</option>
+              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh & Chuẩn Schema)</option>
               <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu & Barem chi tiết)</option>
               <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Siêu nhanh)</option>
               <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
@@ -748,41 +734,55 @@
       document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. $A = 2x^2y - 3xy^2 + 5$.\n2. Biểu thức $P = \\frac{2}{\\sqrt{x}+1}$.";
     }
 
-    function rawClean(text) {
-      if (!text) return '';
-      return String(text)
-        .replace(/\\n/g, '<br/>')
-        .replace(/\\\\/g, '\\');
+    // =========================================================================
+    // HÀM RENDER TOÁN CHÍNH XÁC QUA KATEX
+    // =========================================================================
+    function parseAndRenderMath(rawText) {
+      if (!rawText) return '';
+      let text = String(rawText);
+
+      // 1. Chuẩn hóa ký tự xuống dòng và dấu gạch chéo
+      text = text.replace(/\\n/g, '<br/>')
+                 .replace(/\\\\/g, '\\')
+                 .replace(/\bight\)/g, '\\right)')
+                 .replace(/\bight\]/g, '\\right]')
+                 .replace(/\bight\}/g, '\\right\\}')
+                 .replace(/\beft\(/g, '\\left(')
+                 .replace(/\beft\[/g, '\\left[')
+                 .replace(/\beft\{/g, '\\left\\{')
+                 .replace(/\\ne\b/g, '\\neq');
+
+      // 2. Chuyển đổi công thức hiển thị $$ ... $$
+      text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), {
+            displayMode: true,
+            throwOnError: false,
+            output: 'htmlAndMathml'
+          });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      // 3. Chuyển đổi công thức nội dòng $ ... $
+      text = text.replace(/\$([^\$\n]+?)\$/g, (match, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), {
+            displayMode: false,
+            throwOnError: false,
+            output: 'htmlAndMathml'
+          });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      return text;
     }
 
     // =========================================================================
-    // CƠ CHẾ ĐỒNG BỘ THỜI GIAN VỚI MATHJAX 3 (DELAY + REQUESTANIMATIONFRAME)
-    // =========================================================================
-    async function typesetMathWithDelay(container, delayMs = 150) {
-      await new Promise(resolve => requestAnimationFrame(resolve));
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-
-      if (!window.MathJax || !window.MathJax.typesetPromise) {
-        await new Promise(resolve => {
-          const checkInterval = setInterval(() => {
-            if (window.MathJax && window.MathJax.typesetPromise) {
-              clearInterval(checkInterval);
-              resolve();
-            }
-          }, 50);
-        });
-      }
-
-      try {
-        MathJax.typesetClear([container]);
-        await MathJax.typesetPromise([container]);
-      } catch (err) {
-        console.error("Lỗi MathJax Typeset:", err);
-      }
-    }
-
-    // =========================================================================
-    // GỌI TRỰC TIẾP GOOGLE GEMINI API
+    // GỌI GOOGLE GEMINI API VỚI ENFORCED JSON SCHEMA CHUẨN INLINE MATH
     // =========================================================================
     async function triggerGenerate() {
       const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
@@ -822,20 +822,119 @@
       btn.disabled = true;
 
       try {
+        const mathInlineDesc = "Văn bản tiếng Việt. BẮT BUỘC: Mọi biến số, số hạng, phép tính, phương trình toán học phải bọc trong cặp dấu $...$ (ví dụ: $P = 2x^2 - 3y$, $x = 1$, $(x - 2y)^2$). Tuyệt đối không để biểu thức toán trần bên ngoài.";
+
         const systemInstructionText = `Bạn là chuyên gia khảo thí THCS TP.HCM.
 QUY TẮC BẮT BUỘC:
-1. Mọi công thức toán, biến số hoặc biểu thức phải được bọc kín trong cặp dấu $ (inline) hoặc $$ (display).
+1. Mọi công thức toán học, phép tính hoặc biến số ở MỌI FIELD BẮT BUỘC phải được bọc kín trong cặp dấu $...$ (inline math).
 2. Khi dùng cặp ngoặc lớn \\left( ... \\right), TUYỆT ĐỐI KHÔNG ĐƯỢC BỎ SÓT DẤU GẠCH CHÉO \\ Ở CẢ HAI ĐẦU.
-3. Không viết ngắt quãng kiểu "$P = $ $(x+2y)$" hay "$ ... $ $= $".
-4. Trả về DUY NHẤT 1 đối tượng JSON nguyên vẹn theo schema { "base_exam": { ... }, "answer_matrix": { ... } }.`;
+3. Trả về đối tượng JSON nguyên vẹn theo đúng schema quy định.`;
 
         let userPrompt = `Biên soạn đề kiểm tra: Môn ${subject} ${grade}, thời gian ${duration} phút, kỳ thi ${examTitle}, chủ đề: ${topic}.`;
-        if (matrixSpec) userPrompt += `\n- Khung ma trận: ${matrixSpec}`;
+        if (matrixSpec) userPrompt += `\n- Khung ma trận đặc tả: ${matrixSpec}`;
         if (sourceNotes) userPrompt += `\n- Tài liệu nguồn: ${sourceNotes}`;
-        if (teacherAnswer) userPrompt += `\n- Đáp án giáo viên: ${teacherAnswer}`;
-        userPrompt += `\nTrả về JSON chuẩn.`;
+        if (teacherAnswer) userPrompt += `\n- Đáp án giáo viên nạp vào: ${teacherAnswer}`;
 
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+
+        // CẤU HÌNH SCHEMA MÔ TẢ INLINE MATH NGAY TỪ NGUỒN
+        const generationConfig = {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              base_exam: {
+                type: "OBJECT",
+                properties: {
+                  part_1_mcq: {
+                    type: "ARRAY",
+                    description: "Danh sách 4 câu hỏi trắc nghiệm nhiều phương án lựa chọn",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        content: { type: "STRING", description: mathInlineDesc },
+                        options: {
+                          type: "ARRAY",
+                          items: {
+                            type: "OBJECT",
+                            properties: {
+                              id: { type: "STRING" },
+                              text: { type: "STRING", description: mathInlineDesc }
+                            },
+                            required: ["id", "text"]
+                          }
+                        }
+                      },
+                      required: ["content", "options"]
+                    }
+                  },
+                  part_2_tf: {
+                    type: "ARRAY",
+                    description: "Danh sách câu hỏi đúng/sai",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        prompt: { type: "STRING", description: mathInlineDesc },
+                        statements: {
+                          type: "OBJECT",
+                          properties: {
+                            a: { type: "STRING", description: mathInlineDesc },
+                            b: { type: "STRING", description: mathInlineDesc },
+                            c: { type: "STRING", description: mathInlineDesc },
+                            d: { type: "STRING", description: mathInlineDesc }
+                          },
+                          required: ["a", "b", "c", "d"]
+                        },
+                        answers: {
+                          type: "OBJECT",
+                          properties: {
+                            a: { type: "STRING" },
+                            b: { type: "STRING" },
+                            c: { type: "STRING" },
+                            d: { type: "STRING" }
+                          }
+                        },
+                        explanation: { type: "STRING", description: "Lời giải thích chi tiết cho từng ý a, b, c, d. " + mathInlineDesc }
+                      },
+                      required: ["prompt", "statements", "explanation"]
+                    }
+                  },
+                  part_3_essay: {
+                    type: "ARRAY",
+                    description: "Danh sách câu hỏi tự luận",
+                    items: {
+                      type: "OBJECT",
+                      properties: {
+                        content: { type: "STRING", description: "Đề bài tự luận. " + mathInlineDesc },
+                        points: { type: "NUMBER" },
+                        solution: { type: "STRING", description: "Lời giải chi tiết từng bước. " + mathInlineDesc },
+                        scoring_guide: {
+                          type: "ARRAY",
+                          description: "Thang barem thang điểm",
+                          items: {
+                            type: "OBJECT",
+                            properties: {
+                              step: { type: "STRING", description: "Nội dung bước làm có kèm công thức. " + mathInlineDesc },
+                              points: { type: "STRING", description: "Số điểm (vd: 0.5 đ)" }
+                            },
+                            required: ["step", "points"]
+                          }
+                        }
+                      },
+                      required: ["content", "solution", "scoring_guide"]
+                    }
+                  }
+                },
+                required: ["part_1_mcq", "part_2_tf", "part_3_essay"]
+              },
+              answer_matrix: {
+                type: "OBJECT",
+                description: "Ma trận đối chiếu đáp án trắc nghiệm 4 mã đề 101, 102, 103, 104"
+              }
+            },
+            required: ["base_exam"]
+          }
+        };
 
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -843,9 +942,7 @@ QUY TẮC BẮT BUỘC:
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
             systemInstruction: { parts: [{ text: systemInstructionText }] },
-            generationConfig: {
-              responseMimeType: "application/json"
-            }
+            generationConfig: generationConfig
           })
         });
 
@@ -871,7 +968,7 @@ QUY TẮC BẮT BUỘC:
 
         const matrixObj = result.answer_matrix || {};
         
-        await renderExamToView(examData, matrixObj);
+        renderExamToView(examData, matrixObj);
         syncHeaderPreview();
         
         if (window.innerWidth < 768) {
@@ -952,7 +1049,11 @@ QUY TẮC BẮT BUỘC:
       let span = document.createElement('span');
       span.className = 'katex-inline-node';
       span.contentEditable = "false";
-      span.innerText = `$${latexCode}$`;
+      try {
+        katex.render(latexCode, span, { throwOnError: false });
+      } catch (e) {
+        span.innerText = `$${latexCode}$`;
+      }
 
       let sel = window.getSelection();
       if (sel.getRangeAt && sel.rangeCount) {
@@ -983,9 +1084,9 @@ QUY TẮC BẮT BUỘC:
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & ĐÁP ÁN VỚI MATHJAX 3 TYPESETTING
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM VỚI PARSE TOÁN TRỰC TIẾP
     // =========================================================================
-    async function renderExamToView(exam, matrix) {
+    function renderExamToView(exam, matrix) {
       if (!exam) return;
 
       // 1. Render Phần I (Trắc nghiệm 4 lựa chọn)
@@ -1006,12 +1107,12 @@ QUY TẮC BẮT BUỘC:
 
           return `
             <div class="space-y-1.5 bg-slate-50/50 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${rawClean(q.content || q.question_text)}</p>
+              <p><strong>Câu ${idx + 1}:</strong> ${parseAndRenderMath(q.content || q.question_text)}</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-4">
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${rawClean(o.text || o.content)}</span>
+                    <span><strong>${o.id}.</strong> ${parseAndRenderMath(o.text || o.content)}</span>
                   </label>
                 `).join('')}
               </div>
@@ -1025,7 +1126,7 @@ QUY TẮC BẮT BUỘC:
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = rawClean(q.prompt || q.content || q.question_text);
+          const prompt = parseAndRenderMath(q.prompt || q.content || q.question_text);
           const st = q.statements || {};
 
           return `
@@ -1033,7 +1134,7 @@ QUY TẮC BẮT BUỘC:
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = rawClean(st[k] || st[k.toUpperCase()] || '');
+                  const val = parseAndRenderMath(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1061,7 +1162,7 @@ QUY TẮC BẮT BUỘC:
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = rawClean(q.content || q.question_text);
+          const qText = parseAndRenderMath(q.content || q.question_text);
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1165,7 +1266,7 @@ QUY TẮC BẮT BUỘC:
                   <p class="font-bold text-blue-900">
                     Câu ${idx + 1}: a) ${ans.a || 'Đ'} | b) ${ans.b || 'S'} | c) ${ans.c || 'Đ'} | d) ${ans.d || 'S'}
                   </p>
-                  <p class="text-slate-800"><strong>• Giải thích chi tiết:</strong> ${rawClean(q.explanation)}</p>
+                  <p class="text-slate-800"><strong>• Giải thích chi tiết:</strong> ${parseAndRenderMath(q.explanation)}</p>
                 </div>
               `;
             }).join('')}
@@ -1179,11 +1280,11 @@ QUY TẮC BẮT BUỘC:
             ${p3List.map((q, idx) => `
               <div class="bg-white border border-emerald-300 p-3.5 rounded text-xs space-y-2 leading-relaxed">
                 <p class="font-bold text-emerald-950 text-sm">Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
-                <p class="text-slate-800 font-medium"><strong>• Lời giải chi tiết:</strong> ${rawClean(q.solution)}</p>
+                <p class="text-slate-800 font-medium"><strong>• Lời giải chi tiết:</strong> ${parseAndRenderMath(q.solution)}</p>
                 <div class="pt-2 border-t border-slate-100">
                   <p class="font-semibold text-emerald-900 mb-1"><strong>• Barem thang điểm:</strong></p>
                   <div class="space-y-1 pl-2">
-                    ${(q.scoring_guide || []).map(g => `<p class="text-slate-700">- ${rawClean(g.step)} <strong class="text-emerald-700">(${g.points || '0.5 đ'})</strong></p>`).join('')}
+                    ${(q.scoring_guide || []).map(g => `<p class="text-slate-700">- ${parseAndRenderMath(g.step)} <strong class="text-emerald-700">(${g.points || '0.5 đ'})</strong></p>`).join('')}
                   </div>
                 </div>
               </div>
@@ -1194,9 +1295,6 @@ QUY TẮC BẮT BUỘC:
         answerKeyHtml += `</div>`;
         answerKeyContainer.innerHTML = answerKeyHtml;
       }
-
-      // 6. GỌI ĐỒNG BỘ THỜI GIAN VẼ TOÁN HỌC MATHJAX 3
-      await typesetMathWithDelay(document.getElementById('examContainer'), 150);
     }
 
     // =========================================================================
