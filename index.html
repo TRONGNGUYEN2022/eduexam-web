@@ -112,7 +112,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Schema Khảo Thí & KaTeX Math Span Engine</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Hệ Thống Khảo Thí & Biên Soạn Đề GDPT 2018</p>
       </div>
     </div>
     
@@ -233,8 +233,8 @@
             <select id="grade" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
               <option value="6">Lớp 6</option>
               <option value="7">Lớp 7</option>
-              <option value="8" selected>Lớp 8</option>
-              <option value="9">Lớp 9</option>
+              <option value="8">Lớp 8</option>
+              <option value="9" selected>Lớp 9</option>
             </select>
           </div>
         </div>
@@ -349,7 +349,7 @@
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 8 - Thời gian: 45 phút</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 9 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
                 MÃ ĐỀ: 101
               </div>
@@ -727,52 +727,41 @@
     }
 
     function fillSampleMatrix() {
-      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết, 2 câu Thông hiểu.\n- Phần II (1 câu Đúng/Sai): Vận dụng rút gọn biểu thức.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Rút gọn biểu thức; Bài 2 (1.5đ) Bài toán thực tế.";
+      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết, 2 câu Thông hiểu.\n- Phần II (1 câu Đúng/Sai): Vận dụng rút gọn biểu thức chứa căn.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Bài toán thực tế.";
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. $A = 2x^2y - 3xy^2 + 5$.\n2. Biểu thức $P = \\frac{2}{\\sqrt{x}+1}$.";
+      document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. $\\sqrt{4(x-2)} - \\sqrt{x-2} = 3$.\n2. $P = \\frac{\\sqrt{x}+1 + \\sqrt{x}-1}{(\\sqrt{x}-1)(\\sqrt{x}+1)} \\cdot \\frac{x-1}{2\\sqrt{x}}$.";
     }
 
     // =========================================================================
-    // HÀM RENDER SPANS TOÁN HỌC (TÁCH BIỆT TEXT & INLINE EQUATION)
+    // HÀM RENDER TOÁN CHÍNH XÁC QUA KATEX (ÁP DỤNG MỌI FIELD)
     // =========================================================================
-    function renderMathSpan(rawText) {
-      if (!rawText) return '';
-      let str = String(rawText)
+    function renderMathToHtml(text) {
+      if (!text) return '';
+      let str = String(text)
         .replace(/\\n/g, '<br/>')
         .replace(/\\\\/g, '\\')
         .replace(/\bight\)/g, '\\right)')
         .replace(/\beft\(/g, '\\left(')
         .replace(/\\ne\b/g, '\\neq');
 
-      // Quét tách theo cặp $...$ và gọi katex.renderToString trực tiếp
-      const parts = str.split('$');
-      let resultHtml = '';
-      for (let i = 0; i < parts.length; i++) {
-        if (i % 2 === 0) {
-          // Phân đoạn văn bản thường
-          resultHtml += parts[i];
-        } else {
-          // Phân đoạn công thức toán học inline_equation
-          const formula = parts[i].trim();
-          if (!formula) continue;
-          try {
-            resultHtml += katex.renderToString(formula, {
-              displayMode: false,
-              throwOnError: false,
-              output: 'htmlAndMathml'
-            });
-          } catch (e) {
-            resultHtml += `$${formula}$`;
-          }
+      // Tách và chuyển đổi từng cặp $...$ trực tiếp sang KaTeX HTML
+      return str.replace(/\$([^\$\n\r]+?)\$/g, (match, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), {
+            displayMode: false,
+            throwOnError: false,
+            output: 'htmlAndMathml'
+          });
+        } catch (e) {
+          return match;
         }
-      }
-      return resultHtml;
+      });
     }
 
     // =========================================================================
-    // GỌI GOOGLE GEMINI API VỚI SCHEMA MÔ TẢ KHẢO THÍ CHUẨN
+    // GỌI GOOGLE GEMINI API VỚI SCHEMA ĐỊNH NGHĨA CHẶT CHẼ
     // =========================================================================
     async function triggerGenerate() {
       const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
@@ -827,7 +816,6 @@ QUY TẮC BẮT BUỘC:
 
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
 
-        // Schema JSON chuẩn khảo thí
         const examResponseSchema = {
           type: "OBJECT",
           properties: {
@@ -1074,7 +1062,7 @@ QUY TẮC BẮT BUỘC:
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM QUA SPAN ENGINE
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM QUA HÀM RENDERMATH ĐỒNG NHẤT
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1097,12 +1085,12 @@ QUY TẮC BẮT BUỘC:
 
           return `
             <div class="space-y-1.5 bg-slate-50/50 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${renderMathSpan(q.content || q.question_text)}</p>
+              <p><strong>Câu ${idx + 1}:</strong> ${renderMathToHtml(q.content || q.question_text)}</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-4">
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${renderMathSpan(o.text || o.content)}</span>
+                    <span><strong>${o.id}.</strong> ${renderMathToHtml(o.text || o.content)}</span>
                   </label>
                 `).join('')}
               </div>
@@ -1116,7 +1104,7 @@ QUY TẮC BẮT BUỘC:
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = renderMathSpan(q.prompt || q.content || q.question_text);
+          const prompt = renderMathToHtml(q.prompt || q.content || q.question_text);
           const st = q.statements || {};
 
           return `
@@ -1124,7 +1112,7 @@ QUY TẮC BẮT BUỘC:
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = renderMathSpan(st[k] || st[k.toUpperCase()] || '');
+                  const val = renderMathToHtml(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1152,7 +1140,7 @@ QUY TẮC BẮT BUỘC:
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = renderMathSpan(q.content || q.question_text);
+          const qText = renderMathToHtml(q.content || q.question_text);
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1256,7 +1244,7 @@ QUY TẮC BẮT BUỘC:
                   <p class="font-bold text-blue-900">
                     Câu ${idx + 1}: a) ${ans.a || 'Đ'} | b) ${ans.b || 'S'} | c) ${ans.c || 'Đ'} | d) ${ans.d || 'S'}
                   </p>
-                  <p class="text-slate-800"><strong>• Giải thích chi tiết:</strong> ${renderMathSpan(q.explanation)}</p>
+                  <p class="text-slate-800"><strong>• Giải thích chi tiết:</strong> ${renderMathToHtml(q.explanation)}</p>
                 </div>
               `;
             }).join('')}
@@ -1270,11 +1258,11 @@ QUY TẮC BẮT BUỘC:
             ${p3List.map((q, idx) => `
               <div class="bg-white border border-emerald-300 p-3.5 rounded text-xs space-y-2 leading-relaxed">
                 <p class="font-bold text-emerald-950 text-sm">Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
-                <p class="text-slate-800 font-medium"><strong>• Lời giải chi tiết:</strong> ${renderMathSpan(q.solution)}</p>
+                <p class="text-slate-800 font-medium"><strong>• Lời giải chi tiết:</strong> ${renderMathToHtml(q.solution)}</p>
                 <div class="pt-2 border-t border-slate-100">
                   <p class="font-semibold text-emerald-900 mb-1"><strong>• Barem thang điểm:</strong></p>
                   <div class="space-y-1 pl-2">
-                    ${(q.scoring_guide || []).map(g => `<p class="text-slate-700">- ${renderMathSpan(g.step)} <strong class="text-emerald-700">(${g.points || '0.5 đ'})</strong></p>`).join('')}
+                    ${(q.scoring_guide || []).map(g => `<p class="text-slate-700">- ${renderMathToHtml(g.step)} <strong class="text-emerald-700">(${g.points || '0.5 đ'})</strong></p>`).join('')}
                   </div>
                 </div>
               </div>
@@ -1368,7 +1356,7 @@ strong { font-weight: bold; }
 
       const blob = new Blob([mhtmlDoc], { type: 'application/msword;charset=utf-8' });
       const subj = (document.getElementById('subject') ? document.getElementById('subject').value : 'De_Thi').replace(/\s+/g, '_');
-      const gr = document.getElementById('grade') ? document.getElementById('grade').value : '8';
+      const gr = document.getElementById('grade') ? document.getElementById('grade').value : '9';
       const fileName = `De_Thi_${subj}_Lop_${gr}.doc`;
 
       if (window.navigator && window.navigator.msSaveOrOpenBlob) {
