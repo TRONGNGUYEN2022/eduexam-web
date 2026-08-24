@@ -895,41 +895,6 @@ Trả về đối tượng JSON nguyên vẹn theo đúng schema quy định.`;
       document.getElementById('timerCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
-    function insertMathSymbol(editorId, latexCode) {
-      const editor = document.getElementById(editorId);
-      if (!editor) return;
-      editor.focus();
-
-      let span = document.createElement('span');
-      span.className = 'katex-inline-node';
-      span.contentEditable = "false";
-      try { katex.render(latexCode, span, { throwOnError: false }); }
-      catch (e) { span.innerText = `$${latexCode}$`; }
-
-      let sel = window.getSelection();
-      if (sel.getRangeAt && sel.rangeCount) {
-        let range = sel.getRangeAt(0);
-        range.deleteContents();
-        let space = document.createTextNode('\u00A0');
-        range.insertNode(space);
-        range.insertNode(span);
-        range.setStartAfter(space);
-        range.setEndAfter(space);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        editor.appendChild(span);
-      }
-    }
-
-    function submitExamOnline() {
-      alert('Đã nộp bài thi thành công!');
-      toggleExamMode();
-    }
-
-    // =========================================================================
-    // RENDER ĐỀ THI SẠCH SẼ (CHỈ CÓ ĐỀ BÀI VÀ Ô NHẬP VĂN BẢN TỰ LUẬN)
-    // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
