@@ -5,61 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Thi Online GDPT 2018 (TP.HCM)</title>
   
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- KaTeX để render công thức Toán học chuẩn -->
+
+  <!-- 1. KaTeX Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- 2. Marked.js (Markdown Engine giống hệt Chat Gemini) -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
   
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #1e293b; }
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
-    .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
-    
     .hidden { display: none !important; }
     .sidebar-scroll { max-height: calc(100vh - 170px); overflow-y: auto; }
     @media (max-width: 768px) {
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Style cho khung soạn thảo tự luận của học sinh */
-    .editor-toolbar button { 
-      padding: 3px 7px; 
-      font-size: 11px; 
-      border-radius: 3px; 
-      border: 1px solid #cbd5e1; 
-      background: #ffffff; 
-      color: #334155;
-      cursor: pointer; 
-      transition: all 0.15s;
+    .katex { font-size: 1.05em !important; }
+    .markdown-math p { margin-bottom: 0.35rem; }
+
+    /* Fix triệt để thanh công cụ iMathEQ nằm ngang gọn gàng */
+    .math-palette-horizontal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 6px;
+      align-items: center;
     }
-    .editor-toolbar button:hover { background: #e2e8f0; }
-    .essay-editor { 
-      min-height: 120px; 
-      outline: none; 
-      padding: 10px; 
-      font-family: 'Times New Roman', serif; 
-      font-size: 15px; 
-      line-height: 1.6; 
+    .math-cell-btn {
+      min-width: 32px;
+      height: 28px;
+      padding: 0 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #1e293b;
+      user-select: none;
+      transition: all 0.1s;
     }
-    .essay-editor:empty:before { 
-      content: attr(placeholder); 
-      color: #94a3b8; 
-      font-style: italic; 
+    .math-cell-btn:hover {
+      background: #e0e7ff;
+      border-color: #6366f1;
+      color: #4338ca;
+    }
+    .math-cell-btn:active { background: #c7d2fe; }
+    .math-separator {
+      width: 1px;
+      height: 22px;
+      background-color: #cbd5e1;
+      margin: 0 4px;
+    }
+
+    .essay-editor {
+      min-height: 120px;
+      outline: none;
+      padding: 10px;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 15px;
+      line-height: 1.5;
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .essay-editor:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    }
+    .essay-editor:empty:before {
+      content: attr(placeholder);
+      color: #94a3b8;
+      font-style: italic;
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- Header Responsive -->
+  <!-- Header -->
   <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 md:py-3 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-50">
     <div class="flex items-center gap-2.5">
       <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-base leading-none shadow-sm">
@@ -67,29 +104,22 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Tạo đề, Thi trực tuyến & Xuất Word chuẩn Equation</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Hệ Thống Khảo Thí & Biên Soạn Đề GDPT 2018</p>
       </div>
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-      <!-- Nút Chuyển Chế độ Thi Online -->
       <button id="btnSwitchMode" onclick="toggleExamMode()" class="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-laptop-code"></i> <span id="btnModeText">Bật Phòng Thi Online</span>
       </button>
-
-      <!-- Nút Sao chép Rich Text dán Word Equation -->
       <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
-        <i class="fa-solid fa-copy"></i> <span>Sao chép Equation</span>
+        <i class="fa-solid fa-copy text-amber-300"></i> <span>Sao chép Equation</span>
       </button>
-
-      <!-- Nút Tải Word .doc Client-side -->
       <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-file-word"></i> <span>Tải .doc</span>
+        <i class="fa-solid fa-file-word"></i> <span>Tải Đề .doc</span>
       </button>
-
-      <!-- Nút Tải Word .docx Backend python-docx -->
-      <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-slate-600">
-        <i class="fa-solid fa-file-export text-amber-400"></i> <span>Tải .docx</span>
+      <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-print text-emerald-400"></i> <span>In / Lưu PDF</span>
       </button>
     </div>
   </header>
@@ -97,10 +127,21 @@
   <!-- Main Layout -->
   <div class="flex flex-col md:flex-row flex-1 overflow-x-hidden">
     
-    <!-- Sidebar Cấu hình (Ẩn khi Học sinh vào phòng thi) -->
+    <!-- Sidebar Cấu hình -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 md:p-5 flex flex-col gap-3 shrink-0 shadow-sm">
       
-      <!-- Chuyển Tab Chế độ tạo đề -->
+      <!-- API Key -->
+      <div class="bg-amber-50/90 p-2.5 rounded-lg border border-amber-300 space-y-1">
+        <label class="block font-bold text-amber-950 text-[11px] flex items-center justify-between">
+          <span><i class="fa-solid fa-key text-amber-600"></i> Google Gemini API Key</span>
+          <span class="text-[10px] text-amber-700 font-normal">Lưu client</span>
+        </label>
+        <div class="flex gap-1">
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." onchange="saveApiKey()" class="flex-1 border border-amber-300 rounded p-1.5 bg-white text-xs font-mono focus:ring-1 focus:ring-amber-500">
+          <button onclick="toggleApiKeyVisibility()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 px-2 rounded text-xs"><i id="apiKeyEyeIcon" class="fa-solid fa-eye"></i></button>
+        </div>
+      </div>
+
       <div class="flex border-b border-slate-200 text-xs font-semibold">
         <button id="tabBtnQuick" onclick="switchTab('quick')" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-bolt"></i> Tạo nhanh SGK
@@ -110,44 +151,27 @@
         </button>
       </div>
 
-      <!-- Form Inputs Đầy Đủ Danh Mục -->
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- Khối Chọn Model Gemini -->
+        <!-- Chọn Model -->
         <div class="bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-900 flex items-center justify-between">
-            <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
+            <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Direct)</span>
             <span id="modelBadge" class="text-[10px] bg-indigo-200 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">2.5 Flash</span>
           </label>
-          <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-950 focus:ring-1 focus:ring-indigo-500">
-            <optgroup label="⚡ Dòng Tiêu Chuẩn Ổn Định (Khuyên dùng)">
-              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh & Ổn định nhất)</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu & Barem chi tiết)</option>
-              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Siêu nhanh - Tiết kiệm)</option>
-              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-            </optgroup>
-            <optgroup label="🚀 Dòng Thế Hệ Mới (Gemini 3.x)">
-              <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
-              <option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
-            </optgroup>
-            <optgroup label="⚙️ Tùy biến">
-              <option value="__custom__">Nhập mã Model tùy chỉnh khác...</option>
+          <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-950">
+            <optgroup label="⚡ Dòng Tiêu Chuẩn (Khuyên dùng)">
+              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
             </optgroup>
           </select>
-          <div id="customModelBox" class="hidden">
-            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs mt-1">
-          </div>
         </div>
 
         <!-- Khối Trường / Đơn vị TP.HCM -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-600">Trường THCS (TP.HCM)</label>
-            <select id="schoolSelect" onchange="handleSelectChange('school')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-            </select>
+            <select id="schoolSelect" onchange="handleSelectChange('school')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
             <div id="customSchoolBox" class="mt-1 hidden flex gap-1">
               <input type="text" id="customSchoolInput" placeholder="Ví dụ: THCS NGUYỄN VĂN TRỖI..." class="flex-1 border border-indigo-300 rounded p-1 text-xs">
               <button onclick="saveCustomOption('school')" class="bg-indigo-600 text-white px-2 rounded text-[11px] font-semibold">Lưu</button>
@@ -157,13 +181,11 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Tổ chuyên môn</label>
-              <select id="deptSelect" onchange="handleSelectChange('dept')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-              </select>
+              <select id="deptSelect" onchange="handleSelectChange('dept')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Kỳ kiểm tra</label>
-              <select id="examTitleSelect" onchange="handleSelectChange('examTitle')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-              </select>
+              <select id="examTitleSelect" onchange="handleSelectChange('examTitle')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
             </div>
           </div>
 
@@ -194,10 +216,10 @@
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Khối lớp</label>
             <select id="grade" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
-              <option value="6" selected>Lớp 6</option>
+              <option value="6">Lớp 6</option>
               <option value="7">Lớp 7</option>
               <option value="8">Lớp 8</option>
-              <option value="9">Lớp 9</option>
+              <option value="9" selected>Lớp 9</option>
             </select>
           </div>
         </div>
@@ -216,8 +238,7 @@
         <div id="panelQuick" class="space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK</label>
-            <select id="topicSelect" onchange="handleTopicSelectChange()" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs">
-            </select>
+            <select id="topicSelect" onchange="handleTopicSelectChange()" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs"></select>
           </div>
           <div id="customTopicContainer" class="hidden">
             <input type="text" id="customTopicInput" placeholder="Nhập chủ đề tùy chỉnh..." class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs">
@@ -231,7 +252,7 @@
               <span>1. Khung Ma Trận Đặc Tả</span>
               <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (2 câu Nhận biết, 2 câu Thông hiểu); Phần 2 (1 câu Đúng Sai vận dụng); Phần 3 (Bài 1: 1.5đ rút gọn, Bài 2: 1.5đ toán thực tế)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu nhận biết); Phần 2 (1 câu đúng sai); Phần 3 (Bài 1: 1.5đ rút gọn, Bài 2: 1.5đ toán thực tế)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
 
           <div>
@@ -243,44 +264,20 @@
           </div>
         </div>
 
-        <!-- Khối Tùy Chọn Đáp Án Phần Tự Luận -->
-        <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-300 space-y-2">
-          <label class="block font-bold text-emerald-950 flex items-center justify-between">
-            <span><i class="fa-solid fa-pen-to-square text-emerald-700"></i> Đáp án & Lời giải Tự luận</span>
-          </label>
-          
-          <select id="essayModeSelect" onchange="handleEssayModeChange()" class="w-full border border-emerald-300 rounded p-1.5 bg-white text-xs font-semibold text-emerald-950 focus:ring-1 focus:ring-emerald-500">
-            <option value="ai_auto" selected>✨ AI tự động giải chi tiết & chia barem điểm</option>
-            <option value="teacher_only">📝 Sử dụng đáp án nạp vào & AI chuẩn hóa barem</option>
-            <option value="hybrid">🤝 Kết hợp: AI đối chiếu đáp án nạp vào & mở rộng</option>
-          </select>
-
-          <div id="teacherEssayBox" class="hidden space-y-1.5 pt-1">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] font-semibold text-emerald-900">Dán nội dung lời giải:</label>
-              <label class="text-[11px] bg-emerald-600 text-white px-2 py-0.5 rounded cursor-pointer hover:bg-emerald-700">
-                <i class="fa-solid fa-upload"></i> Nạp file (.txt)
-                <input type="file" id="essayFileInput" accept=".txt" onchange="handleEssayFileUpload(event)" class="hidden">
-              </label>
-            </div>
-            <textarea id="teacherEssayText" rows="3" placeholder="Dán lời giải bài 1, bài 2 của giáo viên vào đây..." class="w-full border border-emerald-300 rounded p-2 bg-white text-xs"></textarea>
-          </div>
-        </div>
-
       </div>
 
       <div class="pt-1 mt-auto">
         <button onclick="triggerGenerate()" id="btnGenerate" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-md shadow transition flex items-center justify-center gap-2 text-sm cursor-pointer">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span id="btnGenerateText">AI Tổng Hợp & Sinh Đề</span>
+          <span id="btnGenerateText">AI Tổng Hợp & Sinh Đề (Direct)</span>
         </button>
       </div>
     </aside>
 
-    <!-- Main View: Tờ Đề Thi / Phòng Thi Trực Tuyến -->
+    <!-- Main View -->
     <main class="flex-1 bg-slate-200/80 p-3 sm:p-6 md:overflow-y-auto flex flex-col items-center">
       
-      <!-- Thanh Điều Khiển Phòng Thi Online (Chỉ hiện khi học sinh bấm BẬT THI) -->
+      <!-- Thanh Điều Khiển Phòng Thi Online -->
       <div id="onlineBar" class="hidden w-full max-w-4xl bg-indigo-900 text-white px-4 py-3 rounded-t shadow flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-400">
         <div class="flex items-center gap-3">
           <span class="bg-red-600 px-2.5 py-0.5 rounded text-xs font-bold animate-pulse tracking-wide">ĐANG THI TRỰC TUYẾN</span>
@@ -313,7 +310,7 @@
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 6 - Thời gian: 45 phút</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 9 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
                 MÃ ĐỀ: 101
               </div>
@@ -346,7 +343,7 @@
             </div>
           </div>
 
-          <!-- Phần III: Tự luận kèm Khung Soạn Thảo Rich-Text Như Word -->
+          <!-- Phần III: Tự luận (Đã loại bỏ hoàn toàn phần hướng dẫn chấm/đáp án chi tiết trên đề thi phát cho học sinh) -->
           <div>
             <div class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN III. TỰ LUẬN (3,0 điểm)
@@ -361,11 +358,12 @@
           --- HẾT ĐỀ THI ---
         </div>
 
-        <!-- Bảng Đáp Án & Barem Giáo Viên (Tự ẩn khi bật Chế Độ Thi Online) -->
+        <!-- Bảng Ma Trận & Đối Chiếu Mã Đề Cho Giáo Viên -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
-          <h3 class="text-center font-bold text-xs sm:text-sm mb-3 uppercase">BẢNG ĐÁP ÁN & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU</h3>
-          
-          <div class="overflow-x-auto w-full">
+          <div class="overflow-x-auto w-full mb-6">
+            <h3 class="font-bold text-xs sm:text-sm uppercase text-slate-800 mb-2 text-center">
+              BẢNG ĐÁP ÁN TRẮC NGHIỆM & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU
+            </h3>
             <table class="w-full text-xs text-center border-collapse border border-slate-400 min-w-[300px]" style="border: 1px solid #64748b;">
               <thead>
                 <tr class="bg-indigo-900 text-white font-bold" style="background-color: #312e81; color: white;">
@@ -381,27 +379,52 @@
               </tbody>
             </table>
           </div>
-
-          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết Tự Luận -->
-          <div id="answerKeySection" class="mt-8 pt-6 border-t-2 border-indigo-200 space-y-4">
-            <p class="text-slate-400 italic text-center text-xs">Hướng dẫn giải và barem điểm chi tiết sẽ hiển thị tại đây sau khi sinh đề.</p>
-          </div>
         </div>
 
       </div>
     </main>
   </div>
 
-  <!-- JavaScript Xử lý Đầy đủ -->
+  <!-- JavaScript Xử Lý -->
   <script>
-    const API_BASE_URL = "https://eduexam-backend.onrender.com";
     let currentExamData = null;
     let activeTab = 'quick';
     let isStudentExamMode = false;
     let timerInterval = null;
     let timeRemaining = 45 * 60;
 
-    // DANH MỤC TRƯỜNG & TỔ CHUYÊN MÔN TP.HCM
+    window.addEventListener('DOMContentLoaded', () => {
+      loadApiKey();
+      loadListOptions('school', 'schoolSelect');
+      loadListOptions('dept', 'deptSelect');
+      loadListOptions('examTitle', 'examTitleSelect');
+      updateTopicList();
+      syncHeaderPreview();
+      handleModelChange();
+    });
+
+    function loadApiKey() {
+      const savedKey = localStorage.getItem('eduexam_gemini_api_key') || '';
+      document.getElementById('geminiApiKeyInput').value = savedKey;
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('geminiApiKeyInput').value.trim();
+      localStorage.setItem('eduexam_gemini_api_key', key);
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('geminiApiKeyInput');
+      const icon = document.getElementById('apiKeyEyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
     const DEFAULT_CONFIGS = {
       school: [
         "TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)",
@@ -409,88 +432,32 @@
         "TRƯỜNG THCS TRẦN ĐẠI NGHĨA (TP. THỦ ĐỨC)",
         "TRƯỜNG THCS VÕ TRƯỜNG TOẢN (QUẬN 1)",
         "TRƯỜNG THCS COLETTE (QUẬN 3)",
-        "TRƯỜNG THCS HỒNG BÀNG (QUẬN 5)",
-        "TRƯỜNG THCS NGUYỄN GIA THIỀU (QUẬN TÂN BÌNH)",
-        "TRƯỜNG THCS HÀ HUY TẬP (QUẬN BÌNH THẠNH)",
-        "TRƯỜNG THCS NGUYỄN VĂN TỐ (QUẬN 10)"
+        "TRƯỜNG THCS HỒNG BÀNG (QUẬN 5)"
       ],
       dept: [
         "TỔ KHOA HỌC TỰ NHIÊN",
-        "TỔ TOÁN - TIN HỌC",
-        "TỔ KHOA HỌC XÃ HỘI",
-        "TỔ NGỮ VĂN",
-        "TỔ NGOẠI NGỮ",
-        "TỔ LỊCH SỬ - ĐỊA LÍ"
+        "TỔ TOÁN - TIN HỌC"
       ],
       examTitle: [
         "ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I",
         "ĐỀ KIỂM TRA ĐỊNH KỲ CUỐI HỌC KỲ I",
         "ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ II",
-        "ĐỀ KIỂM TRA ĐỊNH KỲ CUỐI HỌC KỲ II",
-        "ĐỀ KHẢO SÁT CHẤT LƯỢNG ĐẦU NĂM",
-        "ĐỀ THI THỬ TUYỂN SINH VÀO LỚP 10 THPT"
+        "ĐỀ KIỂM TRA ĐỊNH KỲ CUỐI HỌC KỲ II"
       ]
     };
 
-    // DANH MỤC BÀI HỌC SGK GDPT 2018 CHI TIẾT
     const CURRICULUM_TOPICS = {
       "Toán học": {
-        6: [
-          "Tập hợp số tự nhiên và các phép tính",
-          "Tính chia hết trong tập hợp các số tự nhiên (Ước và Bội)",
-          "Số nguyên và các phép tính với số nguyên",
-          "Phân số và các phép tính với phân số",
-          "Số thập phân và tỉ số phần trăm",
-          "Hình học trực quan: Tam giác đều, Lục giác đều, Hình thoi",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ],
-        7: [
-          "Số hữu tỉ và các phép tính với số hữu tỉ",
-          "Số thực, Căn bậc hai số học, Giá trị tuyệt đối",
-          "Góc và đường thẳng song song, Định lý",
-          "Tam giác bằng nhau, Tam giác cân, Định lý Pythagore",
-          "Biểu thức đại số và Đa thức một biến",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ],
-        8: [
-          "Đa thức nhiều biến và các phép toán",
-          "Hằng đẳng thức đáng nhớ và ứng dụng",
-          "Phân thức đại số và các phép tính",
-          "Tứ giác: Hình bình hành, Hình chữ nhật, Hình thoi, Hình vuông",
-          "Định lý Thalès và Tam giác đồng dạng",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ],
-        9: [
-          "Căn bậc hai, Căn bậc ba và rút gọn biểu thức",
-          "Hàm số bậc nhất và Hệ hai phương trình bậc nhất",
-          "Phương trình bậc hai một ẩn và Định lý Viète",
-          "Đường tròn, Góc với đường tròn, Tứ giác nội tiếp",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ]
+        6: ["Tập hợp số tự nhiên và các phép tính", "Phân số và số thập phân", "Hình học trực quan"],
+        7: ["Số hữu tỉ và các phép tính", "Số thực và căn bậc hai", "Tam giác bằng nhau"],
+        8: ["Đa thức nhiều biến và các phép toán", "Hằng đẳng thức đáng nhớ", "Phân thức đại số"],
+        9: ["Căn bậc hai, căn bậc ba và rút gọn", "Phương trình bậc hai và hệ thức Viète", "Đường tròn"]
       },
       "Khoa học tự nhiên": {
-        6: ["Mở đầu về KHTN, Đo lường", "Tế bào - Đơn vị cơ sở của sự sống", "Đa dạng thế giới sống", "Lực và chuyển động, Năng lượng"],
-        7: ["Nguyên tử, Nguyên tố hóa học, Bảng tuần hoàn", "Phân tử, Liên kết hóa học", "Tốc độ chuyển động", "Trao đổi chất và chuyển hóa năng lượng"],
-        8: ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối", "Khối lượng riêng, Áp suất chất lỏng", "Cơ thể người: Tiêu hóa, Tuần hoàn"],
-        9: ["Kim loại, Dãy hoạt động hóa học", "Khúc xạ ánh sáng, Thấu kính", "Điện từ học", "Di truyền và biến dị"]
-      },
-      "Ngữ văn": {
-        6: ["Truyện cổ tích và truyền thuyết", "Thơ lục bát", "Ký và Hồi ký"],
-        7: ["Truyện ngụ ngôn và tục ngữ", "Thơ bốn chữ, năm chữ", "Nghị luận văn học"],
-        8: ["Truyện cười và truyện lịch sử", "Thơ Đường luật", "Văn bản thông tin"],
-        9: ["Truyện ngắn hiện đại", "Thơ hiện đại", "Nghị luận xã hội"]
-      },
-      "Lịch sử & Địa lí": {
-        6: ["Xã hội nguyên thủy, Ai Cập cổ đại", "Trái Đất trong hệ Mặt Trời"],
-        7: ["Các cuộc phát kiến địa lí", "Đặc điểm tự nhiên Châu Á, Châu Âu"],
-        8: ["Cách mạng tư sản", "Địa hình, Khoáng sản và Khí hậu Việt Nam"],
-        9: ["Chiến tranh thế giới thứ hai", "Địa lí các vùng kinh tế Việt Nam"]
-      },
-      "Tiếng Anh": {
-        6: ["Unit 1-3: My New School, My Home", "Unit 4-6: My Neighbourhood, Tet"],
-        7: ["Unit 1-3: Hobbies, Healthy Living", "Unit 4-6: Music, Arts, Food"],
-        8: ["Unit 1-3: Countryside, Teenagers", "Unit 4-6: Customs, Festivals"],
-        9: ["Unit 1-3: Local community, City life", "Unit 4-6: Wonders of Viet Nam"]
+        6: ["Mở đầu về KHTN, Đo lường", "Tế bào - Đơn vị sự sống"],
+        7: ["Nguyên tử, Bảng tuần hoàn", "Tốc độ chuyển động"],
+        8: ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối"],
+        9: ["Kim loại và phi kim", "Khúc xạ ánh sáng, Thấu kính"]
       }
     };
 
@@ -498,7 +465,7 @@
       const saved = localStorage.getItem('eduexam_tphcm_' + type);
       let list = saved ? JSON.parse(saved) : DEFAULT_CONFIGS[type];
       const select = document.getElementById(selectId);
-      let html = list.map(item => `<option value="${item}">${item}</option>`).join('');
+      let html = (list || []).map(item => `<option value="${item}">${item}</option>`).join('');
       html += `<option value="__custom__">➕ Thêm mới...</option>`;
       select.innerHTML = html;
     }
@@ -596,38 +563,8 @@
 
     function handleModelChange() {
       const select = document.getElementById('geminiModelSelect');
-      const customBox = document.getElementById('customModelBox');
       const badge = document.getElementById('modelBadge');
-      const val = select.value;
-
-      if (val === '__custom__') {
-        customBox.classList.remove('hidden');
-        badge.innerText = "Custom";
-        badge.className = "text-[10px] bg-purple-200 text-purple-800 font-semibold px-1.5 py-0.5 rounded";
-      } else {
-        customBox.classList.add('hidden');
-        if (val.includes('3.7')) {
-          badge.innerText = "3.7 Ultra";
-          badge.className = "text-[10px] bg-amber-300 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm";
-        } else if (val.includes('3.6') || val.includes('3.5')) {
-          badge.innerText = "3.x Fast";
-          badge.className = "text-[10px] bg-blue-200 text-blue-900 font-semibold px-1.5 py-0.5 rounded";
-        } else if (val.includes('pro')) {
-          badge.innerText = "Pro Logic";
-          badge.className = "text-[10px] bg-rose-200 text-rose-900 font-semibold px-1.5 py-0.5 rounded";
-        } else {
-          badge.innerText = "2.5 Flash";
-          badge.className = "text-[10px] bg-indigo-200 text-indigo-900 font-semibold px-1.5 py-0.5 rounded";
-        }
-      }
-    }
-
-    function getSelectedModel() {
-      const select = document.getElementById('geminiModelSelect');
-      if (select.value === '__custom__') {
-        return document.getElementById('customModelInput').value.trim() || 'gemini-2.5-flash';
-      }
-      return select.value;
+      badge.innerText = select.value.includes('pro') ? "Pro Logic" : "2.5 Flash";
     }
 
     function switchTab(tab) {
@@ -650,59 +587,65 @@
       }
     }
 
-    function handleEssayModeChange() {
-      const mode = document.getElementById('essayModeSelect').value;
-      const box = document.getElementById('teacherEssayBox');
-      if (mode === 'teacher_only' || mode === 'hybrid') {
-        box.classList.remove('hidden');
-      } else {
-        box.classList.add('hidden');
-      }
-    }
-
-    function handleEssayFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('teacherEssayText').value = e.target.result;
-        alert(`Đã nạp nội dung đáp án từ file "${file.name}"!`);
-      };
-      reader.readAsText(file);
-    }
-
     function fillSampleMatrix() {
-      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết tập hợp số, 2 câu Thông hiểu phép tính lũy thừa.\n- Phần II (1 câu Đúng/Sai): Vận dụng tính chia hết và ước chung lớn nhất.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Thực hiện phép tính; Bài 2 (1.5đ) Bài toán thực tế tìm số học sinh.";
+      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết, 2 câu Thông hiểu.\n- Phần II (1 câu Đúng/Sai): Vận dụng rút gọn biểu thức.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Toán thực tế.";
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. Số nguyên tố nhỏ nhất là số 2.\n2. Phép tính $A = 2^3 \\cdot 5 - 15 = 40 - 15 = 25$.\n3. Một đội tình nguyện có từ 100 đến 150 người, khi chia thành hàng 4, hàng 5, hàng 6 đều vừa đủ. Tính số người.";
+      document.getElementById('sourceNotesInput').value = "1. Giải phương trình $\\sqrt{4x-8} - \\sqrt{x-2} = 3$.\n2. Rút gọn biểu thức $A = \\frac{\\sqrt{x}}{\\sqrt{x}+3}$.";
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      loadListOptions('school', 'schoolSelect');
-      loadListOptions('dept', 'deptSelect');
-      loadListOptions('examTitle', 'examTitleSelect');
-      updateTopicList();
-      syncHeaderPreview();
-      handleModelChange();
-      handleEssayModeChange();
-    });
+    // =========================================================================
+    // MARKDOWN + KATEX ENGINE (CHAT GEMINI STYLE)
+    // =========================================================================
+    function parseMarkdownMath(content) {
+      if (!content) return '';
+      let text = String(content);
+
+      text = text.replace(/\$([^\$]+)\$\s*\$([^\$]+)\$/g, '$$$1$$ $$$2$$');
+      text = text.replace(/\b(Bước \d+:|a\)|b\)|c\)|d\))/g, '\n\n$1');
+
+      text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), { displayMode: true, throwOnError: false });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      text = text.replace(/\$([^\$\n\r]+?)\$/g, (match, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false });
+        } catch (e) {
+          return match;
+        }
+      });
+
+      return marked.parse(text);
+    }
 
     // =========================================================================
-    // HÀM TẠO ĐỀ BẰNG AI GEMINI
+    // GỌI GOOGLE GEMINI API
     // =========================================================================
     async function triggerGenerate() {
+      const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
+      if (!apiKey) {
+        alert('Vui lòng nhập Google Gemini API Key ở khung trên cùng Sidebar!');
+        document.getElementById('geminiApiKeyInput').focus();
+        return;
+      }
+      saveApiKey();
+
       const btn = document.getElementById('btnGenerate');
       const subject = document.getElementById('subject').value;
       const grade = parseInt(document.getElementById('grade').value);
       const duration = parseInt(document.getElementById('duration').value);
       const examTitle = getSelectedText('examTitle');
-      const selectedModel = getSelectedModel();
+      const selectedModel = document.getElementById('geminiModelSelect').value;
 
       let topic = "Kiến thức chuẩn GDPT 2018";
-      let matrixSpec = null;
-      let sourceNotes = null;
+      let matrixSpec = "";
+      let sourceNotes = "";
 
       if (activeTab === 'quick') {
         topic = document.getElementById('topicSelect').value;
@@ -715,62 +658,129 @@
         topic = "Biên soạn theo Ma trận đặc tả & Tài liệu Notebook của giáo viên";
       }
 
-      const essayMode = document.getElementById('essayModeSelect').value;
-      const teacherAnswer = document.getElementById('teacherEssayText').value.trim();
-
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>${selectedModel} đang tổng hợp...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>${selectedModel} đang tổng hợp đề...</span>`;
       btn.disabled = true;
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/exams/generate-full`, {
+        const mathDesc = "Văn bản tiếng Việt. BẮT BUỘC: Mọi biến số, biểu thức, phép tính, phương trình toán học phải bọc trong cặp dấu $...$.";
+
+        const systemInstructionText = `Bạn là chuyên gia khảo thí THCS TP.HCM.
+QUY TẮC: Mọi công thức toán học phải bọc kín trong cặp dấu $...$. KHÔNG BAO GIỜ hiển thị hướng dẫn giải hay barem điểm của phần tự luận lên đề thi.
+Trả về đối tượng JSON nguyên vẹn theo đúng schema quy định.`;
+
+        let userPrompt = `Biên soạn đề kiểm tra: Môn ${subject} ${grade}, thời gian ${duration} phút, kỳ thi ${examTitle}, chủ đề: ${topic}.`;
+        if (matrixSpec) userPrompt += `\n- Khung ma trận đặc tả: ${matrixSpec}`;
+        if (sourceNotes) userPrompt += `\n- Tài liệu nguồn: ${sourceNotes}`;
+
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
+
+        const responseSchema = {
+          type: "OBJECT",
+          properties: {
+            base_exam: {
+              type: "OBJECT",
+              properties: {
+                part_1_mcq: {
+                  type: "ARRAY",
+                  description: "Danh sách 4 câu hỏi trắc nghiệm nhiều lựa chọn",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      content: { type: "STRING", description: mathDesc },
+                      options: {
+                        type: "ARRAY",
+                        items: {
+                          type: "OBJECT",
+                          properties: {
+                            id: { type: "STRING" },
+                            text: { type: "STRING", description: mathDesc }
+                          },
+                          required: ["id", "text"]
+                        }
+                      }
+                    },
+                    required: ["content", "options"]
+                  }
+                },
+                part_2_tf: {
+                  type: "ARRAY",
+                  description: "Danh sách câu hỏi đúng/sai",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      prompt: { type: "STRING", description: mathDesc },
+                      statements: {
+                        type: "OBJECT",
+                        properties: {
+                          a: { type: "STRING", description: mathDesc },
+                          b: { type: "STRING", description: mathDesc },
+                          c: { type: "STRING", description: mathDesc },
+                          d: { type: "STRING", description: mathDesc }
+                        },
+                        required: ["a", "b", "c", "d"]
+                      }
+                    },
+                    required: ["prompt", "statements"]
+                  }
+                },
+                part_3_essay: {
+                  type: "ARRAY",
+                  description: "Danh sách câu hỏi tự luận",
+                  items: {
+                    type: "OBJECT",
+                    properties: {
+                      content: { type: "STRING", description: "Đề bài tự luận hoàn chỉnh, không kèm giải. " + mathDesc },
+                      points: { type: "NUMBER" }
+                    },
+                    required: ["content", "points"]
+                  }
+                }
+              },
+              required: ["part_1_mcq", "part_2_tf", "part_3_essay"]
+            },
+            answer_matrix: {
+              type: "OBJECT",
+              description: "Ma trận đối chiếu đáp án trắc nghiệm 4 mã đề 101, 102, 103, 104"
+            }
+          },
+          required: ["base_exam"]
+        };
+
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            subject: subject,
-            grade: grade,
-            topic: topic,
-            duration_minutes: duration,
-            exam_title: examTitle,
-            matrix_spec: matrixSpec,
-            source_notes: sourceNotes,
-            essay_mode: essayMode,
-            essay_teacher_answer: teacherAnswer,
-            model_name: selectedModel
+            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemInstructionText }] },
+            generationConfig: {
+              responseMimeType: "application/json",
+              responseSchema: responseSchema
+            }
           })
         });
 
         if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Server báo lỗi (${response.status}): ${errText}`);
+          const errData = await response.json();
+          throw new Error(errData.error?.message || response.statusText);
         }
 
-        const result = await response.json();
-        if (result.status === 'success' || result.base_exam) {
-          currentExamData = result;
-          const examObj = result.base_exam || result;
-          const matrixObj = result.answer_matrix || {};
-          
-          renderExamToView(examObj, matrixObj);
-          syncHeaderPreview();
-          
-          if (window.innerWidth < 768) {
-            document.getElementById('examContainer').scrollIntoView({ behavior: 'smooth' });
-          }
-          alert(`Đã hoàn tất tạo đề bằng ${selectedModel}!`);
-        } else {
-          alert('Có lỗi xảy ra: ' + (result.message || 'Không thể tạo đề'));
-        }
+        const data = await response.json();
+        const rawJsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const result = JSON.parse(rawJsonText);
+        const examData = result.base_exam || result;
+
+        currentExamData = { ...result, base_exam: examData };
+        renderExamToView(examData, result.answer_matrix || {});
+        syncHeaderPreview();
+
       } catch (err) {
-        alert('Lỗi kết nối Backend: ' + err.message);
+        alert('Lỗi: ' + err.message);
       } finally {
-        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề (Direct)</span>`;
         btn.disabled = false;
       }
     }
 
-    // =========================================================================
-    // HỆ THỐNG PHÒNG THI ONLINE & KHUNG SOẠN THẢO TỰ LUẬN RICH-TEXT
-    // =========================================================================
     function toggleExamMode() {
       if (!currentExamData) {
         alert('Vui lòng tạo đề trước khi bật chế độ thi online!');
@@ -814,7 +824,7 @@
         updateTimerDisplay();
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
-          alert('Hết giờ làm bài! Hệ thống tự động thu bài của bạn.');
+          alert('Hết giờ làm bài!');
           submitExamOnline();
         }
       }, 1000);
@@ -826,97 +836,107 @@
       document.getElementById('timerCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
-    function execEditor(cmd, id, val = null) {
-      document.execCommand(cmd, false, val);
-      document.getElementById(id).focus();
-    }
+    function insertMathSymbol(editorId, latexCode) {
+      const editor = document.getElementById(editorId);
+      if (!editor) return;
+      editor.focus();
 
-    function insertMathFormula(editorId) {
-      const formula = prompt("Nhập biểu thức Toán học (LaTeX):\nVí dụ: \\sqrt{x^2 - 6x + 9} hoặc \\frac{a}{b}", "\\sqrt{x}");
-      if (formula) {
-        document.getElementById(editorId).focus();
-        document.execCommand('insertHTML', false, `&nbsp;$$${formula}$$&nbsp;`);
-        setTimeout(() => {
-          if (window.renderMathInElement) {
-            renderMathInElement(document.getElementById(editorId), {
-              delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }],
-              throwOnError: false
-            });
-          }
-        }, 100);
+      let span = document.createElement('span');
+      span.className = 'katex-inline-node';
+      span.contentEditable = "false";
+      try {
+        katex.render(latexCode, span, { throwOnError: false });
+      } catch (e) {
+        span.innerText = `$${latexCode}$`;
+      }
+
+      let sel = window.getSelection();
+      if (sel.getRangeAt && sel.rangeCount) {
+        let range = sel.getRangeAt(0);
+        range.deleteContents();
+        let space = document.createTextNode('\u00A0');
+        range.insertNode(space);
+        range.insertNode(span);
+        range.setStartAfter(space);
+        range.setEndAfter(space);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        editor.appendChild(span);
       }
     }
 
     function submitExamOnline() {
-      alert('Đã nộp bài thi thành công! Hệ thống đã ghi nhận bài làm trắc nghiệm & khung bài giải tự luận của học sinh.');
+      alert('Đã nộp bài thi thành công!');
       toggleExamMode();
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI LÊN VIEW
+    // RENDER ĐỀ THI SẠCH SẼ (LOẠI BỎ HOÀN TOÀN BÀI GIẢI TỰ LUẬN TRÊN ĐỀ)
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
-      // 1. Render Phần I (Trắc nghiệm 4 lựa chọn)
-      const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part1 || [];
+      // 1. Render Phần I (Trắc nghiệm chống dính chữ bằng bảng <table>)
+      const p1List = exam.part_1_mcq || [];
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
           } else if (q.options) {
             ['A', 'B', 'C', 'D'].forEach(k => {
               if (q.options[k] || q.options[k.toLowerCase()]) {
-                opts.push({ id: k, text: q.options[k] || q.options[k.toLowerCase()], is_correct: (q.correct_answer === k) });
+                opts.push({ id: k, text: q.options[k] || q.options[k.toLowerCase()] });
               }
             });
           }
 
           return `
-            <div class="space-y-1.5 bg-slate-50/50 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-4">
-                ${opts.map(o => `
-                  <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
-                    <input type="radio" name="student_p1_q${idx}" value="${o.id}" ${!isStudentExamMode && o.is_correct ? 'checked' : ''} class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${o.text || o.content || ''}</span>
-                  </label>
-                `).join('')}
-              </div>
+            <div class="space-y-1.5 bg-slate-50/50 p-2.5 rounded mb-3 border border-slate-200">
+              <div class="markdown-math font-medium"><strong>Câu ${idx + 1}:</strong> ${parseMarkdownMath(q.content)}</div>
+              <table style="width: 100%; border-collapse: collapse; margin-top: 6px;">
+                <tr>
+                  ${opts.map(o => `
+                    <td style="width: 25%; vertical-align: top; padding: 2px 4px;">
+                      <label class="flex items-center gap-1.5 cursor-pointer markdown-math">
+                        <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
+                        <span><strong>${o.id}.</strong> ${parseMarkdownMath(o.text)}</span>
+                      </label>
+                    </td>
+                  `).join('')}
+                </tr>
+              </table>
             </div>
           `;
         }).join('');
       }
 
       // 2. Render Phần II (Đúng / Sai)
-      const p2List = exam.part_2_tf || exam.part2_true_false || exam.part2 || [];
+      const p2List = exam.part_2_tf || [];
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = q.prompt || q.content || q.question_text || '';
+          const prompt = parseMarkdownMath(q.prompt);
           const st = q.statements || {};
-          const ans = q.answers || {};
 
           return `
             <div class="space-y-2 bg-slate-50/50 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
+              <div class="markdown-math"><strong>Câu ${idx + 1}:</strong> ${prompt}</div>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = st[k] || st[k.toUpperCase()] || '';
-                  const isCorrect = (ans[k] === true || ans[k.toUpperCase()] === true);
+                  const val = parseMarkdownMath(st[k] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
-                      <span class="flex-1"><strong>${k})</strong> ${val}</span>
+                      <span class="flex-1 markdown-math"><strong>${k})</strong> ${val}</span>
                       <div class="flex items-center gap-3 shrink-0">
                         <label class="flex items-center gap-1 text-xs cursor-pointer">
-                          <input type="radio" name="student_p2_q${idx}_${k}" value="Đ" ${!isStudentExamMode && isCorrect ? 'checked' : ''} class="accent-emerald-600">
+                          <input type="radio" name="student_p2_q${idx}_${k}" value="Đ" class="accent-emerald-600">
                           <span class="font-semibold text-emerald-700">Đúng</span>
                         </label>
                         <label class="flex items-center gap-1 text-xs cursor-pointer">
-                          <input type="radio" name="student_p2_q${idx}_${k}" value="S" ${!isStudentExamMode && !isCorrect ? 'checked' : ''} class="accent-rose-600">
+                          <input type="radio" name="student_p2_q${idx}_${k}" value="S" class="accent-rose-600">
                           <span class="font-semibold text-rose-700">Sai</span>
                         </label>
                       </div>
@@ -929,40 +949,46 @@
         }).join('');
       }
 
-      // 3. Render Phần III (Tự luận kèm Khung Soạn Thảo Rich-Text)
-      const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
+      // 3. Render Phần III (Tự luận sạch sẽ, chỉ có đề bài + thanh công cụ iMathEQ ngang gọn gàng)
+      const p3List = exam.part_3_essay || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = parseMarkdownMath(q.content);
           const pts = q.points || 1.5;
           return `
-            <div class="space-y-2 bg-slate-50/70 p-3 rounded-lg border border-slate-300">
-              <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
+            <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
+              <div class="font-bold text-indigo-950 text-sm markdown-math">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></div>
               
-              <!-- Thanh công cụ soạn thảo như Word -->
-              <div class="editor-toolbar flex flex-wrap items-center gap-1 bg-slate-100 p-1.5 rounded border border-slate-300">
-                <button type="button" onclick="execEditor('bold', 'essayBox_${idx}')" title="In đậm"><b>B</b></button>
-                <button type="button" onclick="execEditor('italic', 'essayBox_${idx}')" title="In nghiêng"><i>I</i></button>
-                <button type="button" onclick="execEditor('underline', 'essayBox_${idx}')" title="Gạch chân"><u>U</u></button>
-                <span class="text-slate-300">|</span>
-                <button type="button" onclick="execEditor('justifyLeft', 'essayBox_${idx}')" title="Căn trái"><i class="fa-solid fa-align-left"></i></button>
-                <button type="button" onclick="execEditor('justifyCenter', 'essayBox_${idx}')" title="Căn giữa"><i class="fa-solid fa-align-center"></i></button>
-                <button type="button" onclick="execEditor('insertUnorderedList', 'essayBox_${idx}')" title="Danh sách"><i class="fa-solid fa-list-ul"></i></button>
-                <span class="text-slate-300">|</span>
-                <button type="button" onclick="insertMathFormula('essayBox_${idx}')" class="bg-indigo-50 text-indigo-700 font-bold flex items-center gap-1 border-indigo-300">
-                  <i class="fa-solid fa-square-root-variable text-indigo-600"></i> Chèn Công Thức Math
-                </button>
+              <!-- Thanh công cụ iMathEQ nằm ngang tuyệt đẹp -->
+              <div class="math-palette-horizontal">
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\frac{a}{b}')" class="math-cell-btn" title="Phân số">Phân số</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\sqrt{x}')" class="math-cell-btn" title="Căn bậc hai">Căn</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', 'x^2')" class="math-cell-btn" title="Lũy thừa">Mũ</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', 'x_n')" class="math-cell-btn" title="Chỉ số dưới">Chỉ số</button>
+                <div class="math-separator"></div>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '(')" class="math-cell-btn">(</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '[')" class="math-cell-btn">[</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '|')" class="math-cell-btn">|</button>
+                <div class="math-separator"></div>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '+')" class="math-cell-btn">+</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '-')" class="math-cell-btn">-</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\cdot')" class="math-cell-btn">·</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', ':')" class="math-cell-btn">:</button>
+                <div class="math-separator"></div>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\neq')" class="math-cell-btn">≠</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\Rightarrow')" class="math-cell-btn">⟹</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\pi')" class="math-cell-btn">π</button>
+                <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\Leftrightarrow')" class="math-cell-btn">⟺</button>
               </div>
 
-              <!-- Khung soạn thảo bài làm -->
-              <div id="essayBox_${idx}" contenteditable="true" placeholder="Học sinh nhập hoặc trình bày lời giải chi tiết cho Bài ${idx + 1} tại đây..." class="essay-editor bg-white border border-slate-300 rounded shadow-inner"></div>
+              <div id="essayBox_${idx}" contenteditable="true" placeholder="Học sinh trình bày bài giải tại đây..." class="essay-editor"></div>
             </div>
           `;
         }).join('');
       }
 
-      // 4. Render Bảng ma trận 4 mã đề
+      // 4. Render Ma trận 4 mã đề trắc nghiệm cho giáo viên đối chiếu
       if (matrix && Object.keys(matrix).length > 0) {
         const tbody = document.getElementById('matrixTableBody');
         if (tbody) {
@@ -983,83 +1009,14 @@
           tbody.innerHTML = html;
         }
       }
-
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
-      let answerKeyContainer = document.getElementById('answerKeySection');
-      if (answerKeyContainer) {
-        let essaySolutionsHtml = p3List.map((q, idx) => {
-          const sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
-          const guides = q.scoring_guide || q.guide || [
-            { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
-            { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
-            { step: "Bước 3: Đối chiếu và Kết luận", points: "0.5 đ" }
-          ];
-
-          return `
-            <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
-              <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
-              <p class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải chi tiết:</strong> ${sol}</p>
-              <div class="mt-1 pt-1 border-t border-emerald-200">
-                <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
-                <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${g.step || g.content || ''} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        let tfAnswersHtml = p2List.map((q, idx) => {
-          const ans = q.answers || {};
-          const isA = (ans.a === true || ans.A === true || ans.a === 'Đ' || ans.a === 'đ');
-          const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
-          const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
-          const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          const exp = q.explanation || '';
-
-          return `
-            <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
-              <p class="font-bold text-blue-900 mb-1">Đáp án Đúng/Sai Câu ${idx + 1}:</p>
-              <p class="text-slate-800">
-                a) <strong class="${isA ? 'text-emerald-700' : 'text-rose-700'}">${isA ? 'ĐÚNG' : 'SAI'}</strong> | 
-                b) <strong class="${isB ? 'text-emerald-700' : 'text-rose-700'}">${isB ? 'ĐÚNG' : 'SAI'}</strong> | 
-                c) <strong class="${isC ? 'text-emerald-700' : 'text-rose-700'}">${isC ? 'ĐÚNG' : 'SAI'}</strong> | 
-                d) <strong class="${isD ? 'text-emerald-700' : 'text-rose-700'}">${isD ? 'ĐÚNG' : 'SAI'}</strong>
-              </p>
-              ${exp ? `<p class="text-slate-600 mt-1 italic">• Giải thích: ${exp}</p>` : ''}
-            </div>
-          `;
-        }).join('');
-
-        answerKeyContainer.innerHTML = `
-          <h3 class="text-center font-bold text-sm uppercase text-indigo-900 tracking-wide pb-2 border-b border-indigo-200">
-            <i class="fa-solid fa-clipboard-check"></i> HƯỚNG DẪN CHẤM & ĐÁP ÁN CHI TIẾT
-          </h3>
-          ${tfAnswersHtml ? `<div class="space-y-1.5"><h4 class="font-bold text-xs uppercase text-slate-700">Đáp án Phần II (Đúng/Sai):</h4>${tfAnswersHtml}</div>` : ''}
-          <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
-        `;
-      }
-
-      // 6. KaTeX Render công thức Toán
-      setTimeout(() => {
-        if (window.renderMathInElement) {
-          renderMathInElement(document.getElementById('examContainer'), {
-            delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "$", right: "$", display: false }
-            ],
-            throwOnError: false
-          });
-        }
-      }, 100);
     }
 
     // =========================================================================
-    // HÀM 1: 1-CLICK SAO CHÉP RICH-TEXT & MATHML DÁN TRỰC TIẾP VÀO WORD (CTRL + V)
+    // SAO CHÉP & XUẤT WORD SẠCH SẼ (LOẠI BỎ HOÀN TOÀN BÀN PHÍM VÀ NÚT TƯƠNG TÁC)
     // =========================================================================
-    async function copyExamForWord() {
+    function copyExamForWord() {
       if (!currentExamData) {
-        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi sao chép!');
+        alert('Vui lòng tạo đề trước khi sao chép!');
         return;
       }
 
@@ -1069,137 +1026,88 @@
       const btn = document.getElementById('btnCopyWord');
       const originalHtml = btn.innerHTML;
 
-      try {
-        const clone = examEl.cloneNode(true);
-        const htmlKatexElements = clone.querySelectorAll('.katex-html');
-        htmlKatexElements.forEach(el => el.remove());
+      const clone = examEl.cloneNode(true);
+      clone.querySelectorAll('.imatheq-container, .math-palette-horizontal, button').forEach(el => el.remove());
 
-        const mathElements = clone.querySelectorAll('math');
-        mathElements.forEach(m => {
-          m.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
-        });
+      clone.querySelectorAll('.katex').forEach(el => {
+        const annotation = el.querySelector('annotation');
+        if (annotation) {
+          const textNode = document.createTextNode(` ${annotation.textContent} `);
+          el.parentNode.replaceChild(textNode, el);
+        }
+      });
 
-        const htmlContent = clone.innerHTML;
-        const blobHtml = new Blob([htmlContent], { type: 'text/html' });
-        const blobText = new Blob([clone.innerText], { type: 'text/plain' });
+      const htmlContent = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:w="urn:schemas-microsoft-com:office:word"
+              xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><title>De Thi</title>
+        <style>body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.4; color: #000; }</style>
+        </head>
+        <body>${clone.innerHTML}</body>
+        </html>
+      `;
 
-        const clipboardItem = new ClipboardItem({
-          'text/html': blobHtml,
-          'text/plain': blobText
-        });
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const clipboardItem = new ClipboardItem({ 'text/html': blob });
 
-        await navigator.clipboard.write([clipboardItem]);
-
-        btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
-        btn.className = "bg-green-700 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5";
-
+      navigator.clipboard.write([clipboardItem]).then(() => {
+        btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã chép! Mở Word dán Ctrl+V</span>`;
+        btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5";
+        
         setTimeout(() => {
           btn.innerHTML = originalHtml;
-          btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
-        }, 3500);
-
-      } catch (err) {
-        const range = document.createRange();
-        range.selectNode(examEl);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        document.execCommand('copy');
-        window.getSelection().removeAllRanges();
-        alert('Đã sao chép toàn bộ đề thi! Mở Word và bấm phím Ctrl + V để dán.');
-      }
+          btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
+        }, 4000);
+      }).catch(err => {
+        alert('Vui lòng bôi đen toàn bộ trang và bấm Ctrl + C.');
+      });
     }
 
-    // =========================================================================
-    // HÀM 2: TẢI FILE WORD (.DOC) MHTML NATIVE CHUẨN ĐẸP
-    // =========================================================================
     function exportExamToWordNativeDoc() {
-      if (!currentExamData) {
-        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi xuất file Word!');
+      const examEl = document.getElementById('examContainer');
+      if (!examEl) {
+        alert('Chưa có nội dung đề thi để tải xuống!');
         return;
       }
 
-      const examEl = document.getElementById('examContainer');
-      if (!examEl) return;
-
       const clone = examEl.cloneNode(true);
-      const htmlKatexElements = clone.querySelectorAll('.katex-html');
-      htmlKatexElements.forEach(el => el.remove());
+      clone.querySelectorAll('.imatheq-container, .math-palette-horizontal, button').forEach(el => el.remove());
 
-      const mathElements = clone.querySelectorAll('math');
-      mathElements.forEach(m => {
-        m.setAttribute('xmlns', 'http://www.w3.org/1998/Math/MathML');
+      clone.querySelectorAll('.katex').forEach(el => {
+        const annotation = el.querySelector('annotation');
+        if (annotation) {
+          const textNode = document.createTextNode(` ${annotation.textContent} `);
+          el.parentNode.replaceChild(textNode, el);
+        }
       });
 
       const cleanHtml = clone.innerHTML;
-
-      const mhtmlDoc = `MIME-Version: 1.0
-Content-Type: multipart/related; boundary="----=_NextPart_EduExamDoc"
-
-------=_NextPart_EduExamDoc
-Content-Location: file:///exam.htm
-Content-Type: text/html; charset="utf-8"
-
-<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      const mhtmlDoc = `\ufeff<html xmlns:o="urn:schemas-microsoft-com:office:office"
       xmlns:w="urn:schemas-microsoft-com:office:word"
       xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
       xmlns="http://www.w3.org/TR/REC-html40">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<!--[if gte mso 9]>
-<xml>
- <w:WordDocument>
-  <w:View>Print</w:View>
-  <w:Zoom>100</w:Zoom>
-  <w:DoNotOptimizeForBrowser/>
- </w:WordDocument>
-</xml>
-<![endif]-->
-<style>
-@page Section1 {
-  size: 595.3pt 841.9pt; /* Khổ A4 */
-  margin: 56.7pt 56.7pt 56.7pt 70.85pt; /* Trái 2.5cm, Phải 2.0cm, Trên 2.0cm, Dưới 2.0cm */
-  mso-header-margin: 35.4pt;
-  mso-footer-margin: 35.4pt;
-}
-div.Section1 { page: Section1; }
-body {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 13pt;
-  line-height: 1.35;
-  color: #000000;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-td, th {
-  font-family: 'Times New Roman', Times, serif;
-  font-size: 12pt;
-}
-p { margin: 0 0 5pt 0; }
-strong { font-weight: bold; }
-math {
-  font-family: 'Cambria Math', 'Times New Roman', serif;
-  font-size: 13pt;
-}
-</style>
-</head>
-<body>
-<div class="Section1">
-  ${cleanHtml}
-</div>
-</body>
-</html>
-
-------=_NextPart_EduExamDoc--`;
+      <head><meta charset="utf-8">
+      <style>
+      @page Section1 { size: 595.3pt 841.9pt; margin: 56.7pt 56.7pt 56.7pt 70.85pt; }
+      div.Section1 { page: Section1; }
+      body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.35; color: #000; }
+      table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+      td, th { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
+      </style>
+      </head>
+      <body><div class="Section1">${cleanHtml}</div></body>
+      </html>`;
 
       const blob = new Blob([mhtmlDoc], { type: 'application/msword;charset=utf-8' });
-      const subj = document.getElementById('subject').value;
-      const gr = document.getElementById('grade').value;
+      const subj = (document.getElementById('subject') ? document.getElementById('subject').value : 'Toan').replace(/\s+/g, '_');
+      const gr = document.getElementById('grade') ? document.getElementById('grade').value : '9';
       const fileName = `De_Thi_${subj}_Lop_${gr}.doc`;
 
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement('a');
+      a.style.display = 'none';
       a.href = blobUrl;
       a.download = fileName;
       document.body.appendChild(a);
@@ -1207,62 +1115,8 @@ math {
 
       setTimeout(() => {
         document.body.removeChild(a);
-        URL.revokeObjectURL(blobUrl);
-      }, 1200);
-    }
-
-    // =========================================================================
-    // HÀM 3: TẢI FILE WORD (.DOCX) NGUYÊN BẢN QUA BACKEND PYTHON-DOCX
-    // =========================================================================
-    async function downloadWordDocxPython() {
-      if (!currentExamData) {
-        alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi xuất file Word!');
-        return;
-      }
-
-      const btn = document.getElementById('btnExportDocx');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang xuất .docx...</span>`;
-      btn.disabled = true;
-
-      try {
-        const base = currentExamData.base_exam || currentExamData;
-        const response = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base_exam: base,
-            answer_matrix: currentExamData.answer_matrix || {},
-            school_name: getSelectedText('school'),
-            dept_name: getSelectedText('dept'),
-            school_year: document.getElementById('schoolYear').value,
-            exam_code: document.getElementById('examCode').value
-          })
-        });
-
-        if (!response.ok) throw new Error("Máy chủ không thể xuất file .docx");
-
-        const blob = await response.blob();
-        const fileName = `De_Thi_${base.subject || 'THCS'}_Lop_${base.grade || '6'}.docx`;
-
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        }, 1200);
-
-      } catch (err) {
-        alert('Lỗi xuất file .docx: ' + err.message);
-      } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
+        window.URL.revokeObjectURL(blobUrl);
+      }, 3000);
     }
   </script>
 </body>
