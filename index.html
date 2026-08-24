@@ -571,15 +571,12 @@
     }
 
     function handleSelectChange(type) {
-      const selectMap = {
-        school: { select: 'schoolSelect', box: 'customSchoolBox', input: 'customSchoolInput' }
-      };
-      const cfg = selectMap[type];
+      const cfg = { select: 'schoolSelect', box: 'customSchoolBox', input: 'customSchoolInput' };
       const selectEl = document.getElementById(cfg.select);
-      if (cfg && selectEl.value === '__custom__') {
+      if (selectEl.value === '__custom__') {
         document.getElementById(cfg.box).classList.remove('hidden');
         document.getElementById(cfg.input).focus();
-      } else if (cfg) {
+      } else {
         document.getElementById(cfg.box).classList.add('hidden');
       }
       syncHeaderPreview();
@@ -1029,7 +1026,7 @@ Trả về đối tượng JSON nguyên vẹn theo đúng schema quy định.`;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
               <div class="font-bold text-indigo-950 text-sm markdown-math">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></div>
-              <div id="essayBox_${idx}" contenteditable="true" placeholder="Học sinh trình bày bài giải tại đây (Bấm vào khung rồi chọn ký hiệu từ bảng nổi bên phải)..." class="essay-editor"></div>
+              <div id="essayBox_${idx}" contenteditable="true" placeholder="Học sinh trình bày bài giải tại đây..." class="essay-editor"></div>
             </div>
           `;
         }).join('');
