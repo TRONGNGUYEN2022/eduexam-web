@@ -7,10 +7,9 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX CSS + JS + Auto-render Extension chính chủ (output: htmlAndMathml) -->
+  <!-- KaTeX CSS + JS Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -25,11 +24,13 @@
       .sidebar-scroll { max-height: none; }
     }
 
+    /* MathML equation styling */
     math {
       font-family: 'Cambria Math', 'Times New Roman', serif;
       font-size: 1.05em;
     }
 
+    /* iMathEQ Visual Keyboard Toolbar */
     .imatheq-container {
       background: #f8fafc;
       border: 1px solid #94a3b8;
@@ -113,7 +114,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Đề thi Native MathML & Preview Đáp án PDF Pandoc</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Hệ Thống Khảo Thí & Biên Soạn Đề GDPT 2018</p>
       </div>
     </div>
     
@@ -395,10 +396,30 @@
           --- HẾT ĐỀ THI ---
         </div>
 
-        <!-- Bảng Đáp Án & Bản In PDF Preview -->
+        <!-- Bảng Đáp Án & Barem Giáo Viên -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
-          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết (Nhúng PDF) -->
-          <div id="answerKeySection" class="mt-4 space-y-4">
+          <div class="overflow-x-auto w-full mb-6">
+            <h3 class="font-bold text-xs sm:text-sm uppercase text-slate-800 mb-2 text-center">
+              BẢNG ĐÁP ÁN & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU
+            </h3>
+            <table class="w-full text-xs text-center border-collapse border border-slate-400 min-w-[300px]" style="border: 1px solid #64748b;">
+              <thead>
+                <tr class="bg-indigo-900 text-white font-bold" style="background-color: #312e81; color: white;">
+                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Câu hỏi</th>
+                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 101</th>
+                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 102</th>
+                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 103</th>
+                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 104</th>
+                </tr>
+              </thead>
+              <tbody id="matrixTableBody">
+                <tr><td colspan="5" class="border border-slate-400 p-2 text-slate-400 italic" style="border: 1px solid #64748b;">Chưa có dữ liệu ma trận</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết -->
+          <div id="answerKeySection" class="mt-6 pt-4 border-t-2 border-indigo-200 space-y-4">
             <p class="text-slate-400 italic text-center text-xs">Hướng dẫn giải và barem điểm chi tiết sẽ hiển thị tại đây sau khi sinh đề.</p>
           </div>
         </div>
@@ -409,7 +430,6 @@
 
   <!-- JavaScript Xử Lý -->
   <script>
-    const API_BASE_URL = "https://eduexam-backend.onrender.com";
     let currentExamData = null;
     let activeTab = 'quick';
     let isStudentExamMode = false;
@@ -714,24 +734,52 @@
     }
 
     // =========================================================================
-    // HÀM LÀM SẠCH KÝ TỰ CƠ BẢN CHO KATEX AUTO-RENDER TRÊN ĐỀ THI
+    // HÀM PARSE TRỰC TIẾP TỪNG CỤM LATEX SANG KATEX HTML & MATHML
     // =========================================================================
-    function cleanRawText(rawText) {
-      if (!rawText) return '';
-      let str = typeof rawText === 'string' ? rawText : String(rawText);
+    function parseInlineMath(text) {
+      if (!text) return '';
+      let str = typeof text === 'string' ? text : String(text);
 
-      return str
-        .replace(/\\n/g, '<br/>')
-        .replace(/\\\\/g, '\\')
-        .replace(/\bight\)/g, '\\right)')
-        .replace(/\bight\]/g, '\\right]')
-        .replace(/\bight\}/g, '\\right\\}')
-        .replace(/\bight\|/g, '\\right|')
-        .replace(/\beft\(/g, '\\left(')
-        .replace(/\beft\[/g, '\\left[')
-        .replace(/\beft\{/g, '\\left\\{')
-        .replace(/\beft\|/g, '\\left|')
-        .replace(/\\ne\b/g, '\\neq');
+      // 1. Vá lỗi escape và ngắt dòng
+      str = str.replace(/\\n/g, '<br/>')
+               .replace(/\\\\/g, '\\')
+               .replace(/\bight\)/g, '\\right)')
+               .replace(/\bight\]/g, '\\right]')
+               .replace(/\bight\}/g, '\\right\\}')
+               .replace(/\bight\|/g, '\\right|')
+               .replace(/\beft\(/g, '\\left(')
+               .replace(/\beft\[/g, '\\left[')
+               .replace(/\beft\{/g, '\\left\\{')
+               .replace(/\beft\|/g, '\\left|')
+               .replace(/\\ne\b/g, '\\neq');
+
+      // 2. Parse Display Math $$ ... $$
+      str = str.replace(/\$\$([\s\S]+?)\$\$/g, (match, expr) => {
+        try {
+          return katex.renderToString(expr.trim(), {
+            displayMode: true,
+            throwOnError: false,
+            output: 'htmlAndMathml'
+          });
+        } catch(e) {
+          return match;
+        }
+      });
+
+      // 3. Parse Inline Math $ ... $
+      str = str.replace(/\$([^\$\n]+?)\$/g, (match, expr) => {
+        try {
+          return katex.renderToString(expr.trim(), {
+            displayMode: false,
+            throwOnError: false,
+            output: 'htmlAndMathml'
+          });
+        } catch(e) {
+          return match;
+        }
+      });
+
+      return str;
     }
 
     // =========================================================================
@@ -940,7 +988,7 @@ QUY TẮC BẮT BUỘC:
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & GỌI AUTO-RENDER KATEX (OUTPUT: htmlAndMathml)
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM VỚI KATEX PARSE TRỰC TIẾP
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -963,12 +1011,12 @@ QUY TẮC BẮT BUỘC:
 
           return `
             <div class="space-y-1.5 bg-slate-50/50 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${cleanRawText(q.content || q.question_text)}</p>
+              <p><strong>Câu ${idx + 1}:</strong> ${parseInlineMath(q.content || q.question_text)}</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-4">
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${cleanRawText(o.text || o.content)}</span>
+                    <span><strong>${o.id}.</strong> ${parseInlineMath(o.text || o.content)}</span>
                   </label>
                 `).join('')}
               </div>
@@ -982,7 +1030,7 @@ QUY TẮC BẮT BUỘC:
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = cleanRawText(q.prompt || q.content || q.question_text);
+          const prompt = parseInlineMath(q.prompt || q.content || q.question_text);
           const st = q.statements || {};
 
           return `
@@ -990,7 +1038,7 @@ QUY TẮC BẮT BUỘC:
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = cleanRawText(st[k] || st[k.toUpperCase()] || '');
+                  const val = parseInlineMath(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1018,7 +1066,7 @@ QUY TẮC BẮT BUỘC:
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = cleanRawText(q.content || q.question_text);
+          const qText = parseInlineMath(q.content || q.question_text);
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1077,88 +1125,82 @@ QUY TẮC BẮT BUỘC:
         }).join('');
       }
 
-      // 4. KÍCH HOẠT AUTO-RENDER TOÀN TRANG TRÊN ĐỀ THI
-      requestAnimationFrame(() => {
-        const root = document.getElementById('examBody');
-        if (root && window.renderMathInElement) {
-          renderMathInElement(root, {
-            delimiters: [
-              { left: '$$', right: '$$', display: true },
-              { left: '$', right: '$', display: false },
-              { left: '\\(', right: '\\)', display: false },
-              { left: '\\[', right: '\\]', display: true }
-            ],
-            throwOnError: false,
-            output: 'htmlAndMathml'
-          });
+      // 4. Render Bảng ma trận 4 mã đề
+      if (matrix && Object.keys(matrix).length > 0) {
+        const tbody = document.getElementById('matrixTableBody');
+        if (tbody) {
+          const totalQ = p1List.length > 0 ? p1List.length : 4;
+          let html = '';
+          for (let i = 1; i <= totalQ; i++) {
+            const qKey = `Câu ${i}`;
+            html += `
+              <tr class="${i % 2 === 1 ? 'bg-slate-50' : ''}">
+                <td class="border border-slate-400 font-bold p-1" style="border: 1px solid #64748b;">${qKey}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['101']?.[qKey] || '-'}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['102']?.[qKey] || '-'}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['103']?.[qKey] || '-'}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['104']?.[qKey] || '-'}</td>
+              </tr>
+            `;
+          }
+          tbody.innerHTML = html;
         }
-      });
+      }
 
-      // 5. GỌI XUẤT ĐÁP ÁN PANDOC SANG PDF VÀ NHÚNG XEM TRƯỚC
-      renderAnswersPDF(exam, matrix);
-    }
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (PARSE TOÀN BỘ SANG KATEX)
+      let answerKeyContainer = document.getElementById('answerKeySection');
+      if (answerKeyContainer) {
+        let essaySolutionsHtml = p3List.map((q, idx) => {
+          let sol = parseInlineMath(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          
+          const guides = q.scoring_guide || q.guide || [
+            { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
+            { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
+            { step: "Bước 3: Đối chiếu và Kết luận", points: "0.5 đ" }
+          ];
 
-    // =========================================================================
-    // XUẤT ĐÁP ÁN RA FILE PDF VECTOR QUA PANDOC BACKEND VÀ NHÚNG PREVIEW
-    // =========================================================================
-    async function renderAnswersPDF(exam, matrix) {
-      const container = document.getElementById('answerKeySection');
-      if (!container) return;
-
-      container.innerHTML = `
-        <div class="py-10 flex flex-col items-center justify-center text-indigo-700 gap-2 bg-indigo-50/60 rounded border border-indigo-200">
-          <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
-          <span class="text-xs font-semibold">Pandoc đang biên dịch bản in PDF Hướng dẫn chấm & Đáp án chi tiết...</span>
-        </div>
-      `;
-
-      const p2 = exam.part_2_tf || [];
-      const p3 = exam.part_3_essay || [];
-
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/exams/export-answers-pdf`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subject: document.getElementById('subject').value,
-            grade: parseInt(document.getElementById('grade').value),
-            exam_title: getSelectedText('examTitle'),
-            school_name: getSelectedText('school'),
-            part_2_tf: p2,
-            part_3_essay: p3,
-            answer_matrix: matrix || {}
-          })
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Server lỗi (${response.status}): ${errText}`);
-        }
-
-        const blob = await response.blob();
-        const pdfBlobUrl = URL.createObjectURL(blob);
-
-        container.innerHTML = `
-          <div class="space-y-3">
-            <div class="flex items-center justify-between bg-indigo-900 text-white px-4 py-2.5 rounded shadow">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-file-pdf text-rose-400 text-base"></i>
-                <span class="font-bold text-xs uppercase">BẢN IN HƯỚNG DẪN CHẤM & ĐÁP ÁN (PDF VECTOR CHUẨN IN)</span>
+          return `
+            <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
+              <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
+              <p class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải chi tiết:</strong> ${sol}</p>
+              <div class="mt-1 pt-1 border-t border-emerald-200">
+                <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
+                <div class="space-y-1 pl-2">
+                  ${guides.map(g => `<p class="text-slate-700">- ${parseInlineMath(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                </div>
               </div>
-              <a href="${pdfBlobUrl}" download="Dap_An_Barem_${document.getElementById('subject').value}_Lop_${document.getElementById('grade').value}.pdf" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3 py-1.5 rounded shadow transition flex items-center gap-1.5 cursor-pointer">
-                <i class="fa-solid fa-download"></i> Tải PDF Đáp Án
-              </a>
             </div>
-            <iframe src="${pdfBlobUrl}#view=FitH" class="w-full h-[620px] border border-slate-300 rounded shadow bg-white"></iframe>
-          </div>
-        `;
+          `;
+        }).join('');
 
-      } catch (err) {
-        container.innerHTML = `
-          <div class="p-4 bg-rose-50 text-rose-700 text-xs rounded border border-rose-200 text-center">
-            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
-            Không thể tải bản in PDF: ${err.message}. Vui lòng kiểm tra Pandoc trên server backend.
-          </div>
+        let tfAnswersHtml = p2List.map((q, idx) => {
+          const ans = q.answers || {};
+          const isA = (ans.a === true || ans.A === true || ans.a === 'Đ' || ans.a === 'đ');
+          const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
+          const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
+          const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
+          let exp = parseInlineMath(q.explanation || '');
+
+          return `
+            <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
+              <p class="font-bold text-blue-900 mb-1">Đáp án Đúng/Sai Câu ${idx + 1}:</p>
+              <p class="text-slate-800">
+                a) <strong class="${isA ? 'text-emerald-700' : 'text-rose-700'}">${isA ? 'ĐÚNG' : 'SAI'}</strong> | 
+                b) <strong class="${isB ? 'text-emerald-700' : 'text-rose-700'}">${isB ? 'ĐÚNG' : 'SAI'}</strong> | 
+                c) <strong class="${isC ? 'text-emerald-700' : 'text-rose-700'}">${isC ? 'ĐÚNG' : 'SAI'}</strong> | 
+                d) <strong class="${isD ? 'text-emerald-700' : 'text-rose-700'}">${isD ? 'ĐÚNG' : 'SAI'}</strong>
+              </p>
+              ${exp ? `<p class="text-slate-600 mt-1 italic">• Giải thích: ${exp}</p>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        answerKeyContainer.innerHTML = `
+          <h3 class="text-center font-bold text-sm uppercase text-indigo-900 tracking-wide pb-2 border-b border-indigo-200">
+            <i class="fa-solid fa-clipboard-check"></i> HƯỚNG DẪN CHẤM & ĐÁP ÁN CHI TIẾT
+          </h3>
+          ${tfAnswersHtml ? `<div class="space-y-1.5"><h4 class="font-bold text-xs uppercase text-slate-700">Đáp án Phần II (Đúng/Sai):</h4>${tfAnswersHtml}</div>` : ''}
+          <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
     }
@@ -1222,7 +1264,6 @@ QUY TẮC BẮT BUỘC:
 
       const clone = examEl.cloneNode(true);
       clone.querySelectorAll('.imatheq-container').forEach(el => el.remove());
-      clone.querySelectorAll('#answerKeySection').forEach(el => el.remove());
       
       const cleanHtml = clone.innerHTML;
       const mhtmlDoc = `MIME-Version: 1.0
