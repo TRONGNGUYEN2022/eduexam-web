@@ -7,9 +7,21 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX CSS + JS Core -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <!-- Cấu hình MathJax 3 Engine đồng bộ -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -24,6 +36,7 @@
       .sidebar-scroll { max-height: none; }
     }
 
+    /* MathML equation styling */
     math {
       font-family: 'Cambria Math', 'Times New Roman', serif;
       font-size: 1.05em;
@@ -113,7 +126,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Hệ Thống Khảo Thí & Biên Soạn Đề GDPT 2018</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">MathJax 3 Typesetting Engine & Word Native Equation</p>
       </div>
     </div>
     
@@ -126,6 +139,9 @@
       </button>
       <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-file-word"></i> <span>Tải Đề .doc</span>
+      </button>
+      <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-print text-emerald-400"></i> <span>In / Lưu PDF</span>
       </button>
     </div>
   </header>
@@ -395,7 +411,7 @@
           --- HẾT ĐỀ THI ---
         </div>
 
-        <!-- Bảng Đáp Án & Barem Giáo Viên Hiển Thị Trực Tiếp -->
+        <!-- Bảng Đáp Án & Barem Giáo Viên -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
           <div class="overflow-x-auto w-full mb-6">
             <h3 class="font-bold text-xs sm:text-sm uppercase text-slate-800 mb-2 text-center">
@@ -732,51 +748,37 @@
       document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. $A = 2x^2y - 3xy^2 + 5$.\n2. Biểu thức $P = \\frac{2}{\\sqrt{x}+1}$.";
     }
 
-    // =========================================================================
-    // HÀM TIỀN XỬ LÝ & PARSE TOÁN TOÀN DIỆN
-    // =========================================================================
-    function fixAndRenderMath(rawText) {
-      if (!rawText) return '';
-      let str = typeof rawText === 'string' ? rawText : String(rawText);
+    function rawClean(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/\\n/g, '<br/>')
+        .replace(/\\\\/g, '\\');
+    }
 
-      // 1. Chuẩn hóa escape cơ bản
-      str = str.replace(/\\n/g, '<br/>')
-               .replace(/\\\\/g, '\\')
-               .replace(/\bight\)/g, '\\right)')
-               .replace(/\bight\]/g, '\\right]')
-               .replace(/\bight\}/g, '\\right\\}')
-               .replace(/\bight\|/g, '\\right|')
-               .replace(/\beft\(/g, '\\left(')
-               .replace(/\beft\[/g, '\\left[')
-               .replace(/\beft\{/g, '\\left\\{')
-               .replace(/\beft\|/g, '\\left|')
-               .replace(/\\ne\b/g, '\\neq');
+    // =========================================================================
+    // CƠ CHẾ ĐỒNG BỘ THỜI GIAN VỚI MATHJAX 3 (DELAY + REQUESTANIMATIONFRAME)
+    // =========================================================================
+    async function typesetMathWithDelay(container, delayMs = 150) {
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => setTimeout(resolve, delayMs));
 
-      // 2. Tự động gom các biểu thức toán trần có chứa \frac, \sqrt, \left, \cdot vào trong $...$
-      const tokenRegex = /(?:[A-Za-z0-9_+\-*=><\(\)\/:]+\s*)?\\(?:frac|sqrt|left|right|cdot|times|ge|le|neq|in|mathbb|Leftrightarrow|Rightarrow|iff)(?:\{[^{}]*\}|\[[^\[\]]*\]|[A-Za-z0-9_+\-*=><\(\)\/\s\\,:]*)*/g;
-      
-      const segments = str.split('$');
-      for (let i = 0; i < segments.length; i += 2) {
-        if (segments[i]) {
-          segments[i] = segments[i].replace(tokenRegex, (m) => m.trim() ? `$${m.trim()}$` : m);
-        }
+      if (!window.MathJax || !window.MathJax.typesetPromise) {
+        await new Promise(resolve => {
+          const checkInterval = setInterval(() => {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50);
+        });
       }
-      str = segments.join('$').replace(/\${3,}/g, '$$$$').replace(/\$\s*\$/g, ' ');
 
-      // 3. Render trực tiếp bằng KaTeX
-      str = str.replace(/\$\$([\s\S]+?)\$\$/g, (m, expr) => {
-        try { 
-          return katex.renderToString(expr.trim(), { displayMode: true, throwOnError: false, output: 'htmlAndMathml' }); 
-        } catch(e) { return m; }
-      });
-
-      str = str.replace(/\$([^\$\n]+?)\$/g, (m, expr) => {
-        try { 
-          return katex.renderToString(expr.trim(), { displayMode: false, throwOnError: false, output: 'htmlAndMathml' }); 
-        } catch(e) { return m; }
-      });
-
-      return str;
+      try {
+        MathJax.typesetClear([container]);
+        await MathJax.typesetPromise([container]);
+      } catch (err) {
+        console.error("Lỗi MathJax Typeset:", err);
+      }
     }
 
     // =========================================================================
@@ -869,7 +871,7 @@ QUY TẮC BẮT BUỘC:
 
         const matrixObj = result.answer_matrix || {};
         
-        renderExamToView(examData, matrixObj);
+        await renderExamToView(examData, matrixObj);
         syncHeaderPreview();
         
         if (window.innerWidth < 768) {
@@ -950,11 +952,7 @@ QUY TẮC BẮT BUỘC:
       let span = document.createElement('span');
       span.className = 'katex-inline-node';
       span.contentEditable = "false";
-      try {
-        katex.render(latexCode, span, { throwOnError: false });
-      } catch (e) {
-        span.innerText = `$${latexCode}$`;
-      }
+      span.innerText = `$${latexCode}$`;
 
       let sel = window.getSelection();
       if (sel.getRangeAt && sel.rangeCount) {
@@ -985,9 +983,9 @@ QUY TẮC BẮT BUỘC:
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM
+    // RENDER ĐỀ THI & ĐÁP ÁN VỚI MATHJAX 3 TYPESETTING
     // =========================================================================
-    function renderExamToView(exam, matrix) {
+    async function renderExamToView(exam, matrix) {
       if (!exam) return;
 
       // 1. Render Phần I (Trắc nghiệm 4 lựa chọn)
@@ -1008,12 +1006,12 @@ QUY TẮC BẮT BUỘC:
 
           return `
             <div class="space-y-1.5 bg-slate-50/50 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${fixAndRenderMath(q.content || q.question_text)}</p>
+              <p><strong>Câu ${idx + 1}:</strong> ${rawClean(q.content || q.question_text)}</p>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-2 sm:pl-4">
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${fixAndRenderMath(o.text || o.content)}</span>
+                    <span><strong>${o.id}.</strong> ${rawClean(o.text || o.content)}</span>
                   </label>
                 `).join('')}
               </div>
@@ -1027,7 +1025,7 @@ QUY TẮC BẮT BUỘC:
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = fixAndRenderMath(q.prompt || q.content || q.question_text);
+          const prompt = rawClean(q.prompt || q.content || q.question_text);
           const st = q.statements || {};
 
           return `
@@ -1035,7 +1033,7 @@ QUY TẮC BẮT BUỘC:
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = fixAndRenderMath(st[k] || st[k.toUpperCase()] || '');
+                  const val = rawClean(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1063,7 +1061,7 @@ QUY TẮC BẮT BUỘC:
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = fixAndRenderMath(q.content || q.question_text);
+          const qText = rawClean(q.content || q.question_text);
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1153,9 +1151,6 @@ QUY TẮC BẮT BUỘC:
               <h3 class="font-bold text-sm text-indigo-950 uppercase flex items-center gap-1.5">
                 <i class="fa-solid fa-clipboard-check text-emerald-600"></i> HƯỚNG DẪN CHẤM & ĐÁP ÁN CHI TIẾT
               </h3>
-              <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-3 py-1.5 rounded shadow flex items-center gap-1.5 cursor-pointer">
-                <i class="fa-solid fa-print"></i> In Đáp Án
-              </button>
             </div>
         `;
 
@@ -1170,7 +1165,7 @@ QUY TẮC BẮT BUỘC:
                   <p class="font-bold text-blue-900">
                     Câu ${idx + 1}: a) ${ans.a || 'Đ'} | b) ${ans.b || 'S'} | c) ${ans.c || 'Đ'} | d) ${ans.d || 'S'}
                   </p>
-                  <p class="text-slate-800"><strong>• Giải thích chi tiết:</strong> ${fixAndRenderMath(q.explanation)}</p>
+                  <p class="text-slate-800"><strong>• Giải thích chi tiết:</strong> ${rawClean(q.explanation)}</p>
                 </div>
               `;
             }).join('')}
@@ -1184,11 +1179,11 @@ QUY TẮC BẮT BUỘC:
             ${p3List.map((q, idx) => `
               <div class="bg-white border border-emerald-300 p-3.5 rounded text-xs space-y-2 leading-relaxed">
                 <p class="font-bold text-emerald-950 text-sm">Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
-                <p class="text-slate-800 font-medium"><strong>• Lời giải chi tiết:</strong> ${fixAndRenderMath(q.solution)}</p>
+                <p class="text-slate-800 font-medium"><strong>• Lời giải chi tiết:</strong> ${rawClean(q.solution)}</p>
                 <div class="pt-2 border-t border-slate-100">
                   <p class="font-semibold text-emerald-900 mb-1"><strong>• Barem thang điểm:</strong></p>
                   <div class="space-y-1 pl-2">
-                    ${(q.scoring_guide || []).map(g => `<p class="text-slate-700">- ${fixAndRenderMath(g.step)} <strong class="text-emerald-700">(${g.points || '0.5 đ'})</strong></p>`).join('')}
+                    ${(q.scoring_guide || []).map(g => `<p class="text-slate-700">- ${rawClean(g.step)} <strong class="text-emerald-700">(${g.points || '0.5 đ'})</strong></p>`).join('')}
                   </div>
                 </div>
               </div>
@@ -1199,6 +1194,9 @@ QUY TẮC BẮT BUỘC:
         answerKeyHtml += `</div>`;
         answerKeyContainer.innerHTML = answerKeyHtml;
       }
+
+      // 6. GỌI ĐỒNG BỘ THỜI GIAN VẼ TOÁN HỌC MATHJAX 3
+      await typesetMathWithDelay(document.getElementById('examContainer'), 150);
     }
 
     // =========================================================================
