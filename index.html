@@ -672,24 +672,6 @@
       }
     }
 
-    function handleEssayModeChange() {
-      const mode = document.getElementById('essayModeSelect').value;
-      const box = document.getElementById('teacherEssayBox');
-      if (mode === 'teacher_only' || mode === 'hybrid') box.classList.remove('hidden');
-      else box.classList.add('hidden');
-    }
-
-    function handleEssayFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('teacherEssayText').value = e.target.result;
-        alert(`Đã nạp nội dung đáp án từ file "${file.name}"!`);
-      };
-      reader.readAsText(file);
-    }
-
     function fillSampleMatrix() {
       document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết, 2 câu Thông hiểu.\n- Phần II (1 câu Đúng/Sai): Vận dụng rút gọn biểu thức.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Toán thực tế.";
     }
@@ -731,7 +713,7 @@
       const grade = parseInt(document.getElementById('grade').value);
       const duration = parseInt(document.getElementById('duration').value);
       const examTitle = getSelectedText('examTitle');
-      const selectedModel = getSelectedModel();
+      const selectedModel = document.getElementById('geminiModelSelect').value;
 
       let topic = "Kiến thức chuẩn GDPT 2018";
       let matrixSpec = "", sourceNotes = "";
@@ -941,10 +923,13 @@ Trả về đối tượng JSON nguyên vẹn theo đúng schema quy định.`;
     }
 
     function submitExamOnline() {
-      alert('De_Thi đã nộp thành công!');
+      alert('Đã nộp bài thi thành công!');
       toggleExamMode();
     }
 
+    // =========================================================================
+    // RENDER ĐỀ THI SẠCH SẼ (CHỈ CÓ ĐỀ BÀI VÀ Ô NHẬP VĂN BẢN TỰ LUẬN)
+    // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
