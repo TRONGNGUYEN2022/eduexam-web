@@ -26,7 +26,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX cho thanh công cụ iMathEQ ảo -->
+  <!-- KaTeX cho Pre-rendering và Thanh công cụ iMathEQ ảo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
@@ -127,7 +127,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Tạo đề Trực Tiếp Client-Side & Soạn Thảo Equation Chuẩn</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Pre-rendered MathML Equation & Soạn Thảo Trực Tiếp</p>
       </div>
     </div>
     
@@ -770,30 +770,30 @@
     }
 
     // =========================================================================
-    // PIPELINE SỬA VÀ BỌC EQUATION LATEX CHUẨN XÁC TỪ VD.HTML
+    // 1. PIPELINE LÀM SẠCH VÀ CHUẨN HÓA LATEX TOÁN HỌC
     // =========================================================================
     function sanitizeMathString(text) {
       if (!text) return '';
       let str = typeof text === 'string' ? text : String(text);
 
-      // 1. Vá lỗi lệch pha ngắt quãng AI: "$ $= ", "$ = $", "$ +"
+      // Vá lỗi lệch pha ngắt quãng AI: "$ $= ", "$ = $", "$ +"
       str = str.replace(/\$\s*\$=\s*/g, ' = ')
                .replace(/\$\s*=\s*\$/g, ' = ')
                .replace(/\$\s*\+\s*\$/g, ' + ')
                .replace(/\$\s*\-\s*\$/g, ' - ');
 
-      // 2. Chuẩn hóa cặp ngoặc display/inline LaTeX
+      // Chuẩn hóa cặp ngoặc display/inline LaTeX
       str = str.replace(/\\\[/g, '$$$$').replace(/\\\]/g, '$$$$')
                .replace(/\\\(/g, '$').replace(/\\\)/g, '$');
 
-      // 3. Khôi phục các lệnh toán bị mất dấu gạch chéo
+      // Khôi phục các lệnh toán bị thiếu gạch chéo ngược
       str = str.replace(/\\ne\b/g, '\\neq')
                .replace(/\bcdot\b/g, '\\cdot')
                .replace(/\btimes\b/g, '\\times')
                .replace(/\brac\{/g, '\\frac{')
                .replace(/\bqrt\{/g, '\\sqrt{');
 
-      // 4. Bọc kín các biểu thức chứa lệnh toán đứng ngoài $...$
+      // Bọc kín các biểu thức chứa lệnh toán trần đứng ngoài $...$
       const latexRegex = /(?:[A-Za-z0-9_+\-*=><\(\)\/]+\s*)?\\(?:frac|sqrt|left|right|cdot|times|ge|le|neq|in|mathbb|Leftrightarrow|Rightarrow|implies|text)(?:\{[^{}]*\}|\[[^\[\]]*\]|[A-Za-z0-9_+\-*=><\(\)\/\s\\,]*)*/g;
 
       const segments = str.split('$');
@@ -812,60 +812,36 @@
       return str;
     }
 
-    function sanitizeExamData(data) {
-      if (!data) return data;
+    // =========================================================================
+    // 2. BỘ TIỀN XỬ LÝ TOÁN HỌC (PRE-RENDER LATEX -> MATHML + HTML QUA KATEX)
+    // =========================================================================
+    function renderMathInText(rawText) {
+      if (!rawText) return '';
+      let str = sanitizeMathString(rawText);
 
-      const p1List = data.part_1_mcq || data.part1_multiple_choice || data.part1 || [];
-      p1List.forEach(q => {
-        if (q.content) q.content = sanitizeMathString(q.content);
-        if (q.question_text) q.question_text = sanitizeMathString(q.question_text);
-        if (q.explanation) q.explanation = sanitizeMathString(q.explanation);
-
-        if (Array.isArray(q.options)) {
-          q.options.forEach(opt => {
-            if (opt.text) opt.text = sanitizeMathString(opt.text);
-            if (opt.content) opt.content = sanitizeMathString(opt.content);
-          });
-        } else if (q.options && typeof q.options === 'object') {
-          Object.keys(q.options).forEach(k => {
-            q.options[k] = sanitizeMathString(q.options[k]);
-          });
+      // Chuyển đổi công thức hiển thị riêng dòng $$ ... $$
+      str = str.replace(/\$\$([\s\S]+?)\$\$/g, (match, latex) => {
+        try {
+          return katex.renderToString(latex.trim(), { displayMode: true, throwOnError: false, output: 'htmlAndMathml' });
+        } catch (e) {
+          return match;
         }
       });
 
-      const p2List = data.part_2_tf || data.part2_true_false || data.part2 || [];
-      p2List.forEach(q => {
-        if (q.prompt) q.prompt = sanitizeMathString(q.prompt);
-        if (q.content) q.content = sanitizeMathString(q.content);
-        if (q.question_text) q.question_text = sanitizeMathString(q.question_text);
-        if (q.explanation) q.explanation = sanitizeMathString(q.explanation);
-
-        if (q.statements && typeof q.statements === 'object') {
-          Object.keys(q.statements).forEach(k => {
-            q.statements[k] = sanitizeMathString(q.statements[k]);
-          });
+      // Chuyển đổi công thức cùng dòng $ ... $
+      str = str.replace(/\$([^\$\n]+?)\$/g, (match, latex) => {
+        try {
+          return katex.renderToString(latex.trim(), { displayMode: false, throwOnError: false, output: 'htmlAndMathml' });
+        } catch (e) {
+          return match;
         }
       });
 
-      const p3List = data.part_3_essay || data.part3_essay || data.part3 || [];
-      p3List.forEach(q => {
-        if (q.content) q.content = sanitizeMathString(q.content);
-        if (q.question_text) q.question_text = sanitizeMathString(q.question_text);
-        if (q.solution) q.solution = sanitizeMathString(q.solution);
-        if (q.answer) q.answer = sanitizeMathString(q.answer);
-
-        const guideList = q.scoring_guide || q.guide || [];
-        guideList.forEach(g => {
-          if (g.step) g.step = sanitizeMathString(g.step);
-          if (g.content) g.content = sanitizeMathString(g.content);
-        });
-      });
-
-      return data;
+      return str;
     }
 
     // =========================================================================
-    // GỌI TRỰC TIẾP GOOGLE GEMINI API TỪ CLIENT-SIDE (GIỐNG VD.HTML)
+    // GỌI TRỰC TIẾP GOOGLE GEMINI API TỪ CLIENT-SIDE
     // =========================================================================
     async function triggerGenerate() {
       const apiKey = (document.getElementById('geminiApiKeyInput').value || '').trim();
@@ -1007,23 +983,21 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
         }
 
         const result = JSON.parse(rawJsonText);
-        const rawExam = result.base_exam || result;
-        const cleanedExam = sanitizeExamData(rawExam);
+        const examData = result.base_exam || result;
 
         currentExamData = {
           ...result,
-          base_exam: cleanedExam
+          base_exam: examData
         };
 
         const matrixObj = result.answer_matrix || {};
         
-        await renderExamToView(cleanedExam, matrixObj);
+        await renderExamToView(examData, matrixObj);
         syncHeaderPreview();
         
         if (window.innerWidth < 768) {
           document.getElementById('examContainer').scrollIntoView({ behavior: 'smooth' });
         }
-        alert(`Đã tạo đề thành công trực tiếp với ${selectedModel}!`);
 
       } catch (err) {
         alert('Lỗi khởi tạo đề: ' + err.message);
@@ -1134,7 +1108,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & TYPESET MATHJAX ĐỒNG BỘ
+    // 3. RENDER ĐỀ THI & HƯỚNG DẪN CHẤM (ÁP DỤNG PRE-RENDER TOÁN HỌC)
     // =========================================================================
     async function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1144,7 +1118,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = renderMathInText(q.content || q.question_text || '');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -1163,7 +1137,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${o.text || o.content || ''}</span>
+                    <span><strong>${o.id}.</strong> ${renderMathInText(o.text || o.content || '')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -1177,7 +1151,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = q.prompt || q.content || q.question_text || '';
+          const prompt = renderMathInText(q.prompt || q.content || q.question_text || '');
           const st = q.statements || {};
 
           return `
@@ -1185,7 +1159,8 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = st[k] || st[k.toUpperCase()] || '';
+                  const rawVal = st[k] || st[k.toUpperCase()] || '';
+                  const val = renderMathInText(rawVal);
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1213,7 +1188,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = renderMathInText(q.content || q.question_text || '');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1294,11 +1269,13 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (PRE-RENDERED TOÁN HỌC)
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
+          let rawSol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
+          let sol = renderMathInText(rawSol);
+          
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1312,7 +1289,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${g.step || g.content || ''} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${renderMathInText(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1325,7 +1302,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = q.explanation || '';
+          let exp = renderMathInText(q.explanation || '');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1350,7 +1327,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
         `;
       }
 
-      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi
+      // 6. Quét MathJax đồng bộ dự phòng
       requestAnimationFrame(async () => {
         const root = document.getElementById('examContainer');
         if (root && window.MathJax && window.MathJax.typesetPromise) {
@@ -1360,7 +1337,7 @@ CẤU TRÚC JSON BẮT BUỘC TRẢ VỀ:
             }
             await window.MathJax.typesetPromise([root]);
           } catch (err) {
-            console.error('MathJax typeset error:', err);
+            console.warn('MathJax fallback typeset:', err);
           }
         }
       });
