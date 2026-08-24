@@ -25,13 +25,11 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* MathML equation styling for clean Word paste */
     math {
       font-family: 'Cambria Math', 'Times New Roman', serif;
       font-size: 1.05em;
     }
 
-    /* iMathEQ Visual Keyboard Toolbar */
     .imatheq-container {
       background: #f8fafc;
       border: 1px solid #94a3b8;
@@ -115,7 +113,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">KaTeX MathML Engine & Xuất Đáp Án Pandoc DOCX</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Đề thi Native MathML & Preview Đáp án PDF Pandoc</p>
       </div>
     </div>
     
@@ -397,36 +395,10 @@
           --- HẾT ĐỀ THI ---
         </div>
 
-        <!-- Bảng Đáp Án & Barem Giáo Viên -->
+        <!-- Bảng Đáp Án & Bản In PDF Preview -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-300 mb-4">
-            <h3 class="font-bold text-xs sm:text-sm uppercase text-slate-800">
-              BẢNG ĐÁP ÁN & MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU
-            </h3>
-            <button onclick="downloadAnswersDocxPandoc()" id="btnDownloadAnswersPandoc" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-1.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
-              <i class="fa-solid fa-file-word text-amber-300"></i> <span>Tải Đáp Án .docx (Pandoc)</span>
-            </button>
-          </div>
-          
-          <div class="overflow-x-auto w-full">
-            <table class="w-full text-xs text-center border-collapse border border-slate-400 min-w-[300px]" style="border: 1px solid #64748b;">
-              <thead>
-                <tr class="bg-indigo-900 text-white font-bold" style="background-color: #312e81; color: white;">
-                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Câu hỏi</th>
-                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 101</th>
-                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 102</th>
-                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 103</th>
-                  <th class="border border-slate-400 p-1.5" style="border: 1px solid #64748b;">Mã 104</th>
-                </tr>
-              </thead>
-              <tbody id="matrixTableBody">
-                <tr><td colspan="5" class="border border-slate-400 p-2 text-slate-400 italic" style="border: 1px solid #64748b;">Chưa có dữ liệu ma trận</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết -->
-          <div id="answerKeySection" class="mt-8 pt-6 border-t-2 border-indigo-200 space-y-4">
+          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết (Nhúng PDF) -->
+          <div id="answerKeySection" class="mt-4 space-y-4">
             <p class="text-slate-400 italic text-center text-xs">Hướng dẫn giải và barem điểm chi tiết sẽ hiển thị tại đây sau khi sinh đề.</p>
           </div>
         </div>
@@ -734,36 +706,32 @@
     }
 
     function fillSampleMatrix() {
-      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết, 2 câu Thông hiểu.
-- Phần II (1 câu Đúng/Sai): Vận dụng rút gọn biểu thức.
-- Phần III (2 câu tự luận): Bài 1 (1.5đ) Rút gọn biểu thức; Bài 2 (1.5đ) Bài toán thực tế.";
+      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết, 2 câu Thông hiểu.\n- Phần II (1 câu Đúng/Sai): Vận dụng rút gọn biểu thức.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Rút gọn biểu thức; Bài 2 (1.5đ) Bài toán thực tế.";
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:
-1. $A = 2x^2y - 3xy^2 + 5$.
-2. Biểu thức $P = \frac{2}{\sqrt{x}+1}$.";
+      document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. $A = 2x^2y - 3xy^2 + 5$.\n2. Biểu thức $P = \\frac{2}{\\sqrt{x}+1}$.";
     }
 
     // =========================================================================
-    // HÀM LÀM SẠCH KÝ TỰ CƠ BẢN CHO KATEX AUTO-RENDER
+    // HÀM LÀM SẠCH KÝ TỰ CƠ BẢN CHO KATEX AUTO-RENDER TRÊN ĐỀ THI
     // =========================================================================
     function cleanRawText(rawText) {
       if (!rawText) return '';
       let str = typeof rawText === 'string' ? rawText : String(rawText);
 
       return str
-        .replace(/\n/g, '<br/>')
-        .replace(/\\/g, '\')
-        .replace(/ight\)/g, '\right)')
-        .replace(/ight\]/g, '\right]')
-        .replace(/ight\}/g, '\right\}')
-        .replace(/ight\|/g, '\right|')
-        .replace(/eft\(/g, '\left(')
-        .replace(/eft\[/g, '\left[')
-        .replace(/eft\{/g, '\left\{')
-        .replace(/eft\|/g, '\left|')
-        .replace(/\ne/g, '\neq');
+        .replace(/\\n/g, '<br/>')
+        .replace(/\\\\/g, '\\')
+        .replace(/\bight\)/g, '\\right)')
+        .replace(/\bight\]/g, '\\right]')
+        .replace(/\bight\}/g, '\\right\\}')
+        .replace(/\bight\|/g, '\\right|')
+        .replace(/\beft\(/g, '\\left(')
+        .replace(/\beft\[/g, '\\left[')
+        .replace(/\beft\{/g, '\\left\\{')
+        .replace(/\beft\|/g, '\\left|')
+        .replace(/\\ne\b/g, '\\neq');
     }
 
     // =========================================================================
@@ -810,19 +778,15 @@
         const systemInstructionText = `Bạn là chuyên gia khảo thí THCS TP.HCM.
 QUY TẮC BẮT BUỘC:
 1. Mọi công thức toán, biến số hoặc biểu thức phải được bọc kín trong cặp dấu $ (inline) hoặc $$ (display).
-2. Khi dùng cặp ngoặc lớn \left( ... \right), TUYỆT ĐỐI KHÔNG ĐƯỢC BỎ SÓT DẤU GẠCH CHÉO \ Ở CẢ HAI ĐẦU.
+2. Khi dùng cặp ngoặc lớn \\left( ... \\right), TUYỆT ĐỐI KHÔNG ĐƯỢC BỎ SÓT DẤU GẠCH CHÉO \\ Ở CẢ HAI ĐẦU.
 3. Không viết ngắt quãng kiểu "$P = $ $(x+2y)$" hay "$ ... $ $= $".
 4. Trả về DUY NHẤT 1 đối tượng JSON nguyên vẹn theo schema { "base_exam": { ... }, "answer_matrix": { ... } }.`;
 
         let userPrompt = `Biên soạn đề kiểm tra: Môn ${subject} ${grade}, thời gian ${duration} phút, kỳ thi ${examTitle}, chủ đề: ${topic}.`;
-        if (matrixSpec) userPrompt += `
-- Khung ma trận: ${matrixSpec}`;
-        if (sourceNotes) userPrompt += `
-- Tài liệu nguồn: ${sourceNotes}`;
-        if (teacherAnswer) userPrompt += `
-- Đáp án giáo viên: ${teacherAnswer}`;
-        userPrompt += `
-Trả về JSON chuẩn.`;
+        if (matrixSpec) userPrompt += `\n- Khung ma trận: ${matrixSpec}`;
+        if (sourceNotes) userPrompt += `\n- Tài liệu nguồn: ${sourceNotes}`;
+        if (teacherAnswer) userPrompt += `\n- Đáp án giáo viên: ${teacherAnswer}`;
+        userPrompt += `\nTrả về JSON chuẩn.`;
 
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`;
 
@@ -951,7 +915,7 @@ Trả về JSON chuẩn.`;
       if (sel.getRangeAt && sel.rangeCount) {
         let range = sel.getRangeAt(0);
         range.deleteContents();
-        let space = document.createTextNode(' ');
+        let space = document.createTextNode('\u00A0');
         range.insertNode(space);
         range.insertNode(span);
         range.setStartAfter(space);
@@ -976,7 +940,7 @@ Trả về JSON chuẩn.`;
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & GỌI AUTO-RENDER KATEX TOÀN TRANG
+    // RENDER ĐỀ THI & GỌI AUTO-RENDER KATEX (OUTPUT: htmlAndMathml)
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1072,13 +1036,13 @@ Trả về JSON chuẩn.`;
                 </div>
 
                 <div class="imatheq-panel">
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\frac{a}{b}')" class="imatheq-btn" title="Phân số">
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\frac{a}{b}')" class="imatheq-btn" title="Phân số">
                     <div class="flex flex-col items-center leading-none text-[9px]"><span class="ph-box mb-[1px]"></span><span class="w-3.5 h-[1px] bg-black"></span><span class="ph-box mt-[1px]"></span></div>
                   </button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\sqrt{x}')" class="imatheq-btn" title="Căn bậc hai">
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\sqrt{x}')" class="imatheq-btn" title="Căn bậc hai">
                     <span class="text-xs font-serif">√<span class="ph-box ml-[1px]"></span></span>
                   </button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\sqrt[n]{x}')" class="imatheq-btn" title="Căn bậc n">
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\sqrt[n]{x}')" class="imatheq-btn" title="Căn bậc n">
                     <span class="text-[9px]"><span class="ph-box scale-75"></span>√<span class="ph-box"></span></span>
                   </button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', 'x^2')" class="imatheq-btn" title="Số mũ">
@@ -1090,20 +1054,20 @@ Trả về JSON chuẩn.`;
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '( x )')" class="imatheq-btn" title="Ngoặc tròn">(<span class="ph-box"></span>)</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '[ x ]')" class="imatheq-btn" title="Ngoặc vuông">[<span class="ph-box"></span>]</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '| x |')" class="imatheq-btn" title="Trị tuyệt đối">|<span class="ph-box"></span>|</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\{ x \\}')" class="imatheq-btn" title="Ngoặc nhọn">{<span class="ph-box"></span>}</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\{ x \\\\}')" class="imatheq-btn" title="Ngoặc nhọn">{<span class="ph-box"></span>}</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '+')" class="imatheq-btn" title="Cộng">+</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '-')" class="imatheq-btn" title="Trừ">−</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\cdot')" class="imatheq-btn" title="Nhân">·</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\cdot')" class="imatheq-btn" title="Nhân">·</button>
                   <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', ':')" class="imatheq-btn" title="Chia">:</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\le')" class="imatheq-btn" title="Nhỏ hơn hoặc bằng">≤</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\ge')" class="imatheq-btn" title="Lớn hơn hoặc bằng">≥</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\neq')" class="imatheq-btn" title="Khác">≠</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '^{\\circ}')" class="imatheq-btn" title="Độ góc">°</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\pi')" class="imatheq-btn" title="Số Pi">π</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\in')" class="imatheq-btn" title="Thuộc">∈</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\notin')" class="imatheq-btn" title="Không thuộc">∉</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\Rightarrow')" class="imatheq-btn" title="Suy ra">⟹</button>
-                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\Leftrightarrow')" class="imatheq-btn" title="Tương đương">⟺</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\le')" class="imatheq-btn" title="Nhỏ hơn hoặc bằng">≤</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\ge')" class="imatheq-btn" title="Lớn hơn hoặc bằng">≥</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\neq')" class="imatheq-btn" title="Khác">≠</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '^{\\\\circ}')" class="imatheq-btn" title="Độ góc">°</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\pi')" class="imatheq-btn" title="Số Pi">π</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\in')" class="imatheq-btn" title="Thuộc">∈</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\notin')" class="imatheq-btn" title="Không thuộc">∉</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\Rightarrow')" class="imatheq-btn" title="Suy ra">⟹</button>
+                  <button type="button" onmousedown="event.preventDefault()" onclick="insertMathSymbol('essayBox_${idx}', '\\\\Leftrightarrow')" class="imatheq-btn" title="Tương đương">⟺</button>
                 </div>
               </div>
 
@@ -1113,124 +1077,46 @@ Trả về JSON chuẩn.`;
         }).join('');
       }
 
-      // 4. Render Bảng ma trận 4 mã đề
-      if (matrix && Object.keys(matrix).length > 0) {
-        const tbody = document.getElementById('matrixTableBody');
-        if (tbody) {
-          const totalQ = p1List.length > 0 ? p1List.length : 4;
-          let html = '';
-          for (let i = 1; i <= totalQ; i++) {
-            const qKey = `Câu ${i}`;
-            html += `
-              <tr class="${i % 2 === 1 ? 'bg-slate-50' : ''}">
-                <td class="border border-slate-400 font-bold p-1" style="border: 1px solid #64748b;">${qKey}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['101']?.[qKey] || '-'}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['102']?.[qKey] || '-'}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['103']?.[qKey] || '-'}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['104']?.[qKey] || '-'}</td>
-              </tr>
-            `;
-          }
-          tbody.innerHTML = html;
-        }
-      }
-
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
-      let answerKeyContainer = document.getElementById('answerKeySection');
-      if (answerKeyContainer) {
-        let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = cleanRawText(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
-          
-          const guides = q.scoring_guide || q.guide || [
-            { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
-            { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
-            { step: "Bước 3: Đối chiếu và Kết luận", points: "0.5 đ" }
-          ];
-
-          return `
-            <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
-              <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
-              <p class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải chi tiết:</strong> ${sol}</p>
-              <div class="mt-1 pt-1 border-t border-emerald-200">
-                <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
-                <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${cleanRawText(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
-                </div>
-              </div>
-            </div>
-          `;
-        }).join('');
-
-        let tfAnswersHtml = p2List.map((q, idx) => {
-          const ans = q.answers || {};
-          const isA = (ans.a === true || ans.A === true || ans.a === 'Đ' || ans.a === 'đ');
-          const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
-          const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
-          const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = cleanRawText(q.explanation || '');
-
-          return `
-            <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
-              <p class="font-bold text-blue-900 mb-1">Đáp án Đúng/Sai Câu ${idx + 1}:</p>
-              <p class="text-slate-800">
-                a) <strong class="${isA ? 'text-emerald-700' : 'text-rose-700'}">${isA ? 'ĐÚNG' : 'SAI'}</strong> | 
-                b) <strong class="${isB ? 'text-emerald-700' : 'text-rose-700'}">${isB ? 'ĐÚNG' : 'SAI'}</strong> | 
-                c) <strong class="${isC ? 'text-emerald-700' : 'text-rose-700'}">${isC ? 'ĐÚNG' : 'SAI'}</strong> | 
-                d) <strong class="${isD ? 'text-emerald-700' : 'text-rose-700'}">${isD ? 'ĐÚNG' : 'SAI'}</strong>
-              </p>
-              ${exp ? `<p class="text-slate-600 mt-1 italic">• Giải thích: ${exp}</p>` : ''}
-            </div>
-          `;
-        }).join('');
-
-        answerKeyContainer.innerHTML = `
-          <h3 class="text-center font-bold text-sm uppercase text-indigo-900 tracking-wide pb-2 border-b border-indigo-200">
-            <i class="fa-solid fa-clipboard-check"></i> HƯỚNG DẪN CHẤM & ĐÁP ÁN CHI TIẾT
-          </h3>
-          ${tfAnswersHtml ? `<div class="space-y-1.5"><h4 class="font-bold text-xs uppercase text-slate-700">Đáp án Phần II (Đúng/Sai):</h4>${tfAnswersHtml}</div>` : ''}
-          <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
-        `;
-      }
-
-      // 6. KÍCH HOẠT AUTO-RENDER CHÍNH CHỦ CỦA KATEX (HTML + MATHML CHO WORD EQUATION)
+      // 4. KÍCH HOẠT AUTO-RENDER TOÀN TRANG TRÊN ĐỀ THI
       requestAnimationFrame(() => {
-        const root = document.getElementById('examContainer');
+        const root = document.getElementById('examBody');
         if (root && window.renderMathInElement) {
           renderMathInElement(root, {
             delimiters: [
               { left: '$$', right: '$$', display: true },
               { left: '$', right: '$', display: false },
-              { left: '\(', right: '\)', display: false },
-              { left: '\[', right: '\]', display: true }
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
             ],
             throwOnError: false,
             output: 'htmlAndMathml'
           });
         }
       });
+
+      // 5. GỌI XUẤT ĐÁP ÁN PANDOC SANG PDF VÀ NHÚNG XEM TRƯỚC
+      renderAnswersPDF(exam, matrix);
     }
 
     // =========================================================================
-    // XUẤT ĐÁP ÁN RA FILE WORD .DOCX QUA PANDOC BACKEND
+    // XUẤT ĐÁP ÁN RA FILE PDF VECTOR QUA PANDOC BACKEND VÀ NHÚNG PREVIEW
     // =========================================================================
-    async function downloadAnswersDocxPandoc() {
-      if (!currentExamData) {
-        alert("Vui lòng tạo đề trước khi tải file đáp án!");
-        return;
-      }
+    async function renderAnswersPDF(exam, matrix) {
+      const container = document.getElementById('answerKeySection');
+      if (!container) return;
 
-      const btn = document.getElementById('btnDownloadAnswersPandoc');
-      const origHtml = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Pandoc đang xuất...</span>`;
+      container.innerHTML = `
+        <div class="py-10 flex flex-col items-center justify-center text-indigo-700 gap-2 bg-indigo-50/60 rounded border border-indigo-200">
+          <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+          <span class="text-xs font-semibold">Pandoc đang biên dịch bản in PDF Hướng dẫn chấm & Đáp án chi tiết...</span>
+        </div>
+      `;
 
-      const base = currentExamData.base_exam || currentExamData;
-      const p2 = base.part_2_tf || [];
-      const p3 = base.part_3_essay || [];
-      const matrix = currentExamData.answer_matrix || {};
+      const p2 = exam.part_2_tf || [];
+      const p3 = exam.part_3_essay || [];
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/exams/export-answers-pandoc`, {
+        const response = await fetch(`${API_BASE_URL}/api/exams/export-answers-pdf`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1240,33 +1126,40 @@ Trả về JSON chuẩn.`;
             school_name: getSelectedText('school'),
             part_2_tf: p2,
             part_3_essay: p3,
-            answer_matrix: matrix
+            answer_matrix: matrix || {}
           })
         });
 
         if (!response.ok) {
           const errText = await response.text();
-          throw new Error(`Server báo lỗi (${response.status}): ${errText}`);
+          throw new Error(`Server lỗi (${response.status}): ${errText}`);
         }
 
         const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `Dap_An_Barem_${document.getElementById('subject').value}_Lop_${document.getElementById('grade').value}.docx`;
-        document.body.appendChild(a);
-        a.click();
+        const pdfBlobUrl = URL.createObjectURL(blob);
 
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(blobUrl);
-        }, 1200);
+        container.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between bg-indigo-900 text-white px-4 py-2.5 rounded shadow">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf text-rose-400 text-base"></i>
+                <span class="font-bold text-xs uppercase">BẢN IN HƯỚNG DẪN CHẤM & ĐÁP ÁN (PDF VECTOR CHUẨN IN)</span>
+              </div>
+              <a href="${pdfBlobUrl}" download="Dap_An_Barem_${document.getElementById('subject').value}_Lop_${document.getElementById('grade').value}.pdf" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3 py-1.5 rounded shadow transition flex items-center gap-1.5 cursor-pointer">
+                <i class="fa-solid fa-download"></i> Tải PDF Đáp Án
+              </a>
+            </div>
+            <iframe src="${pdfBlobUrl}#view=FitH" class="w-full h-[620px] border border-slate-300 rounded shadow bg-white"></iframe>
+          </div>
+        `;
 
       } catch (err) {
-        alert("Lỗi xuất đáp án .docx qua Pandoc: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = origHtml;
+        container.innerHTML = `
+          <div class="p-4 bg-rose-50 text-rose-700 text-xs rounded border border-rose-200 text-center">
+            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
+            Không thể tải bản in PDF: ${err.message}. Vui lòng kiểm tra Pandoc trên server backend.
+          </div>
+        `;
       }
     }
 
@@ -1329,6 +1222,7 @@ Trả về JSON chuẩn.`;
 
       const clone = examEl.cloneNode(true);
       clone.querySelectorAll('.imatheq-container').forEach(el => el.remove());
+      clone.querySelectorAll('#answerKeySection').forEach(el => el.remove());
       
       const cleanHtml = clone.innerHTML;
       const mhtmlDoc = `MIME-Version: 1.0
