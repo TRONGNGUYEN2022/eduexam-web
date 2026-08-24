@@ -736,23 +736,30 @@
     }
 
     // =========================================================================
-    // BƯỚC TRUNG GIAN QUAN TRỌNG: PIPELINE SỬA VÀ BỌC EQUATION CHO DỮ LIỆU ĐỘNG TỪ AI (CHUẨN VD.HTML)
+    // PIPELINE SỬA VÀ BỌC EQUATION CHUẨN XÁC TỪ VD.HTML
     // =========================================================================
     function sanitizeMathString(text) {
       if (!text) return '';
       let str = typeof text === 'string' ? text : String(text);
 
-      // 1. Chuẩn hóa cặp ngoặc display/inline LaTeX
+      // 1. Vá lỗi lệch pha ngắt quãng $ $= và nối liền các vế phương trình
+      str = str.replace(/\$\s*\$=\s*/g, ' = ')
+               .replace(/\$\s*=\s*\$/g, ' = ')
+               .replace(/\$\s*\+\s*\$/g, ' + ')
+               .replace(/\$\s*\-\s*\$/g, ' - ');
+
+      // 2. Chuẩn hóa cặp ngoặc display/inline LaTeX
       str = str.replace(/\\\[/g, '$$$$').replace(/\\\]/g, '$$$$')
                .replace(/\\\(/g, '$').replace(/\\\)/g, '$');
 
-      // 2. Sửa lỗi escape JSON bị nuốt gạch chéo
+      // 3. Khôi phục các lệnh toán bị mất dấu gạch chéo
       str = str.replace(/\brac\{/g, '\\frac{')
                .replace(/\bqrt\{/g, '\\sqrt{')
                .replace(/\bcdot\b/g, '\\cdot')
-               .replace(/\btimes\b/g, '\\times');
+               .replace(/\btimes\b/g, '\\times')
+               .replace(/\bneq\b/g, '\\neq');
 
-      // 3. Tự động bọc $ cho các lệnh LaTeX trần đứng NGOÀI dấu $
+      // 4. Bọc kín các biểu thức chứa lệnh toán đứng ngoài $...$
       const latexRegex = /(?:[A-Za-z0-9_+\-*=><\(\)\/]+\s*)?\\(?:frac|sqrt|left|right|cdot|times|ge|le|neq|in|mathbb|Leftrightarrow|Rightarrow|implies|text)(?:\{[^}]*\}|\[[^\]]*\]|[A-Za-z0-9_+\-*=><\(\)\/\s\\,]*)*/g;
 
       const segments = str.split('$');
@@ -766,8 +773,6 @@
         }
       }
       str = segments.join('$');
-
-      // 4. Dọn dấu $$ bị lặp hoặc khoảng trắng rỗng
       str = str.replace(/\${3,}/g, '$$$$').replace(/\$\s*\$/g, ' ');
 
       return str;
@@ -776,7 +781,6 @@
     function sanitizeExamData(data) {
       if (!data) return data;
 
-      // 1. Chuẩn hóa Phần I
       const p1List = data.part_1_mcq || data.part1_multiple_choice || data.part1 || [];
       p1List.forEach(q => {
         if (q.content) q.content = sanitizeMathString(q.content);
@@ -795,7 +799,6 @@
         }
       });
 
-      // 2. Chuẩn hóa Phần II
       const p2List = data.part_2_tf || data.part2_true_false || data.part2 || [];
       p2List.forEach(q => {
         if (q.prompt) q.prompt = sanitizeMathString(q.prompt);
@@ -810,7 +813,6 @@
         }
       });
 
-      // 3. Chuẩn hóa Phần III & Barem điểm
       const p3List = data.part_3_essay || data.part3_essay || data.part3 || [];
       p3List.forEach(q => {
         if (q.content) q.content = sanitizeMathString(q.content);
@@ -880,10 +882,10 @@
           throw new Error(`Server báo lỗi (${response.status}): ${errText}`);
         }
 
-        const result = await response.json();
+        const rawJsonText = await response.text();
+        const result = JSON.parse(rawJsonText);
+
         if (result.status === 'success' || result.base_exam) {
-          
-          // BƯỚC TRUNG GIAN: Làm sạch và chuẩn hóa toàn bộ dữ liệu trước khi lưu và hiển thị
           const rawExam = result.base_exam || result;
           const cleanedExam = sanitizeExamData(rawExam);
 
@@ -1013,7 +1015,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM (CƠ CHẾ ASYNC CHUẨN VD.HTML)
+    // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM (CƠ CHẾ ĐỒNG BỘ MATHJAX)
     // =========================================================================
     async function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1230,7 +1232,7 @@
         `;
       }
 
-      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi (chuẩn như vd.html)
+      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi
       const root = document.getElementById('examContainer');
       if (root && window.MathJax && window.MathJax.typesetPromise) {
         if (window.MathJax.typesetClear) {
