@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam THCS Pro - Hệ Thống Khảo Thí & Thi Online GDPT 2018 (TP.HCM)</title>
   
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- MathJax 3 Cấu hình -->
+  <!-- Cấu hình MathJax 3 -->
   <script>
     window.MathJax = {
       tex: {
@@ -17,15 +18,74 @@
       },
       options: {
         skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      startup: {
+        ready: () => {
+          console.log('✅ MathJax Core đã khởi tạo thành công!');
+          MathJax.startup.defaultReady();
+          if (typeof updateMathJaxBadge === 'function') {
+            updateMathJaxBadge(true);
+          }
+        }
       }
     };
-  </script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-  <!-- KaTeX cho thanh công cụ iMathEQ ảo -->
+    function updateMathJaxBadge(isReady) {
+      const badge = document.getElementById('mathjaxStatusBadge');
+      if (badge) {
+        if (isReady) {
+          badge.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> MathJax: Sẵn sàng';
+          badge.className = 'text-[11px] bg-emerald-950 text-emerald-300 px-2.5 py-1 rounded border border-emerald-500 font-semibold flex items-center gap-1.5 shadow-sm';
+        } else {
+          badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i> MathJax: Đang nạp...';
+          badge.className = 'text-[11px] bg-amber-950 text-amber-300 px-2.5 py-1 rounded border border-amber-500 font-semibold flex items-center gap-1.5 shadow-sm';
+        }
+      }
+    }
+
+    // Cơ chế nạp script kiểm tra MathJax với Fallback CDN tự động
+    (function initMathJaxLoader() {
+      const primaryCdn = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js";
+      const fallbackCdn = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+
+      const script = document.createElement('script');
+      script.src = primaryCdn;
+      script.async = false;
+      
+      script.onload = () => {
+        console.log(">> Đã tải MathJax thành công từ CDN chính (cdnjs)");
+        setTimeout(() => updateMathJaxBadge(true), 100);
+      };
+
+      script.onerror = () => {
+        console.warn(">> cdnjs bị chặn hoặc quá tải, chuyển sang CDN dự phòng (jsdelivr)...");
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = fallbackCdn;
+        fallbackScript.async = false;
+        fallbackScript.onload = () => {
+          console.log(">> Đã tải MathJax từ CDN dự phòng thành công!");
+          setTimeout(() => updateMathJaxBadge(true), 100);
+        };
+        fallbackScript.onerror = () => {
+          console.error("❌ Cả 2 CDN MathJax đều bị chặn!");
+          const badge = document.getElementById('mathjaxStatusBadge');
+          if (badge) {
+            badge.innerHTML = '<i class="fa-solid fa-xmark text-rose-400"></i> MathJax: Lỗi nạp CDN';
+            badge.className = 'text-[11px] bg-rose-950 text-rose-300 px-2.5 py-1 rounded border border-rose-500 font-semibold flex items-center gap-1.5 shadow-sm';
+          }
+        };
+        document.head.appendChild(fallbackScript);
+      };
+
+      document.head.appendChild(script);
+    })();
+  </script>
+
+  <!-- KaTeX hỗ trợ riêng cho Bàn phím iMathEQ ảo -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
@@ -128,6 +188,11 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+      <!-- Đèn báo trạng thái nạp MathJax -->
+      <div id="mathjaxStatusBadge" class="text-[11px] bg-indigo-950 text-indigo-300 px-2.5 py-1 rounded border border-indigo-400 font-semibold flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-spinner fa-spin text-amber-400"></i> MathJax: Đang nạp...
+      </div>
+
       <button id="btnSwitchMode" onclick="toggleExamMode()" class="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-laptop-code"></i> <span id="btnModeText">Bật Phòng Thi Online</span>
       </button>
@@ -448,6 +513,41 @@
     let timerInterval = null;
     let timeRemaining = 45 * 60;
 
+    // BỘ VÁ LỖI CÔNG THỨC TOÁN (TỰ ĐỘNG CHUYỂN THÀNH EQUATION TƯƠNG TỰ ALT+= TRONG WORD)
+    function sanitizeLatexForView(raw) {
+      if (!raw) return '';
+      let str = String(raw);
+
+      // 1. Dọn dẹp escape dư thừa từ JSON
+      str = str.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
+      str = str.replace(/\t/g, ' ');
+
+      // 2. Vá lỗi số đo góc bị thiếu dấu $ mở: 90^\circ$ -> $90^\circ$
+      str = str.replace(/(?<!\$)\b(\d+)\^\\circ\$/g, '$$$1^\\circ$');
+      str = str.replace(/(?<!\$)\b(\d+)\^\{\\circ\}\$/g, '$$$1^{\\circ}$');
+
+      // 3. Tự động gom các lệnh LaTeX đứng ngoài dấu $ vào $...$
+      const standaloneSymbols = [
+        '\\\\perp', '\\\\sim', '\\\\parallel', '\\\\Delta',
+        '\\\\Leftrightarrow', '\\\\Rightarrow', '\\\\ge', '\\\\le', '\\\\neq', '\\\\in', '\\\\notin'
+      ];
+      standaloneSymbols.forEach(sym => {
+        const reg = new RegExp(`(?<!\\$)\\s*(${sym})\\s*(?!\\$)`, 'g');
+        str = str.replace(reg, ' $$$1$$ ');
+      });
+
+      // 4. Bọc các hàm có tham số nếu bị rơi ra ngoài dấu $
+      str = str.replace(/(?<!\$)\\widehat\{([^}]+)\}(?!\$)/g, '$\\widehat{$1}$');
+      str = str.replace(/(?<!\$)\\triangle\s+([A-Za-z0-9]+)(?!\$)/g, '$\\triangle $1$');
+      str = str.replace(/(?<!\$)\\frac\{([^}]+)\}\{([^}]+)\}(?!\$)/g, '$\\frac{$1}{$2}$');
+      str = str.replace(/(?<!\$)\\sqrt\{([^}]+)\}(?!\$)/g, '$\\sqrt{$1}$');
+
+      // 5. Gộp các dấu $ liền kề
+      str = str.replace(/\$\s*\$/g, ' ');
+
+      return str;
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
       loadListOptions('school', 'schoolSelect');
@@ -728,11 +828,11 @@
     }
 
     function fillSampleMatrix() {
-      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết tập hợp số, 2 câu Thông hiểu phép tính lũy thừa.\n- Phần II (1 câu Đúng/Sai): Vận dụng tính chia hết và ước chung lớn nhất.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Thực hiện phép tính; Bài 2 (1.5đ) Bài toán thực tế tìm số học sinh.";
+      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết hình học, 2 câu Thông hiểu phép tính.\n- Phần II (1 câu Đúng/Sai): Vận dụng tính chất tiếp tuyến và tứ giác nội tiếp.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Hình học đường tròn tiếp tuyến; Bài 2 (1.5đ) Tam giác đồng dạng.";
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Câu hỏi tham khảo:\n1. Số nguyên tố nhỏ nhất là số 2.\n2. Phép tính $A = 2^3 \\cdot 5 - 15 = 40 - 15 = 25$.\n3. Một đội tình nguyện có từ 100 đến 150 người, khi chia thành hàng 4, hàng 5, hàng 6 đều vừa đủ. Tính số người.";
+      document.getElementById('sourceNotesInput').value = "Cho đường tròn (O), hai tiếp tuyến AB, AC cắt nhau tại A. Chứng minh ABOC nội tiếp và tính các góc liên quan.";
     }
 
     async function triggerGenerate() {
@@ -915,7 +1015,7 @@
     // HÀM ÉP MATHJAX RENDER LẠI TOÀN BỘ ĐỀ THI & ĐÁP ÁN (DỮ LIỆU ĐỘNG)
     // =========================================================================
     function forceMathJaxRender() {
-      if (window.MathJax && window.MathJax.typesetPromise) {
+      if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
         const targetNodes = [
           document.getElementById('examContainer'),
           document.getElementById('answerKeySection')
@@ -924,7 +1024,9 @@
         try {
           MathJax.typesetClear(targetNodes);
           MathJax.typesetPromise(targetNodes)
-            .then(() => {})
+            .then(() => {
+              console.log(">> Đã chuyển toàn bộ LaTeX sang Equation thành công!");
+            })
             .catch((err) => {
               console.warn("MathJax typeset error:", err);
             });
@@ -932,7 +1034,7 @@
           console.warn("Lỗi typeset:", e);
         }
       } else {
-        setTimeout(forceMathJaxRender, 100);
+        setTimeout(forceMathJaxRender, 150);
       }
     }
 
@@ -947,7 +1049,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = sanitizeLatexForView(q.content || q.question_text || '');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -966,7 +1068,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${o.text || o.content || ''}</span>
+                    <span><strong>${o.id}.</strong> ${sanitizeLatexForView(o.text || o.content || '')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -980,7 +1082,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = q.prompt || q.content || q.question_text || '';
+          const prompt = sanitizeLatexForView(q.prompt || q.content || q.question_text || '');
           const st = q.statements || {};
 
           return `
@@ -988,7 +1090,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = st[k] || st[k.toUpperCase()] || '';
+                  const val = sanitizeLatexForView(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1016,7 +1118,7 @@
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = q.content || q.question_text || '';
+          const qText = sanitizeLatexForView(q.content || q.question_text || '');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1102,7 +1204,7 @@
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.';
+          let sol = sanitizeLatexForView(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1116,7 +1218,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${g.step || g.content || ''} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${sanitizeLatexForView(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1129,7 +1231,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = q.explanation || '';
+          let exp = sanitizeLatexForView(q.explanation || '');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
