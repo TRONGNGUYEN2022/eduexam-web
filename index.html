@@ -912,6 +912,31 @@
     }
 
     // =========================================================================
+    // HÀM ÉP MATHJAX RENDER LẠI TOÀN BỘ ĐỀ THI & ĐÁP ÁN (DỮ LIỆU ĐỘNG)
+    // =========================================================================
+    function forceMathJaxRender() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        const targetNodes = [
+          document.getElementById('examContainer'),
+          document.getElementById('answerKeySection')
+        ].filter(Boolean);
+
+        try {
+          MathJax.typesetClear(targetNodes);
+          MathJax.typesetPromise(targetNodes)
+            .then(() => {})
+            .catch((err) => {
+              console.warn("MathJax typeset error:", err);
+            });
+        } catch (e) {
+          console.warn("Lỗi typeset:", e);
+        }
+      } else {
+        setTimeout(forceMathJaxRender, 100);
+      }
+    }
+
+    // =========================================================================
     // RENDER ĐỀ THI & HƯỚNG DẪN CHẤM BAREM ĐIỂM
     // =========================================================================
     function renderExamToView(exam, matrix) {
@@ -1129,19 +1154,12 @@
         `;
       }
 
-      // 6. Kích hoạt MathJax quét và render toàn bộ tờ đề thi
-      const triggerMathJax = () => {
-        const root = document.getElementById('examContainer');
-        if (root && window.MathJax && window.MathJax.typesetPromise) {
-          window.MathJax.typesetPromise([root]).catch((err) => {
-            console.warn('MathJax error:', err);
-          });
-        }
-      };
-
-      setTimeout(triggerMathJax, 50);
-      setTimeout(triggerMathJax, 300);
-      setTimeout(triggerMathJax, 800);
+      // 6. Kích hoạt quét MathJax tuần tự sau khi nạp DOM
+      requestAnimationFrame(() => {
+        forceMathJaxRender();
+        setTimeout(forceMathJaxRender, 200);
+        setTimeout(forceMathJaxRender, 600);
+      });
     }
 
     // =========================================================================
