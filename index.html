@@ -8,18 +8,17 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core & Auto-render chuẩn quốc tế -->
+  <!-- KaTeX Core (Hiển thị đề thi & đáp án chuẩn) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
-  <!-- MathLive Engine -->
+  <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Nhúng Widget Bảng Toán -->
+  <!-- Nhúng Bảng Toán iMathEQ Widget -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -33,6 +32,7 @@
       .sidebar-scroll { max-height: none; }
     }
 
+    /* Khung MathLive phần tự luận */
     math-field {
       display: block;
       width: 100%;
@@ -392,46 +392,83 @@
     let timeRemaining = 45 * 60;
 
     // =========================================================================
-    // HÀM CHUẨN HÓA LATEX AN TOÀN (KHÔNG BĂM NÁT LỆNH LATEX GỐC)
+    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP CHUẨN XÁC NHẤT (RENDER TO STRING)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
-      // Thay thế ký tự \n thực sự thành <br/>, không đụng vào \neq hay các lệnh có \n khác
-      str = str.replace(/(?:\r\n|\r|\n)/g, '<br/>');
+      // 1. Chuyển dòng an toàn
+      str = str.replace(/\r\n|\r|\n/g, '<br/>');
 
-      // Tự động bọc $...$ cho các lệnh LaTeX trần trụi nếu chưa được bọc
-      // Chỉ bọc khi gặp các từ khóa LaTeX đứng ngoài $...$
-      const latexCommands = ['frac', 'sqrt', 'left', 'right', 'ge', 'le', 'neq', 'approx', 'pm', 'mp', 'cdot', 'times', 'div', 'alpha', 'beta', 'theta', 'pi', 'Delta', 'infty', 'in', 'subset', 'cup', 'cap', 'implies', 'iff'];
-      
-      latexCommands.forEach(cmd => {
-        const regex = new RegExp(`(?<!\\$)\\\\${cmd}\\b([^$]*?)(?=[\\s,;:.?!]|$)(?!\\$)`, 'g');
-        str = str.replace(regex, (m) => {
-          if (m.startsWith('$') || m.endsWith('$')) return m;
-          return `$${m.trim()}$`;
-        });
-      });
+      // 2. Vá lỗi AI viết phân số thiếu ngoặc: \frac1\sqrt -> \frac{1}{\sqrt}
+      str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
+      str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*([0-9a-zA-Z])/g, '\\frac{$1}{$2}');
 
-      return str;
-    }
-
-    // =========================================================================
-    // GỌI AUTORENDER CỦA KATEX
-    // =========================================================================
-    function triggerKatexRender() {
-      if (window.renderMathInElement) {
-        renderMathInElement(document.getElementById('examContainer'), {
-          delimiters: [
-            { left: '$$', right: '$$', display: true },
-            { left: '$', right: '$', display: false },
-            { left: '\\(', right: '\\)', display: false },
-            { left: '\\[', right: '\\]', display: true }
-          ],
-          ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'math-field'],
-          throwOnError: false
+      // 3. Nếu chuỗi đã có cặp $...$ thì biên dịch trực tiếp khối trong $
+      if (str.includes('$')) {
+        str = str.replace(/\$([^$]+)\$/g, (match, formula) => {
+          try {
+            return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false });
+          } catch (e) {
+            return formula;
+          }
         });
       }
+
+      // 4. Bóc tách các lệnh LaTeX còn sót lại đứng ngoài $ (như \sqrt, \frac, \le, \ge, \neq...)
+      // Phân số
+      str = str.replace(/\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, num, den) => {
+        try { return katex.renderToString(`\\frac{${num}}{${den}}`, { throwOnError: false }); } catch(e){ return m; }
+      });
+
+      // Căn bậc n và căn bậc hai
+      str = str.replace(/\\sqrt\[([^\]]+)\]\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, n, body) => {
+        try { return katex.renderToString(`\\sqrt[${n}]{${body}}`, { throwOnError: false }); } catch(e){ return m; }
+      });
+      str = str.replace(/\\sqrt\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, body) => {
+        try { return katex.renderToString(`\\sqrt{${body}}`, { throwOnError: false }); } catch(e){ return m; }
+      });
+
+      // Các phép so sánh và ký hiệu toán
+      const symbolMap = {
+        '\\\\ge': '≥',
+        '\\\\le': '≤',
+        '\\\\neq': '≠',
+        '\\\\ne': '≠',
+        '\\\\pm': '±',
+        '\\\\mp': '∓',
+        '\\\\cdot': '·',
+        '\\\\times': '×',
+        '\\\\div': '÷',
+        '\\\\approx': '≈',
+        '\\\\equiv': '≡',
+        '\\\\infty': '∞',
+        '\\\\in': '∈',
+        '\\\\notin': '∉',
+        '\\\\subset': '⊂',
+        '\\\\supset': '⊃',
+        '\\\\cap': '∩',
+        '\\\\cup': '∪',
+        '\\\\alpha': 'α',
+        '\\\\beta': 'β',
+        '\\\\theta': 'θ',
+        '\\\\pi': 'π',
+        '\\\\Delta': 'Δ',
+        '\\\\implies': '⟹',
+        '\\\\iff': '⟺',
+        '\\\\Leftrightarrow': '⟺',
+        '\\\\Rightarrow': '⟹',
+        '\\\\Leftrightline': '⟺',
+        '\\\\angle': '∠'
+      };
+
+      for (let k in symbolMap) {
+        const reg = new RegExp(k + '(?![a-zA-Z])', 'g');
+        str = str.replace(reg, symbolMap[k]);
+      }
+
+      return str;
     }
 
     function toggleMathWidget() {
@@ -845,7 +882,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & GỌI BIÊN DỊCH TOÁN KATEX
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP TỪNG KHỐI NỘI DUNG
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -919,7 +956,7 @@
         }).join('');
       }
 
-      // 3. Phần III (Tự luận dùng thẻ MathLive vector)
+      // 3. Phần III (Tự luận)
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
@@ -935,7 +972,7 @@
         }).join('');
       }
 
-      // 4. Ma trận
+      // 4. Ma trận 4 mã đề
       if (matrix && Object.keys(matrix).length > 0) {
         const tbody = document.getElementById('matrixTableBody');
         if (tbody) {
@@ -1012,9 +1049,6 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
-
-      // KÍCH HOẠT BIÊN DỊCH KATEX TỰ ĐỘNG
-      triggerKatexRender();
     }
 
     // =========================================================================
