@@ -8,7 +8,7 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core (Dùng để render Equation trực tiếp không phụ thuộc DOM) -->
+  <!-- KaTeX Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
@@ -26,26 +26,26 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Khung bàn phím toán nổi di động (Draggable Floating Panel) */
+    /* BẢNG TOÁN NỔI CHUẨN iMathEQ */
     #draggableMathWindow {
       position: fixed;
-      top: 80px;
-      right: 20px;
+      top: 85px;
+      right: 25px;
       z-index: 1000;
       background: #ffffff;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #94a3b8;
       border-radius: 8px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      width: 440px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      width: 460px;
       max-width: 95vw;
       user-select: none;
     }
 
     .drag-header {
       cursor: move;
-      background: linear-gradient(135deg, #312e81, #4338ca);
+      background: linear-gradient(135deg, #1e1b4b, #3730a3);
       color: #ffffff;
-      padding: 6px 12px;
+      padding: 7px 12px;
       border-top-left-radius: 7px;
       border-top-right-radius: 7px;
       display: flex;
@@ -55,12 +55,22 @@
 
     .imatheq-grid {
       display: flex;
-      flex-wrap: wrap;
-      gap: 3px;
+      flex-direction: column;
+      gap: 6px;
       padding: 8px;
       background: #f8fafc;
-      max-height: 280px;
+      max-height: 320px;
       overflow-y: auto;
+    }
+
+    .imatheq-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      background: #ffffff;
+      padding: 4px;
+      border-radius: 5px;
+      border: 1px solid #e2e8f0;
     }
 
     .imatheq-btn {
@@ -87,21 +97,22 @@
 
     .ph-box {
       display: inline-block;
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       background: #93c5fd;
       border: 1px solid #3b82f6;
       border-radius: 1px;
       vertical-align: middle;
     }
 
+    /* Ô NHẬP LIỆU TỰ LUẬN TƯƠNG TÁC */
     .essay-editor {
       min-height: 140px;
       outline: none;
       padding: 12px;
       font-family: 'Times New Roman', Times, serif;
       font-size: 16px;
-      line-height: 1.6;
+      line-height: 1.8;
       background: #ffffff;
       border: 1px solid #94a3b8;
       border-radius: 4px;
@@ -115,6 +126,57 @@
       content: attr(placeholder);
       color: #94a3b8;
       font-style: italic;
+    }
+
+    /* CÁC PHẦN TỬ TOÁN HỌC GÕ SỐ TRỰC TIẾP */
+    .math-slot {
+      display: inline-block;
+      min-width: 14px;
+      min-height: 18px;
+      padding: 0 3px;
+      border-bottom: 1.5px dashed #4f46e5;
+      background: #eef2ff;
+      border-radius: 2px;
+      outline: none;
+      text-align: center;
+      font-family: 'Times New Roman', Times, serif;
+      font-style: italic;
+    }
+    .math-slot:focus {
+      background: #c7d2fe;
+      border-bottom: 2px solid #3730a3;
+    }
+    .math-frac {
+      display: inline-flex;
+      flex-direction: column;
+      vertical-align: middle;
+      text-align: center;
+      padding: 0 3px;
+      margin: 0 2px;
+    }
+    .math-frac-num {
+      border-bottom: 1.5px solid #000;
+      padding-bottom: 1px;
+      display: block;
+    }
+    .math-frac-den {
+      padding-top: 1px;
+      display: block;
+    }
+    .math-sqrt {
+      display: inline-flex;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+    .math-sqrt-rad {
+      font-size: 1.25em;
+      margin-right: 1px;
+    }
+    .math-sqrt-body {
+      border-top: 1.5px solid #000;
+      padding-top: 1px;
+      padding-left: 2px;
     }
   </style>
 </head>
@@ -137,7 +199,7 @@
         <i class="fa-solid fa-laptop-code"></i> <span id="btnModeText">Bật Phòng Thi Online</span>
       </button>
       <button id="btnToggleToolbar" onclick="toggleMathWindow()" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
-        <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Nổi</span>
+        <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Di Động</span>
       </button>
       <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-copy"></i> <span>Sao chép Equation</span>
@@ -151,13 +213,13 @@
     </div>
   </header>
 
-  <!-- BẢNG CÔNG CỤ TOÁN HỌC DI ĐỘNG (DRAGGABLE FLOATING WINDOW) -->
+  <!-- BẢNG TOÁN DI ĐỘNG CHUẨN iMathEQ -->
   <div id="draggableMathWindow" class="hidden">
     <div class="drag-header" id="dragHeader">
       <div class="flex items-center gap-2 text-xs font-bold">
         <i class="fa-solid fa-grip-vertical opacity-70"></i>
-        <span>Bảng Toán Di Động</span>
-        <span id="activeEditorLabel" class="text-[10px] bg-indigo-900/80 px-1.5 py-0.5 rounded text-amber-300 font-normal">Bài 1</span>
+        <span>Bảng Toán Di Động (iMathEQ)</span>
+        <span id="activeEditorLabel" class="text-[10px] bg-indigo-950 px-1.5 py-0.5 rounded text-amber-300 font-normal">Bài 1</span>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="minimizeMathWindow()" class="text-xs hover:text-amber-300 p-0.5"><i class="fa-solid fa-minus"></i></button>
@@ -166,48 +228,50 @@
     </div>
 
     <div id="mathWindowBody" class="imatheq-grid">
-      <!-- Cụm Phân số & Căn -->
-      <div class="w-full flex gap-1 pb-1 border-b border-slate-200">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\frac{a}{b}')" class="imatheq-btn" title="Phân số">
-          <div class="flex flex-col items-center leading-none text-[8px]"><span class="ph-box mb-[1px]"></span><span class="w-3 h-[1px] bg-black"></span><span class="ph-box mt-[1px]"></span></div>
+      <!-- Dòng 1: Cấu trúc toán học chính -->
+      <div class="imatheq-row">
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('frac')" class="imatheq-btn" title="Phân số">
+          <div class="flex flex-col items-center leading-none text-[8px]"><span class="ph-box mb-[1px]"></span><span class="w-3.5 h-[1px] bg-black"></span><span class="ph-box mt-[1px]"></span></div>
         </button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\sqrt{x}')" class="imatheq-btn" title="Căn bậc hai">√<span class="ph-box ml-[1px]"></span></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\sqrt[n]{x}')" class="imatheq-btn" title="Căn bậc n"><span class="text-[8px]"><span class="ph-box scale-75"></span>√<span class="ph-box"></span></span></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('x^2')" class="imatheq-btn" title="Mũ số">x<sup class="ph-box scale-75"></sup></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('x_n')" class="imatheq-btn" title="Chỉ số dưới">x<sub class="ph-box scale-75"></sub></button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sqrt')" class="imatheq-btn" title="Căn bậc hai">√<span class="ph-box ml-[1px]"></span></button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sqrt_n')" class="imatheq-btn" title="Căn bậc n"><sup class="ph-box scale-75"></sup>√<span class="ph-box"></span></button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sup')" class="imatheq-btn" title="Số mũ"><span class="ph-box"></span><sup class="ph-box scale-75"></sup></button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sub')" class="imatheq-btn" title="Chỉ số dưới"><span class="ph-box"></span><sub class="ph-box scale-75"></sub></button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_round')" class="imatheq-btn">(<span class="ph-box"></span>)</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_square')" class="imatheq-btn">[<span class="ph-box"></span>]</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_abs')" class="imatheq-btn">|<span class="ph-box"></span>|</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_curly')" class="imatheq-btn">{<span class="ph-box"></span>}</button>
       </div>
 
-      <!-- Cụm Dấu ngoặc -->
-      <div class="w-full flex gap-1 py-1 border-b border-slate-200">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('( x )')" class="imatheq-btn">(<span class="ph-box"></span>)</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('[ x ]')" class="imatheq-btn">[<span class="ph-box"></span>]</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('| x |')" class="imatheq-btn">|<span class="ph-box"></span>|</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\{ x \\}')" class="imatheq-btn">{<span class="ph-box"></span>}</button>
+      <!-- Dòng 2: Phép toán & So sánh -->
+      <div class="imatheq-row">
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('+')" class="imatheq-btn">+</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('−')" class="imatheq-btn">−</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('·')" class="imatheq-btn">·</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol(':')" class="imatheq-btn">:</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('=')" class="imatheq-btn">=</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≠')" class="imatheq-btn">≠</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≥')" class="imatheq-btn">≥</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≤')" class="imatheq-btn">≤</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('>')' " class="imatheq-btn">&gt;</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('<')" class="imatheq-btn">&lt;</button>
       </div>
 
-      <!-- Cụm Toán tử & So sánh -->
-      <div class="w-full flex flex-wrap gap-1 py-1 border-b border-slate-200">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('+')" class="imatheq-btn">+</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('-')" class="imatheq-btn">−</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\cdot')" class="imatheq-btn">·</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath(':')" class="imatheq-btn">:</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\ge')" class="imatheq-btn">≥</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\le')" class="imatheq-btn">≤</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\neq')" class="imatheq-btn">≠</button>
-      </div>
-
-      <!-- Cụm Ký hiệu Hình học & Logic -->
-      <div class="w-full flex flex-wrap gap-1 pt-1">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('^{\\circ}')" class="imatheq-btn">°</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\pi')" class="imatheq-btn">π</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\alpha')" class="imatheq-btn">α</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\beta')" class="imatheq-btn">β</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\in')" class="imatheq-btn">∈</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\notin')" class="imatheq-btn">∉</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\subset')" class="imatheq-btn">⊂</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\infty')" class="imatheq-btn">∞</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\Rightarrow')" class="imatheq-btn">⟹</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertFloatingMath('\\Leftrightarrow')" class="imatheq-btn">⟺</button>
+      <!-- Dòng 3: Ký hiệu Hình học & Tập hợp -->
+      <div class="imatheq-row">
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('°')" class="imatheq-btn">°</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('π')" class="imatheq-btn">π</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('α')" class="imatheq-btn">α</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('β')" class="imatheq-btn">β</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∈')" class="imatheq-btn">∈</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∉')" class="imatheq-btn">∉</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⊂')" class="imatheq-btn">⊂</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∞')" class="imatheq-btn">∞</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⟹')" class="imatheq-btn">⟹</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⟺')" class="imatheq-btn">⟺</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('△')" class="imatheq-btn">△</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⊥')" class="imatheq-btn">⊥</button>
+        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∥')" class="imatheq-btn">∥</button>
       </div>
     </div>
   </div>
@@ -229,7 +293,7 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- Khối Chọn Model Gemini -->
+        <!-- Chọn Model Gemini -->
         <div class="bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-900 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
@@ -310,10 +374,10 @@
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Khối lớp</label>
             <select id="grade" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
-              <option value="6" selected>Lớp 6</option>
+              <option value="6">Lớp 6</option>
               <option value="7">Lớp 7</option>
               <option value="8">Lớp 8</option>
-              <option value="9">Lớp 9</option>
+              <option value="9" selected>Lớp 9</option>
             </select>
           </div>
         </div>
@@ -347,7 +411,7 @@
               <span>1. Khung Ma Trận Đặc Tả</span>
               <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (2 câu Nhận biết, 2 câu Thông hiểu); Phần 2 (1 câu Đúng Sai vận dụng); Phần 3 (Bài 1: 1.5đ rút gọn, Bài 2: 1.5đ toán thực tế)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu trắc nghiệm rút gọn căn); Phần 2 (1 câu Đúng/Sai biểu thức chứa căn); Phần 3 (Bài 1: giải PT chứa căn, Bài 2: bài toán biểu thức nguyên)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
 
           <div>
@@ -429,7 +493,7 @@
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 6 - Thời gian: 45 phút</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 9 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
                 MÃ ĐỀ: 101
               </div>
@@ -519,51 +583,68 @@
     let currentFocusedEditorId = 'essayBox_0';
 
     // =========================================================================
-    // HỆ THỐNG BIÊN DỊCH EQUATION TRỰC TIẾP QUA KATEX
+    // BỘ BIÊN DỊCH EQUATION CHUẨN (TRIỆT TIÊU LỖI CHỮ ĐỎ & LỖI \n TỪ AI)
     // =========================================================================
-    function sanitizeAndRenderKatex(raw) {
+    function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
-      // 1. Dọn dẹp escape dư thừa
-      str = str.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
-      str = str.replace(/\t/g, ' ');
+      // 1. Tách ký tự \n nếu bị dính liền vào từ khóa (như \nA -> \n A, \nb) -> \n b))
+      str = str.replace(/\\n(?=[A-Za-z0-9])/g, '<br/>');
+      str = str.replace(/\n/g, '<br/>');
 
-      // 2. Vá lỗi số đo góc bị thiếu $: 90^\circ$ -> $90^\circ$
+      // 2. Dọn dẹp escape dư thừa
+      str = str.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
+      str = str.replace(/\\le\s+/g, '\\le ').replace(/\\ge\s+/g, '\\ge ');
+      str = str.replace(/\\left\s*([(\[{|])/g, '\\left$1').replace(/\\right\s*([)\]}|])/g, '\\right$1');
+
+      // 3. Sửa lỗi AI viết dính biểu thức toán: = \sqrt{...} hoặc -\sqrt{...}
+      str = str.replace(/(?<!\$)=\s*\\([a-zA-Z]+)/g, ' = $\\$1');
+      str = str.replace(/(?<!\$)-\s*\\([a-zA-Z]+)/g, ' - $\\$1');
+      str = str.replace(/(?<!\$)\+\s*\\([a-zA-Z]+)/g, ' + $\\$1');
+
+      // 4. Sửa lỗi số đo góc bị thiếu dấu $: 90^\circ$ -> $90^\circ$
       str = str.replace(/(?<!\$)\b(\d+)\^\\circ\$/g, '$$$1^\\circ$');
       str = str.replace(/(?<!\$)\b(\d+)\^\{\\circ\}\$/g, '$$$1^{\\circ}$');
 
-      // 3. Tự động gom các lệnh LaTeX đứng ngoài dấu $ vào $...$
-      const standaloneSymbols = [
-        '\\\\perp', '\\\\sim', '\\\\parallel', '\\\\Delta',
-        '\\\\Leftrightarrow', '\\\\Rightarrow', '\\\\ge', '\\\\le', '\\\\neq', '\\\\in', '\\\\notin'
-      ];
-      standaloneSymbols.forEach(sym => {
+      // 5. Bọc các cấu trúc toán học chưa có dấu $
+      // Phân số lồng nhau
+      str = str.replace(/(?<!\$)\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*\})(?!\$)/g, '$\\frac{$1}{$2}$');
+      // Căn bậc n và căn bậc hai
+      str = str.replace(/(?<!\$)\\sqrt\[([^\]]+)\]\{((?:[^{}]|\{[^{}]*\})*)\}(?!\$)/g, '$\\sqrt[$1]{$2}$');
+      str = str.replace(/(?<!\$)\\sqrt\{((?:[^{}]|\{[^{}]*\})*)\}(?!\$)/g, '$\\sqrt{$1}$');
+      // Góc và tam giác
+      str = str.replace(/(?<!\$)\\widehat\{([^}]+)\}(?!\$)/g, '$\\widehat{$1}$');
+      str = str.replace(/(?<!\$)\\triangle\s+([A-Za-z0-9]+)(?!\$)/g, '$\\triangle $1$');
+
+      // 6. Bọc các toán tử đơn lẻ
+      const standalone = ['\\\\perp', '\\\\sim', '\\\\parallel', '\\\\Delta', '\\\\Rightarrow', '\\\\Leftrightarrow', '\\\\ge', '\\\\le', '\\\\neq', '\\\\in', '\\\\notin', '\\\\subset', '\\\\infty', '\\\\cdot'];
+      standalone.forEach(sym => {
         const reg = new RegExp(`(?<!\\$)\\s*(${sym})\\s*(?!\\$)`, 'g');
         str = str.replace(reg, ' $$$1$$ ');
       });
 
-      // 4. Bọc các hàm có tham số nếu bị rơi ra ngoài dấu $
-      str = str.replace(/(?<!\$)\\widehat\{([^}]+)\}(?!\$)/g, '$\\widehat{$1}$');
-      str = str.replace(/(?<!\$)\\triangle\s+([A-Za-z0-9]+)(?!\$)/g, '$\\triangle $1$');
-      str = str.replace(/(?<!\$)\\frac\{([^}]+)\}\{([^}]+)\}(?!\$)/g, '$\\frac{$1}{$2}$');
-      str = str.replace(/(?<!\$)\\sqrt\{([^}]+)\}(?!\$)/g, '$\\sqrt{$1}$');
-
-      // 5. Gộp các dấu $ liền kề
+      // 7. Gộp các dấu $ liền kề
       str = str.replace(/\$\s*\$/g, ' ');
 
-      // 6. Biên dịch toàn bộ chuỗi $...$ thành Equation trực tiếp
+      // 8. Biên dịch qua KaTeX an toàn (Fallback về text sạch nếu công thức bị gãy cú pháp thay vì in chữ đỏ)
       return str.replace(/\$([^$]+)\$/g, (match, formula) => {
         try {
-          return katex.renderToString(formula, { throwOnError: false, displayMode: false });
+          return katex.renderToString(formula.trim(), { throwOnError: true, displayMode: false });
         } catch (e) {
-          return match;
+          // Thử render lại sau khi dọn bớt ký tự lỗi
+          try {
+            let sanitizedFormula = formula.replace(/[{}]/g, '').trim();
+            return katex.renderToString(sanitizedFormula, { throwOnError: false });
+          } catch (err) {
+            return `<i>${formula}</i>`;
+          }
         }
       });
     }
 
     // =========================================================================
-    // XỬ LÝ KÉO THẢ BẢNG TOÁN DI ĐỘNG (DRAGGABLE LOGIC)
+    // KÉO THẢ & CHÈN Ô TOÁN HỌC TRỰC QUAN (iMathEQ VISUAL SLOTS)
     // =========================================================================
     function makeDraggable(el, handle) {
       let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -632,35 +713,43 @@
       if (lbl) lbl.innerText = label;
     }
 
-    function insertFloatingMath(latexCode) {
+    function insertDirectSymbol(sym) {
+      if (!currentFocusedEditorId) return;
+      const editor = document.getElementById(currentFocusedEditorId);
+      if (!editor) return;
+      editor.focus();
+      document.execCommand('insertText', false, ' ' + sym + ' ');
+    }
+
+    // Chèn khung toán tương tác có placeholder gõ số trực tiếp
+    function insertInteractiveMath(type) {
       if (!currentFocusedEditorId) return;
       const editor = document.getElementById(currentFocusedEditorId);
       if (!editor) return;
       editor.focus();
 
-      let span = document.createElement('span');
-      span.className = 'katex-inline-node';
-      span.contentEditable = "false";
-      try {
-        katex.render(latexCode, span, { throwOnError: false });
-      } catch (e) {
-        span.innerText = `$${latexCode}$`;
+      let nodeHtml = '';
+      if (type === 'frac') {
+        nodeHtml = `<span class="math-frac" contenteditable="false"><span class="math-frac-num math-slot" contenteditable="true">a</span><span class="math-frac-den math-slot" contenteditable="true">b</span></span>&nbsp;`;
+      } else if (type === 'sqrt') {
+        nodeHtml = `<span class="math-sqrt" contenteditable="false"><span class="math-sqrt-rad">√</span><span class="math-sqrt-body math-slot" contenteditable="true">x</span></span>&nbsp;`;
+      } else if (type === 'sqrt_n') {
+        nodeHtml = `<span class="math-sqrt" contenteditable="false"><sup class="math-slot" contenteditable="true">n</sup><span class="math-sqrt-rad">√</span><span class="math-sqrt-body math-slot" contenteditable="true">x</span></span>&nbsp;`;
+      } else if (type === 'sup') {
+        nodeHtml = `<span class="math-slot" contenteditable="true">x</span><sup class="math-slot" contenteditable="true">2</sup>&nbsp;`;
+      } else if (type === 'sub') {
+        nodeHtml = `<span class="math-slot" contenteditable="true">x</span><sub class="math-slot" contenteditable="true">1</sub>&nbsp;`;
+      } else if (type === 'bracket_round') {
+        nodeHtml = `(<span class="math-slot" contenteditable="true">x</span>)&nbsp;`;
+      } else if (type === 'bracket_square') {
+        nodeHtml = `[<span class="math-slot" contenteditable="true">x</span>]&nbsp;`;
+      } else if (type === 'bracket_abs') {
+        nodeHtml = `|<span class="math-slot" contenteditable="true">x</span>|&nbsp;`;
+      } else if (type === 'bracket_curly') {
+        nodeHtml = `{<span class="math-slot" contenteditable="true">x</span>}&nbsp;`;
       }
 
-      let sel = window.getSelection();
-      if (sel.getRangeAt && sel.rangeCount) {
-        let range = sel.getRangeAt(0);
-        range.deleteContents();
-        let space = document.createTextNode('\u00A0');
-        range.insertNode(space);
-        range.insertNode(span);
-        range.setStartAfter(space);
-        range.setEndAfter(space);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        editor.appendChild(span);
-      }
+      document.execCommand('insertHTML', false, nodeHtml);
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -673,7 +762,7 @@
       handleModelChange();
       handleEssayModeChange();
 
-      // Khởi tạo kéo thả
+      // Khởi tạo kéo thả bảng toán
       const mathWin = document.getElementById('draggableMathWindow');
       const dragHeader = document.getElementById('dragHeader');
       if (mathWin && dragHeader) {
@@ -713,33 +802,11 @@
 
     const CURRICULUM_TOPICS = {
       "Toán học": {
-        6: [
-          "Tập hợp số tự nhiên và các phép tính",
-          "Tính chia hết trong tập hợp các số tự nhiên (Ước và Bội)",
-          "Số nguyên và các phép tính với số nguyên",
-          "Phân số và các phép tính với phân số",
-          "Số thập phân và tỉ số phần trăm",
-          "Hình học trực quan: Tam giác đều, Lục giác đều, Hình thoi",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ],
-        7: [
-          "Số hữu tỉ và các phép tính với số hữu tỉ",
-          "Số thực, Căn bậc hai số học, Giá trị tuyệt đối",
-          "Góc và đường thẳng song song, Định lý",
-          "Tam giác bằng nhau, Tam giác cân, Định lý Pythagore",
-          "Biểu thức đại số và Đa thức một biến",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ],
-        8: [
-          "Đa thức nhiều biến và các phép toán",
-          "Hằng đẳng thức đáng nhớ và ứng dụng",
-          "Phân thức đại số và các phép tính",
-          "Tứ giác: Hình bình hành, Hình chữ nhật, Hình thoi, Hình vuông",
-          "Định lý Thalès và Tam giác đồng dạng",
-          "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-        ],
+        6: ["Tập hợp số tự nhiên", "Số nguyên", "Phân số", "Hình học trực quan"],
+        7: ["Số hữu tỉ", "Số thực và Căn bậc hai", "Góc và tam giác", "Biểu thức đại số"],
+        8: ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác", "Định lý Thalès"],
         9: [
-          "Căn bậc hai, Căn bậc ba và rút gọn biểu thức",
+          "Căn bậc hai, Căn bậc ba và Rút gọn biểu thức",
           "Hàm số bậc nhất và Hệ hai phương trình bậc nhất",
           "Phương trình bậc hai một ẩn và Định lý Viète",
           "Đường tròn, Góc với đường tròn, Tứ giác nội tiếp",
@@ -747,28 +814,28 @@
         ]
       },
       "Khoa học tự nhiên": {
-        6: ["Mở đầu về KHTN, Đo lường", "Tế bào - Đơn vị cơ sở của sự sống", "Đa dạng thế giới sống", "Lực và chuyển động, Năng lượng"],
-        7: ["Nguyên tử, Nguyên tố hóa học, Bảng tuần hoàn", "Phân tử, Liên kết hóa học", "Tốc độ chuyển động", "Trao đổi chất và chuyển hóa năng lượng"],
-        8: ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối", "Khối lượng riêng, Áp suất chất lỏng", "Cơ thể người: Tiêu hóa, Tuần hoàn"],
-        9: ["Kim loại, Dãy hoạt động hóa học", "Khúc xạ ánh sáng, Thấu kính", "Điện từ học", "Di truyền và biến dị"]
+        6: ["Mở đầu về KHTN, Đo lường", "Tế bào", "Đa dạng thế giới sống", "Lực và Năng lượng"],
+        7: ["Nguyên tử, Bảng tuần hoàn", "Tốc độ chuyển động", "Trao đổi chất"],
+        8: ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối", "Cơ thể người"],
+        9: ["Kim loại", "Khúc xạ ánh sáng", "Điện từ học", "Di truyền và biến dị"]
       },
       "Ngữ văn": {
-        6: ["Truyện cổ tích và truyền thuyết", "Thơ lục bát", "Ký và Hồi ký"],
-        7: ["Truyện ngụ ngôn và tục ngữ", "Thơ bốn chữ, năm chữ", "Nghị luận văn học"],
-        8: ["Truyện cười và truyện lịch sử", "Thơ Đường luật", "Văn bản thông tin"],
-        9: ["Truyện ngắn hiện đại", "Thơ hiện đại", "Nghị luận xã hội"]
+        6: ["Truyện cổ tích", "Thơ lục bát"],
+        7: ["Truyện ngụ ngôn", "Thơ bốn chữ, năm chữ"],
+        8: ["Truyện cười", "Thơ Đường luật"],
+        9: ["Truyện ngắn hiện đại", "Nghị luận xã hội"]
       },
       "Lịch sử & Địa lí": {
-        6: ["Xã hội nguyên thủy, Ai Cập cổ đại", "Trái Đất trong hệ Mặt Trời"],
-        7: ["Các cuộc phát kiến địa lí", "Đặc điểm tự nhiên Châu Á, Châu Âu"],
-        8: ["Cách mạng tư sản", "Địa hình, Khoáng sản và Khí hậu Việt Nam"],
-        9: ["Chiến tranh thế giới thứ hai", "Địa lí các vùng kinh tế Việt Nam"]
+        6: ["Xã hội nguyên thủy", "Trái Đất"],
+        7: ["Phát kiến địa lí", "Châu Á, Châu Âu"],
+        8: ["Cách mạng tư sản", "Khí hậu Việt Nam"],
+        9: ["Chiến tranh thế giới thứ hai", "Vùng kinh tế Việt Nam"]
       },
       "Tiếng Anh": {
-        6: ["Unit 1-3: My New School, My Home", "Unit 4-6: My Neighbourhood, Tet"],
-        7: ["Unit 1-3: Hobbies, Healthy Living", "Unit 4-6: Music, Arts, Food"],
-        8: ["Unit 1-3: Countryside, Teenagers", "Unit 4-6: Customs, Festivals"],
-        9: ["Unit 1-3: Local community, City life", "Unit 4-6: Wonders of Viet Nam"]
+        6: ["Unit 1-3: My New School", "Unit 4-6: Tet"],
+        7: ["Unit 1-3: Hobbies", "Unit 4-6: Arts and Food"],
+        8: ["Unit 1-3: Countryside", "Unit 4-6: Customs"],
+        9: ["Unit 1-3: City life", "Unit 4-6: Wonders of Viet Nam"]
       }
     };
 
@@ -950,11 +1017,11 @@
     }
 
     function fillSampleMatrix() {
-      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): 2 câu Nhận biết hình học, 2 câu Thông hiểu phép tính.\n- Phần II (1 câu Đúng/Sai): Vận dụng tính chất tiếp tuyến và tứ giác nội tiếp.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Hình học đường tròn tiếp tuyến; Bài 2 (1.5đ) Tam giác đồng dạng.";
+      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): Khử mẫu biểu thức lấy căn, rút gọn biểu thức chứa căn.\n- Phần II (1 câu Đúng/Sai): Biểu thức chứa căn thức bậc hai, tìm ĐKXĐ và rút gọn.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Tìm x nguyên để biểu thức đạt giá trị nguyên.";
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Cho đường tròn (O), hai tiếp tuyến AB, AC cắt nhau tại A. Chứng minh ABOC nội tiếp và tính các góc liên quan.";
+      document.getElementById('sourceNotesInput').value = "Cho biểu thức P = (1/(x-sqrt(x)) + 1/(sqrt(x)-1)) : (sqrt(x)+1)/(x-2*sqrt(x)+1). Giải PT sqrt(4x-20) - 3*sqrt((x-5)/9) = 4.";
     }
 
     async function triggerGenerate() {
@@ -1049,7 +1116,7 @@
         sidebar.classList.add('hidden');
         onlineBar.classList.remove('hidden');
         solutionsArea.classList.add('hidden');
-        mathWin.classList.remove('hidden'); // Tự động mở bảng toán khi thi
+        mathWin.classList.remove('hidden');
         btnModeText.innerText = "Thoát Phòng Thi";
         
         const sName = prompt("Nhập họ và tên học sinh dự thi:", "Nguyễn Văn A");
@@ -1092,7 +1159,7 @@
     }
 
     function submitExamOnline() {
-      alert('Đã nộp bài thi thành công! Hệ thống đã ghi nhận bài làm trắc nghiệm & khung bài giải tự luận của học sinh.');
+      alert('Đã nộp bài thi thành công! Hệ thống đã ghi nhận bài làm trắc nghiệm & tự luận.');
       toggleExamMode();
     }
 
@@ -1107,7 +1174,7 @@
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = sanitizeAndRenderKatex(q.content || q.question_text || '');
+          const qText = cleanLatexMath(q.content || q.question_text || '');
           let opts = [];
           if (Array.isArray(q.options)) {
             opts = q.options;
@@ -1126,7 +1193,7 @@
                 ${opts.map(o => `
                   <label class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-indigo-50">
                     <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600">
-                    <span><strong>${o.id}.</strong> ${sanitizeAndRenderKatex(o.text || o.content || '')}</span>
+                    <span><strong>${o.id}.</strong> ${cleanLatexMath(o.text || o.content || '')}</span>
                   </label>
                 `).join('')}
               </div>
@@ -1140,7 +1207,7 @@
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
         part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = sanitizeAndRenderKatex(q.prompt || q.content || q.question_text || '');
+          const prompt = cleanLatexMath(q.prompt || q.content || q.question_text || '');
           const st = q.statements || {};
 
           return `
@@ -1148,7 +1215,7 @@
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = sanitizeAndRenderKatex(st[k] || st[k.toUpperCase()] || '');
+                  const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
                   return `
                     <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
                       <span class="flex-1"><strong>${k})</strong> ${val}</span>
@@ -1176,7 +1243,7 @@
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
         part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = sanitizeAndRenderKatex(q.content || q.question_text || '');
+          const qText = cleanLatexMath(q.content || q.question_text || '');
           const pts = q.points || 1.5;
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
@@ -1185,7 +1252,7 @@
               <div id="essayBox_${idx}" 
                    contenteditable="true" 
                    onfocus="setActiveEditor('essayBox_${idx}', 'Bài ${idx + 1}')"
-                   placeholder="Nhấp vào đây và dùng Bảng Toán Di Động để chèn công thức..." 
+                   placeholder="Nhấp vào đây, dùng Bảng Toán Di Động chèn phân số, căn bậc hai và gõ trực tiếp vào ô số..." 
                    class="essay-editor"></div>
             </div>
           `;
@@ -1214,13 +1281,13 @@
         }
       }
 
-      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM (KATEX RENDER TRỰC TIẾP 100%)
+      // 5. Render HƯỚNG DẪN CHẤM & BAREM ĐIỂM
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = sanitizeAndRenderKatex(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          let sol = cleanLatexMath(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
-            { step: "Bước 1: Điều kiện / Biến đổi ban đầu", points: "0.5 đ" },
+            { step: "Bước 1: Điều kiện xác định / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
             { step: "Bước 3: Đối chiếu và Kết luận", points: "0.5 đ" }
           ];
@@ -1232,7 +1299,7 @@
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${sanitizeAndRenderKatex(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${cleanLatexMath(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1245,7 +1312,7 @@
           const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
           const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
           const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = sanitizeAndRenderKatex(q.explanation || '');
+          let exp = cleanLatexMath(q.explanation || '');
 
           return `
             <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
@@ -1272,7 +1339,7 @@
     }
 
     // =========================================================================
-    // 1-CLICK SAO CHÉP TOÀN BỘ ĐỀ THI & ĐÁP ÁN DÁN WORD THÀNH EQUATION (CTRL + V)
+    // SAO CHÉP WORD & XUẤT FILE .DOC/.DOCX
     // =========================================================================
     function copyExamForWord() {
       if (!currentExamData) {
@@ -1312,9 +1379,6 @@
       }
     }
 
-    // =========================================================================
-    // TẢI FILE WORD (.DOC) MHTML NATIVE
-    // =========================================================================
     function exportExamToWordNativeDoc() {
       if (!currentExamData) {
         alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi xuất file Word!');
@@ -1395,9 +1459,6 @@ strong { font-weight: bold; }
       }, 1200);
     }
 
-    // =========================================================================
-    // TẢI FILE WORD (.DOCX) CHUẨN BACKEND
-    // =========================================================================
     async function downloadWordDocxPython() {
       if (!currentExamData) {
         alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi xuất file Word!');
