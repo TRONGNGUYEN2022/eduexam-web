@@ -26,18 +26,20 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* BẢNG TOÁN NỔI CHUẨN iMathEQ */
+    /* =========================================================================
+       BẢNG TOÁN NỔI DI ĐỘNG (2 HÀNG LƯỚI CHUẨN iMathEQ)
+       ========================================================================= */
     #draggableMathWindow {
       position: fixed;
       top: 85px;
       right: 25px;
       z-index: 1000;
-      background: #ffffff;
+      background: #f8fafc;
       border: 1px solid #94a3b8;
       border-radius: 8px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-      width: 460px;
-      max-width: 95vw;
+      box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      width: auto;
+      max-width: 98vw;
       user-select: none;
     }
 
@@ -45,7 +47,7 @@
       cursor: move;
       background: linear-gradient(135deg, #1e1b4b, #3730a3);
       color: #ffffff;
-      padding: 7px 12px;
+      padding: 6px 12px;
       border-top-left-radius: 7px;
       border-top-right-radius: 7px;
       display: flex;
@@ -53,29 +55,33 @@
       justify-content: space-between;
     }
 
-    .imatheq-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 8px;
-      background: #f8fafc;
-      max-height: 320px;
-      overflow-y: auto;
+    .imatheq-board {
+      display: inline-block;
+      background: #ffffff;
+      border: 1px solid #93c5fd;
+      border-radius: 6px;
+      padding: 4px;
+      margin: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    .imatheq-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 3px;
-      background: #ffffff;
-      padding: 4px;
-      border-radius: 5px;
-      border: 1px solid #e2e8f0;
+    .imatheq-table {
+      border-collapse: collapse;
+    }
+
+    .imatheq-cell {
+      padding: 2px;
+      border-right: 1px solid #e2e8f0;
+      vertical-align: middle;
+      text-align: center;
+    }
+    .imatheq-cell:last-child {
+      border-right: none;
     }
 
     .imatheq-btn {
-      min-width: 32px;
-      height: 30px;
+      min-width: 34px;
+      height: 32px;
       padding: 0 4px;
       display: inline-flex;
       align-items: center;
@@ -84,28 +90,36 @@
       border: 1px solid #cbd5e1;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 13.5px;
       color: #1e293b;
-      transition: all 0.1s;
+      font-family: 'Times New Roman', Times, serif;
+      transition: all 0.12s;
     }
     .imatheq-btn:hover {
-      background: #e0e7ff;
-      border-color: #6366f1;
-      color: #4338ca;
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #1d4ed8;
+      transform: translateY(-1px);
     }
-    .imatheq-btn:active { background: #c7d2fe; }
+    .imatheq-btn:active {
+      background: #dbeafe;
+      transform: translateY(0);
+    }
 
+    /* Icon Ô vuông màu xanh Placeholder */
     .ph-box {
       display: inline-block;
-      width: 8px;
-      height: 8px;
-      background: #93c5fd;
-      border: 1px solid #3b82f6;
+      width: 9px;
+      height: 9px;
+      background: #60a5fa;
+      border: 1px solid #2563eb;
       border-radius: 1px;
       vertical-align: middle;
     }
 
-    /* Ô NHẬP LIỆU TỰ LUẬN TƯƠNG TÁC */
+    /* =========================================================================
+       KHUNG SOẠN THẢO TỰ LUẬN TƯƠNG TÁC
+       ========================================================================= */
     .essay-editor {
       min-height: 140px;
       outline: none;
@@ -128,7 +142,7 @@
       font-style: italic;
     }
 
-    /* CÁC PHẦN TỬ TOÁN HỌC GÕ SỐ TRỰC TIẾP */
+    /* CÁC PHẦN TỬ TOÁN HỌC GÕ SỐ TRỰC TIẾP TRONG Ô BÀI LÀM */
     .math-slot {
       display: inline-block;
       min-width: 14px;
@@ -213,7 +227,7 @@
     </div>
   </header>
 
-  <!-- BẢNG TOÁN DI ĐỘNG CHUẨN iMathEQ -->
+  <!-- BẢNG TOÁN NỔI DI ĐỘNG (2 HÀNG CHUẨN iMathEQ) -->
   <div id="draggableMathWindow" class="hidden">
     <div class="drag-header" id="dragHeader">
       <div class="flex items-center gap-2 text-xs font-bold">
@@ -227,51 +241,147 @@
       </div>
     </div>
 
-    <div id="mathWindowBody" class="imatheq-grid">
-      <!-- Dòng 1: Cấu trúc toán học chính -->
-      <div class="imatheq-row">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('frac')" class="imatheq-btn" title="Phân số">
-          <div class="flex flex-col items-center leading-none text-[8px]"><span class="ph-box mb-[1px]"></span><span class="w-3.5 h-[1px] bg-black"></span><span class="ph-box mt-[1px]"></span></div>
-        </button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sqrt')" class="imatheq-btn" title="Căn bậc hai">√<span class="ph-box ml-[1px]"></span></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sqrt_n')" class="imatheq-btn" title="Căn bậc n"><sup class="ph-box scale-75"></sup>√<span class="ph-box"></span></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sup')" class="imatheq-btn" title="Số mũ"><span class="ph-box"></span><sup class="ph-box scale-75"></sup></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sub')" class="imatheq-btn" title="Chỉ số dưới"><span class="ph-box"></span><sub class="ph-box scale-75"></sub></button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_round')" class="imatheq-btn">(<span class="ph-box"></span>)</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_square')" class="imatheq-btn">[<span class="ph-box"></span>]</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_abs')" class="imatheq-btn">|<span class="ph-box"></span>|</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_curly')" class="imatheq-btn">{<span class="ph-box"></span>}</button>
-      </div>
+    <div id="mathWindowBody" class="p-2 overflow-x-auto">
+      <div class="imatheq-board">
+        <table class="imatheq-table">
+          <!-- HÀNG 1 -->
+          <tr>
+            <!-- Phân số đứng -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('frac')" class="imatheq-btn" title="Phân số">
+                <div class="flex flex-col items-center leading-none text-[8px]">
+                  <span class="ph-box mb-[1px]"></span>
+                  <span class="w-3.5 h-[1.5px] bg-black"></span>
+                  <span class="ph-box mt-[1px]"></span>
+                </div>
+              </button>
+            </td>
+            <!-- Căn bậc hai -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sqrt')" class="imatheq-btn" title="Căn bậc hai">
+                <span class="text-sm">√<span class="ph-box ml-[1px]"></span></span>
+              </button>
+            </td>
+            <!-- Số mũ -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sup')" class="imatheq-btn" title="Số mũ">
+                <span class="ph-box"></span><span class="ph-box scale-75 -translate-y-1 -ml-0.5"></span>
+              </button>
+            </td>
+            <!-- Ngoặc tròn (□) -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_round')" class="imatheq-btn" title="Ngoặc tròn">
+                (<span class="ph-box"></span>)
+              </button>
+            </td>
+            <!-- Ngoặc vuông [□] -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_square')" class="imatheq-btn" title="Ngoặc vuông">
+                [<span class="ph-box"></span>]
+              </button>
+            </td>
+            <!-- Ngoặc nhọn ⟨□⟩ -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_angle')" class="imatheq-btn" title="Ngoặc góc">
+                ⟨<span class="ph-box"></span>⟩
+              </button>
+            </td>
+            <!-- Cộng, Trừ -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('+')" class="imatheq-btn">+</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('−')" class="imatheq-btn">−</button>
+            </td>
+            <!-- Lớn hơn bằng, Nhỏ hơn bằng -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≥')" class="imatheq-btn">≥</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≤')" class="imatheq-btn">≤</button>
+            </td>
+            <!-- Pi, Alpha -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('π')" class="imatheq-btn">π</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('α')" class="imatheq-btn">α</button>
+            </td>
+            <!-- Khác, Suy ra -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≠')" class="imatheq-btn">≠</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⟹')" class="imatheq-btn">⟹</button>
+            </td>
+          </tr>
 
-      <!-- Dòng 2: Phép toán & So sánh -->
-      <div class="imatheq-row">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('+')" class="imatheq-btn">+</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('−')" class="imatheq-btn">−</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('·')" class="imatheq-btn">·</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol(':')" class="imatheq-btn">:</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('=')" class="imatheq-btn">=</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≠')" class="imatheq-btn">≠</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≥')" class="imatheq-btn">≥</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('≤')" class="imatheq-btn">≤</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('>')' " class="imatheq-btn">&gt;</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('<')" class="imatheq-btn">&lt;</button>
-      </div>
-
-      <!-- Dòng 3: Ký hiệu Hình học & Tập hợp -->
-      <div class="imatheq-row">
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('°')" class="imatheq-btn">°</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('π')" class="imatheq-btn">π</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('α')" class="imatheq-btn">α</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('β')" class="imatheq-btn">β</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∈')" class="imatheq-btn">∈</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∉')" class="imatheq-btn">∉</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⊂')" class="imatheq-btn">⊂</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∞')" class="imatheq-btn">∞</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⟹')" class="imatheq-btn">⟹</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⟺')" class="imatheq-btn">⟺</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('△')" class="imatheq-btn">△</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⊥')" class="imatheq-btn">⊥</button>
-        <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∥')" class="imatheq-btn">∥</button>
+          <!-- HÀNG 2 -->
+          <tr>
+            <!-- Phân số ngang □/□ -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('frac_inline')" class="imatheq-btn text-xs" title="Phân số ngang">
+                <span class="ph-box scale-90"></span>/<span class="ph-box scale-90"></span>
+              </button>
+            </td>
+            <!-- Căn bậc n -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sqrt_n')" class="imatheq-btn" title="Căn bậc n">
+                <span class="text-[9px]"><span class="ph-box scale-75"></span>√<span class="ph-box"></span></span>
+              </button>
+            </td>
+            <!-- Chỉ số dưới -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('sub')" class="imatheq-btn" title="Chỉ số dưới">
+                <span class="ph-box"></span><span class="ph-box scale-75 translate-y-1 -ml-0.5"></span>
+              </button>
+            </td>
+            <!-- Trị tuyệt đối |□| -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_abs')" class="imatheq-btn" title="Trị tuyệt đối">
+                |<span class="ph-box"></span>|
+              </button>
+            </td>
+            <!-- Ngoặc móc {□} -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertInteractiveMath('bracket_curly')" class="imatheq-btn" title="Ngoặc nhọn">
+                {<span class="ph-box"></span>}
+              </button>
+            </td>
+            <!-- Độ ° -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('°')" class="imatheq-btn">°</button>
+            </td>
+            <!-- Nhân, Chia -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('·')" class="imatheq-btn">·</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol(':')" class="imatheq-btn">:</button>
+            </td>
+            <!-- Thuộc, Tập con -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∈')" class="imatheq-btn">∈</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⊂')" class="imatheq-btn">⊂</button>
+            </td>
+            <!-- Vô cực, Beta -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∞')" class="imatheq-btn">∞</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('β')" class="imatheq-btn">β</button>
+            </td>
+            <!-- Không thuộc, Tương đương -->
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('∉')" class="imatheq-btn">∉</button>
+            </td>
+            <td class="imatheq-cell">
+              <button type="button" onmousedown="event.preventDefault()" onclick="insertDirectSymbol('⟺')" class="imatheq-btn">⟺</button>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
@@ -318,7 +428,7 @@
             </optgroup>
           </select>
           <div id="customModelBox" class="hidden">
-            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs mt-1">
+            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs mt-1">
           </div>
         </div>
 
@@ -583,13 +693,13 @@
     let currentFocusedEditorId = 'essayBox_0';
 
     // =========================================================================
-    // BỘ BIÊN DỊCH EQUATION CHUẨN (TRIỆT TIÊU LỖI CHỮ ĐỎ & LỖI \n TỪ AI)
+    // BỘ BIÊN DỊCH EQUATION KATEX (VÁ TRIỆT ĐỂ LỖI CHỮ ĐỎ & LỖI \n TỪ AI)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
-      // 1. Tách ký tự \n nếu bị dính liền vào từ khóa (như \nA -> \n A, \nb) -> \n b))
+      // 1. Tách ký tự \n nếu bị dính liền vào từ khóa (như \nA -> <br/> A, \nb) -> <br/> b))
       str = str.replace(/\\n(?=[A-Za-z0-9])/g, '<br/>');
       str = str.replace(/\n/g, '<br/>');
 
@@ -608,12 +718,9 @@
       str = str.replace(/(?<!\$)\b(\d+)\^\{\\circ\}\$/g, '$$$1^{\\circ}$');
 
       // 5. Bọc các cấu trúc toán học chưa có dấu $
-      // Phân số lồng nhau
       str = str.replace(/(?<!\$)\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*\})(?!\$)/g, '$\\frac{$1}{$2}$');
-      // Căn bậc n và căn bậc hai
       str = str.replace(/(?<!\$)\\sqrt\[([^\]]+)\]\{((?:[^{}]|\{[^{}]*\})*)\}(?!\$)/g, '$\\sqrt[$1]{$2}$');
       str = str.replace(/(?<!\$)\\sqrt\{((?:[^{}]|\{[^{}]*\})*)\}(?!\$)/g, '$\\sqrt{$1}$');
-      // Góc và tam giác
       str = str.replace(/(?<!\$)\\widehat\{([^}]+)\}(?!\$)/g, '$\\widehat{$1}$');
       str = str.replace(/(?<!\$)\\triangle\s+([A-Za-z0-9]+)(?!\$)/g, '$\\triangle $1$');
 
@@ -627,12 +734,11 @@
       // 7. Gộp các dấu $ liền kề
       str = str.replace(/\$\s*\$/g, ' ');
 
-      // 8. Biên dịch qua KaTeX an toàn (Fallback về text sạch nếu công thức bị gãy cú pháp thay vì in chữ đỏ)
+      // 8. Biên dịch qua KaTeX an toàn
       return str.replace(/\$([^$]+)\$/g, (match, formula) => {
         try {
           return katex.renderToString(formula.trim(), { throwOnError: true, displayMode: false });
         } catch (e) {
-          // Thử render lại sau khi dọn bớt ký tự lỗi
           try {
             let sanitizedFormula = formula.replace(/[{}]/g, '').trim();
             return katex.renderToString(sanitizedFormula, { throwOnError: false });
@@ -731,6 +837,8 @@
       let nodeHtml = '';
       if (type === 'frac') {
         nodeHtml = `<span class="math-frac" contenteditable="false"><span class="math-frac-num math-slot" contenteditable="true">a</span><span class="math-frac-den math-slot" contenteditable="true">b</span></span>&nbsp;`;
+      } else if (type === 'frac_inline') {
+        nodeHtml = `<span class="math-slot" contenteditable="true">a</span>/<span class="math-slot" contenteditable="true">b</span>&nbsp;`;
       } else if (type === 'sqrt') {
         nodeHtml = `<span class="math-sqrt" contenteditable="false"><span class="math-sqrt-rad">√</span><span class="math-sqrt-body math-slot" contenteditable="true">x</span></span>&nbsp;`;
       } else if (type === 'sqrt_n') {
@@ -743,6 +851,8 @@
         nodeHtml = `(<span class="math-slot" contenteditable="true">x</span>)&nbsp;`;
       } else if (type === 'bracket_square') {
         nodeHtml = `[<span class="math-slot" contenteditable="true">x</span>]&nbsp;`;
+      } else if (type === 'bracket_angle') {
+        nodeHtml = `⟨<span class="math-slot" contenteditable="true">x</span>⟩&nbsp;`;
       } else if (type === 'bracket_abs') {
         nodeHtml = `|<span class="math-slot" contenteditable="true">x</span>|&nbsp;`;
       } else if (type === 'bracket_curly') {
