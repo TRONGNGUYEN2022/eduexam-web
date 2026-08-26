@@ -8,17 +8,18 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core (Hiển thị đề thi & đáp án) -->
+  <!-- KaTeX Core & Auto-render chuẩn quốc tế -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
   
-  <!-- MathLive Engine (Soạn thảo công thức WYSIWYG vector) -->
+  <!-- MathLive Engine -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Nhúng Bảng Toán Nổi iMathEQ Widget Độc Lập -->
+  <!-- Nhúng Widget Bảng Toán -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -32,7 +33,6 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Khung nhập liệu MathLive trong phần tự luận */
     math-field {
       display: block;
       width: 100%;
@@ -392,62 +392,60 @@
     let timeRemaining = 45 * 60;
 
     // =========================================================================
-    // BỘ BIÊN DỊCH EQUATION KATEX (TRIỆT TIÊU LỖI CHỮ ĐỎ & LỖI \n TỪ AI)
+    // BỘ TIỀN XỬ LÝ TOÁN HỌC CHUẨN XÁC (KHÔNG GÂY LỖI <br/> HAY CHỮ ĐỎ)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
-      // 1. Dọn dẹp ký tự xuống dòng dính liền lệnh LaTeX
-      str = str.replace(/\\n(?=[A-Za-z0-9])/g, '<br/>');
-      str = str.replace(/\n/g, '<br/>');
-      str = str.replace(/\\\\\\$/g, '$').replace(/\\\\$/g, '$').replace(/\\\$/g, '$');
-      str = str.replace(/\\le\s+/g, '\\le ').replace(/\\ge\s+/g, '\\ge ');
-      str = str.replace(/\\left\s*([(\[{|])/g, '\\left$1').replace(/\\right\s*([)\]}|])/g, '\\right$1');
+      // 1. Chuyển xuống dòng chuẩn (không phá hỏng lệnh LaTeX \neq, \nabla...)
+      str = str.replace(/\r\n|\r|\n/g, '<br/>');
 
-      // 2. Tách dấu toán học dính liền
-      str = str.replace(/(?<!\$)=\s*\\([a-zA-Z]+)/g, ' = $\\$1');
-      str = str.replace(/(?<!\$)-\s*\\([a-zA-Z]+)/g, ' - $\\$1');
-      str = str.replace(/(?<!\$)\+\s*\\([a-zA-Z]+)/g, ' + $\\$1');
+      // 2. Chuẩn hóa phân số viết tắt của AI: \frac1\sqrt{x} -> \frac{1}{\sqrt{x}}
+      str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
+      str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*([0-9a-zA-Z])/g, '\\frac{$1}{$2}');
 
-      // 3. Sửa lỗi số đo góc
-      str = str.replace(/(?<!\$)\b(\d+)\^\\circ\$/g, '$$$1^\\circ$');
-      str = str.replace(/(?<!\$)\b(\d+)\^\{\\circ\}\$/g, '$$$1^{\\circ}$');
+      // 3. Chuẩn hóa các lệnh \left( \right) và \le \ge
+      str = str.replace(/\\left\s*([(\[{|])/g, '\\left$1');
+      str = str.replace(/\\right\s*([)\]}|])/g, '\\right$1');
 
-      // 4. Bọc các cấu trúc toán học chưa có dấu $
-      str = str.replace(/(?<!\$)\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*\})(?!\$)/g, '$\\frac{$1}{$2}$');
-      str = str.replace(/(?<!\$)\\sqrt\[([^\]]+)\]\{((?:[^{}]|\{[^{}]*\})*)\}(?!\$)/g, '$\\sqrt[$1]{$2}$');
-      str = str.replace(/(?<!\$)\\sqrt\{((?:[^{}]|\{[^{}]*\})*)\}(?!\$)/g, '$\\sqrt{$1}$');
-      str = str.replace(/(?<!\$)\\widehat\{([^}]+)\}(?!\$)/g, '$\\widehat{$1}$');
-      str = str.replace(/(?<!\$)\\triangle\s+([A-Za-z0-9]+)(?!\$)/g, '$\\triangle $1$');
+      // 4. Nếu toàn bộ chuỗi đã chứa $...$ chuẩn thì giữ nguyên, nếu có lệnh trần thì bọc $...$
+      // Bọc các lệnh trần chưa có $: \frac{...}{...}, \sqrt{...}, \sqrt[n]{...}
+      str = str.replace(/(?<!\$)\\frac\{([^{}]+)\}\{([^{}]+)\}(?!\$)/g, '$\\frac{$1}{$2}$');
+      str = str.replace(/(?<!\$)\\sqrt\[([^\]]+)\]\{([^{}]+)\}(?!\$)/g, '$\\sqrt[$1]{$2}$');
+      str = str.replace(/(?<!\$)\\sqrt\{([^{}]+)\}(?!\$)/g, '$\\sqrt{$1}$');
+      str = str.replace(/(?<!\$)\\sqrt\s*([0-9a-zA-Z]+)(?!\$)/g, '$\\sqrt{$1}$');
 
-      // 5. Bọc các toán tử đơn lẻ
-      const standalone = ['\\\\perp', '\\\\sim', '\\\\parallel', '\\\\Delta', '\\\\Rightarrow', '\\\\Leftrightarrow', '\\\\ge', '\\\\le', '\\\\neq', '\\\\in', '\\\\notin', '\\\\subset', '\\\\infty', '\\\\cdot'];
-      standalone.forEach(sym => {
+      // 5. Bọc các toán tử rời rạc: \ge, \le, \neq, \in, \pm, \mp, \cdot
+      const symbols = ['\\\\ge', '\\\\le', '\\\\neq', '\\\\in', '\\\\notin', '\\\\subset', '\\\\pm', '\\\\mp', '\\\\cdot', '\\\\times', '\\\\div', '\\\\infty', '\\\\approx', '\\\\equiv'];
+      symbols.forEach(sym => {
         const reg = new RegExp(`(?<!\\$)\\s*(${sym})\\s*(?!\\$)`, 'g');
         str = str.replace(reg, ' $$$1$$ ');
       });
 
+      // 6. Xử lý các dấu $ bị trùng lặp
       str = str.replace(/\$\s*\$/g, ' ');
 
-      // 6. Biên dịch KaTeX an toàn
-      return str.replace(/\$([^$]+)\$/g, (match, formula) => {
-        try {
-          return katex.renderToString(formula.trim(), { throwOnError: true, displayMode: false });
-        } catch (e) {
-          try {
-            let sanitized = formula.replace(/[{}]/g, '').trim();
-            return katex.renderToString(sanitized, { throwOnError: false });
-          } catch (err) {
-            return `<i>${formula}</i>`;
-          }
-        }
-      });
+      return str;
     }
 
     // =========================================================================
-    // ĐIỀU KHIỂN WIDGET BẢNG TOÁN
+    // HÀM RENDER KATEX TOÀN TRANG TỰ ĐỘNG
     // =========================================================================
+    function renderMathElements() {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.getElementById('examContainer'), {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
     function toggleMathWidget() {
       if (window.mathWidgetInstance) {
         window.mathWidgetInstance.toggle();
@@ -716,7 +714,7 @@
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Cho biểu thức P = (1/(x-sqrt(x)) + 1/(sqrt(x)-1)) : (sqrt(x)+1)/(x-2*sqrt(x)+1). Giải PT sqrt(4x-20) - 3*sqrt((x-5)/9) = 4.";
+      document.getElementById('sourceNotesInput').value = "Cho biểu thức $P = \\left(\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}}\\right) : \\frac{\\sqrt{x}+1}{\\sqrt{x}-1}$. Giải phương trình $\\sqrt{4x-20} - 3\\sqrt{\\frac{x-5}{9}} = 4$.";
     }
 
     async function triggerGenerate() {
@@ -859,7 +857,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & KHUNG TỰ LUẬN MATHLIVE
+    // RENDER ĐỀ THI & TỰ ĐỘNG CHẠY KATEX
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -933,7 +931,7 @@
         }).join('');
       }
 
-      // 3. Phần III (Tự luận dùng ô MathLive vector)
+      // 3. Phần III (Tự luận dùng thẻ MathLive vector)
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
@@ -943,14 +941,13 @@
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
               <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
-              
               <math-field id="mathMf_${idx}"></math-field>
             </div>
           `;
         }).join('');
       }
 
-      // 4. Bảng ma trận 4 mã đề
+      // 4. Ma trận
       if (matrix && Object.keys(matrix).length > 0) {
         const tbody = document.getElementById('matrixTableBody');
         if (tbody) {
@@ -972,7 +969,7 @@
         }
       }
 
-      // 5. Hướng dẫn chấm & barem điểm chi tiết
+      // 5. Hướng dẫn chấm
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
@@ -986,7 +983,7 @@
           return `
             <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
               <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
-              <p class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải chi tiết:</strong> ${sol}</p>
+              <div class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải chi tiết:</strong><br/>${sol}</div>
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
@@ -1014,7 +1011,7 @@
                 c) <strong class="${isC ? 'text-emerald-700' : 'text-rose-700'}">${isC ? 'ĐÚNG' : 'SAI'}</strong> | 
                 d) <strong class="${isD ? 'text-emerald-700' : 'text-rose-700'}">${isD ? 'ĐÚNG' : 'SAI'}</strong>
               </p>
-              ${exp ? `<p class="text-slate-600 mt-1 italic">• Giải thích: ${exp}</p>` : ''}
+              ${exp ? `<div class="text-slate-600 mt-1 italic">• Giải thích:<br/>${exp}</div>` : ''}
             </div>
           `;
         }).join('');
@@ -1027,6 +1024,9 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
+
+      // KÍCH HOẠT BIÊN DỊCH KATEX TỰ ĐỘNG
+      renderMathElements();
     }
 
     // =========================================================================
