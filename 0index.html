@@ -8,17 +8,17 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core (Hiển thị đề thi & đáp án chuẩn xác) -->
+  <!-- KaTeX Core (Hiển thị đề thi & đáp án chuẩn) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
-  <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
+  <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Nhúng Bảng Toán iMathEQ Widget Độc Lập -->
+  <!-- Nhúng Bảng Toán iMathEQ Widget -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -32,7 +32,7 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Khung nhập MathLive trong phần tự luận */
+    /* Khung MathLive phần tự luận */
     math-field {
       display: block;
       width: 100%;
@@ -63,7 +63,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam THCS Pro (TP.HCM)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Tạo đề, Kho Drive GV & Soạn thảo Equation Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Tạo đề, Thi trực tuyến & Soạn thảo Equation Trực Quan</p>
       </div>
     </div>
     
@@ -89,19 +89,15 @@
   <!-- Main Layout -->
   <div class="flex flex-col md:flex-row flex-1 overflow-x-hidden">
     
-    <!-- Sidebar Cấu hình & Nạp dữ liệu -->
+    <!-- Sidebar Cấu hình -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 md:p-5 flex flex-col gap-3 shrink-0 shadow-sm">
       
-      <!-- Thanh Chuyển Tab 3 Chế Độ -->
       <div class="flex border-b border-slate-200 text-xs font-semibold">
-        <button id="tabBtnQuick" onclick="switchTab('quick')" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center justify-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-bolt"></i> Tạo nhanh
+        <button id="tabBtnQuick" onclick="switchTab('quick')" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-bolt"></i> Tạo nhanh SGK
         </button>
-        <button id="tabBtnNotebook" onclick="switchTab('notebook')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 cursor-pointer">
-          <i class="fa-solid fa-book-bookmark text-amber-500"></i> Notebook
-        </button>
-        <button id="tabBtnDrive" onclick="switchTab('drive')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 cursor-pointer">
-          <i class="fa-brands fa-google-drive text-emerald-600"></i> Kho Drive GV
+        <button id="tabBtnNotebook" onclick="switchTab('notebook')" class="flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-book-bookmark text-amber-500"></i> Notebook Ma trận
         </button>
       </div>
 
@@ -177,22 +173,17 @@
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-0.5 text-slate-700">Môn học</label>
-            <select id="subject" onchange="updateTopicList(); syncHeaderPreview(); if(activeTab==='drive') fetchDriveFiles();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
+            <select id="subject" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
               <option value="Toán học">Toán học</option>
               <option value="Khoa học tự nhiên">Khoa học tự nhiên (KHTN)</option>
               <option value="Ngữ văn">Ngữ văn</option>
-              <option value="Lịch sử và Địa lí">Lịch sử & Địa lí</option>
+              <option value="Lịch sử & Địa lí">Lịch sử & Địa lí</option>
               <option value="Tiếng Anh">Tiếng Anh</option>
-              <option value="Giáo dục công dân">Giáo dục công dân</option>
-              <option value="Tin học">Tin học</option>
-              <option value="Công nghệ">Công nghệ</option>
-              <option value="Âm nhạc">Âm nhạc</option>
-              <option value="Mĩ thuật">Mĩ thuật</option>
             </select>
           </div>
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Khối lớp</label>
-            <select id="grade" onchange="updateTopicList(); syncHeaderPreview(); if(activeTab==='drive') fetchDriveFiles();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
+            <select id="grade" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
               <option value="6">Lớp 6</option>
               <option value="7">Lớp 7</option>
               <option value="8">Lớp 8</option>
@@ -239,26 +230,6 @@
               <button onclick="fillSampleSources()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
             <textarea id="sourceNotesInput" rows="3" placeholder="Dán các câu hỏi mẫu, đề thô hoặc tài liệu nguồn cần AI xử lý..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
-          </div>
-        </div>
-
-        <!-- TAB 3: KHO GOOGLE DRIVE GIÁO VIÊN -->
-        <div id="panelDrive" class="hidden space-y-2.5 bg-emerald-50/70 p-3 rounded-lg border border-emerald-300">
-          <div class="flex items-center justify-between">
-            <label class="block font-bold text-emerald-950 text-xs">
-              <i class="fa-brands fa-google-drive text-emerald-600"></i> Thư mục: <span id="driveFolderPath" class="text-indigo-900 font-semibold">THCS/Lớp 9/Toán học</span>
-            </label>
-            <button onclick="fetchDriveFiles()" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded shadow cursor-pointer">
-              <i class="fa-solid fa-rotate"></i> Tải lại
-            </button>
-          </div>
-
-          <div id="driveFilesList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-            <p class="text-slate-500 italic text-[11px]">Đang kết nối thư mục Google Drive...</p>
-          </div>
-
-          <div class="pt-1 border-t border-emerald-200 text-[11px] text-slate-600">
-            <p>💡 <em>Nhấp vào nút <strong>Nạp vào đề</strong> để AI tự động trích xuất nội dung file và tạo đề kiểm tra mới.</em></p>
           </div>
         </div>
 
@@ -411,7 +382,7 @@
     </main>
   </div>
 
-  <!-- JavaScript Xử lý Toàn diện -->
+  <!-- JavaScript -->
   <script>
     const API_BASE_URL = "https://eduexam-backend.onrender.com";
     let currentExamData = null;
@@ -421,7 +392,7 @@
     let timeRemaining = 45 * 60;
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP CHUẨN XÁC (RENDER TO STRING)
+    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP CHUẨN XÁC NHẤT (RENDER TO STRING)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
@@ -430,11 +401,11 @@
       // 1. Chuyển dòng an toàn
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
 
-      // 2. Vá lỗi phân số thiếu ngoặc: \frac1\sqrt -> \frac{1}{\sqrt}
+      // 2. Vá lỗi AI viết phân số thiếu ngoặc: \frac1\sqrt -> \frac{1}{\sqrt}
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*([0-9a-zA-Z])/g, '\\frac{$1}{$2}');
 
-      // 3. Nếu chuỗi đã chứa $...$ thì biên dịch trực tiếp phần bên trong
+      // 3. Nếu chuỗi đã có cặp $...$ thì biên dịch trực tiếp khối trong $
       if (str.includes('$')) {
         str = str.replace(/\$([^$]+)\$/g, (match, formula) => {
           try {
@@ -445,10 +416,13 @@
         });
       }
 
-      // 4. Bóc tách và render các lệnh LaTeX trần còn lại (chưa có $)
+      // 4. Bóc tách các lệnh LaTeX còn sót lại đứng ngoài $ (như \sqrt, \frac, \le, \ge, \neq...)
+      // Phân số
       str = str.replace(/\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, num, den) => {
         try { return katex.renderToString(`\\frac{${num}}{${den}}`, { throwOnError: false }); } catch(e){ return m; }
       });
+
+      // Căn bậc n và căn bậc hai
       str = str.replace(/\\sqrt\[([^\]]+)\]\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, n, body) => {
         try { return katex.renderToString(`\\sqrt[${n}]{${body}}`, { throwOnError: false }); } catch(e){ return m; }
       });
@@ -456,13 +430,37 @@
         try { return katex.renderToString(`\\sqrt{${body}}`, { throwOnError: false }); } catch(e){ return m; }
       });
 
+      // Các phép so sánh và ký hiệu toán
       const symbolMap = {
-        '\\\\ge': '≥', '\\\\le': '≤', '\\\\neq': '≠', '\\\\ne': '≠', '\\\\pm': '±', '\\\\mp': '∓',
-        '\\\\cdot': '·', '\\\\times': '×', '\\\\div': '÷', '\\\\approx': '≈', '\\\\equiv': '≡',
-        '\\\\infty': '∞', '\\\\in': '∈', '\\\\notin': '∉', '\\\\subset': '⊂', '\\\\supset': '⊃',
-        '\\\\cap': '∩', '\\\\cup': '∪', '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\theta': 'θ',
-        '\\\\pi': 'π', '\\\\Delta': 'Δ', '\\\\implies': '⟹', '\\\\iff': '⟺', '\\\\Leftrightarrow': '⟺',
-        '\\\\Rightarrow': '⟹', '\\\\angle': '∠'
+        '\\\\ge': '≥',
+        '\\\\le': '≤',
+        '\\\\neq': '≠',
+        '\\\\ne': '≠',
+        '\\\\pm': '±',
+        '\\\\mp': '∓',
+        '\\\\cdot': '·',
+        '\\\\times': '×',
+        '\\\\div': '÷',
+        '\\\\approx': '≈',
+        '\\\\equiv': '≡',
+        '\\\\infty': '∞',
+        '\\\\in': '∈',
+        '\\\\notin': '∉',
+        '\\\\subset': '⊂',
+        '\\\\supset': '⊃',
+        '\\\\cap': '∩',
+        '\\\\cup': '∪',
+        '\\\\alpha': 'α',
+        '\\\\beta': 'β',
+        '\\\\theta': 'θ',
+        '\\\\pi': 'π',
+        '\\\\Delta': 'Δ',
+        '\\\\implies': '⟹',
+        '\\\\iff': '⟺',
+        '\\\\Leftrightarrow': '⟺',
+        '\\\\Rightarrow': '⟹',
+        '\\\\Leftrightline': '⟺',
+        '\\\\angle': '∠'
       };
 
       for (let k in symbolMap) {
@@ -545,7 +543,7 @@
         8: ["Truyện cười", "Thơ Đường luật"],
         9: ["Truyện ngắn hiện đại", "Nghị luận xã hội"]
       },
-      "Lịch sử và Địa lí": {
+      "Lịch sử & Địa lí": {
         6: ["Xã hội nguyên thủy", "Trái Đất"],
         7: ["Phát kiến địa lí", "Châu Á, Châu Âu"],
         8: ["Cách mạng tư sản", "Khí hậu Việt Nam"],
@@ -695,81 +693,23 @@
       return select.value;
     }
 
-    // Chuyển đổi Tab (Tạo nhanh / Notebook / Kho Drive)
     function switchTab(tab) {
       activeTab = tab;
       const btnQ = document.getElementById('tabBtnQuick');
       const btnN = document.getElementById('tabBtnNotebook');
-      const btnD = document.getElementById('tabBtnDrive');
       const panelQ = document.getElementById('panelQuick');
       const panelN = document.getElementById('panelNotebook');
-      const panelD = document.getElementById('panelDrive');
-
-      [btnQ, btnN, btnD].forEach(b => b.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 cursor-pointer");
-      [panelQ, panelN, panelD].forEach(p => p.classList.add('hidden'));
 
       if (tab === 'quick') {
-        btnQ.className = "flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center justify-center gap-1 cursor-pointer";
+        btnQ.className = "flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 flex items-center justify-center gap-1.5 cursor-pointer";
+        btnN.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
         panelQ.classList.remove('hidden');
-      } else if (tab === 'notebook') {
-        btnN.className = "flex-1 pb-2 border-b-2 border-amber-600 text-amber-700 font-bold flex items-center justify-center gap-1 cursor-pointer";
+        panelN.classList.add('hidden');
+      } else {
+        btnN.className = "flex-1 pb-2 border-b-2 border-amber-600 text-amber-700 font-bold flex items-center justify-center gap-1.5 cursor-pointer";
+        btnQ.className = "flex-1 pb-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer";
+        panelQ.classList.add('hidden');
         panelN.classList.remove('hidden');
-      } else if (tab === 'drive') {
-        btnD.className = "flex-1 pb-2 border-b-2 border-emerald-600 text-emerald-700 font-bold flex items-center justify-center gap-1 cursor-pointer";
-        panelD.classList.remove('hidden');
-        fetchDriveFiles();
-      }
-    }
-
-    // =========================================================================
-    // GOOGLE DRIVE API INTEGRATION
-    // =========================================================================
-    async function fetchDriveFiles() {
-      const grade = document.getElementById('grade').value;
-      const subject = document.getElementById('subject').value;
-      const listEl = document.getElementById('driveFilesList');
-      const pathEl = document.getElementById('driveFolderPath');
-      
-      pathEl.innerText = `THCS/Lớp ${grade}/${subject}`;
-      listEl.innerHTML = `<p class="text-slate-500 italic text-[11px]"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu từ Google Drive...</p>`;
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/drive/files?grade=${grade}&subject=${encodeURIComponent(subject)}`);
-        const data = await res.json();
-
-        if (data.status === 'success' && data.files && data.files.length > 0) {
-          listEl.innerHTML = data.files.map(f => `
-            <div class="flex items-center justify-between p-1.5 bg-white border border-slate-200 rounded text-xs hover:bg-emerald-50 transition">
-              <div class="flex items-center gap-1.5 truncate">
-                <i class="fa-solid fa-file-lines text-emerald-600"></i>
-                <span class="truncate font-medium text-slate-800" title="${f.name}">${f.name}</span>
-              </div>
-              <button onclick="loadDriveFileContent('${f.id}', '${f.name}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] shrink-0 cursor-pointer shadow">
-                Nạp vào đề
-              </button>
-            </div>
-          `).join('');
-        } else {
-          listEl.innerHTML = `<p class="text-slate-500 italic text-[11px]">Chưa có file nào trong thư mục <strong>THCS/Lớp ${grade}/${subject}</strong> trên Drive.</p>`;
-        }
-      } catch (err) {
-        listEl.innerHTML = `<p class="text-rose-500 text-[11px]">Lỗi kết nối Drive: ${err.message}</p>`;
-      }
-    }
-
-    async function loadDriveFileContent(fileId, fileName) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/drive/read-content?file_id=${fileId}`);
-        const data = await res.json();
-        if (data.status === 'success' && data.content) {
-          switchTab('notebook');
-          document.getElementById('sourceNotesInput').value = `[TÀI LIỆU NGUỒN TỪ DRIVE: ${fileName}]\n` + data.content;
-          alert(`Đã nạp thành công nội dung file "${fileName}" vào Notebook Ma trận!`);
-        } else {
-          alert('Không thể đọc nội dung file này.');
-        }
-      } catch (err) {
-        alert("Lỗi tải file: " + err.message);
       }
     }
 
@@ -942,7 +882,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP TỪNG KHỐI NỘI DUNG
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1176,10 +1116,29 @@ Content-Type: text/html; charset="utf-8"
       xmlns="http://www.w3.org/TR/REC-html40">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]>
+<xml>
+ <w:WordDocument>
+  <w:View>Print</w:View>
+  <w:Zoom>100</w:Zoom>
+  <w:DoNotOptimizeForBrowser/>
+ </w:WordDocument>
+</xml>
+<![endif]-->
 <style>
-@page Section1 { size: 595.3pt 841.9pt; margin: 56.7pt 56.7pt 56.7pt 70.85pt; }
+@page Section1 {
+  size: 595.3pt 841.9pt;
+  margin: 56.7pt 56.7pt 56.7pt 70.85pt;
+  mso-header-margin: 35.4pt;
+  mso-footer-margin: 35.4pt;
+}
 div.Section1 { page: Section1; }
-body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.35; color: #000000; }
+body {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 13pt;
+  line-height: 1.35;
+  color: #000000;
+}
 table { width: 100%; border-collapse: collapse; }
 td, th { font-family: 'Times New Roman', Times, serif; font-size: 12pt; }
 p { margin: 0 0 5pt 0; }
@@ -1187,9 +1146,12 @@ strong { font-weight: bold; }
 </style>
 </head>
 <body>
-<div class="Section1">${cleanHtml}</div>
+<div class="Section1">
+  ${cleanHtml}
+</div>
 </body>
 </html>
+
 ------=_NextPart_EduExamDoc--`;
 
       const blob = new Blob([mhtmlDoc], { type: 'application/msword;charset=utf-8' });
