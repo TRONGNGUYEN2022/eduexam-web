@@ -244,6 +244,18 @@
 
         <!-- TAB 3: KHO GOOGLE DRIVE GIÁO VIÊN -->
         <div id="panelDrive" class="hidden space-y-2.5 bg-emerald-50/70 p-3 rounded-lg border border-emerald-300">
+          <div class="space-y-1.5 bg-white p-2 rounded border border-emerald-200">
+            <label class="block text-[11px] font-bold text-emerald-950">Chủ đề SGK mục tiêu:</label>
+            <select id="driveTopicFilter" class="w-full border border-emerald-300 rounded p-1.5 bg-slate-50 text-xs font-semibold text-emerald-900">
+              <option value="Toàn bộ chương trình">-- Lọc theo chương / bài học --</option>
+              <option value="Chương 1: Số hữu tỉ / Số tự nhiên">Chương 1: Số học cơ bản</option>
+              <option value="Chương 2: Căn bậc hai & Số thực">Chương 2: Căn thức & Số thực</option>
+              <option value="Chương 3: Hình học & Đo lường">Chương 3: Hình học trực quan</option>
+              <option value="Chương 4: Biểu thức đại số & Đa thức">Chương 4: Biểu thức đại số</option>
+              <option value="Chương 5: Xác suất & Thống kê">Chương 5: Thống kê & Dữ liệu</option>
+            </select>
+          </div>
+
           <div class="flex items-center justify-between">
             <label class="block font-bold text-emerald-950 text-xs">
               <i class="fa-brands fa-google-drive text-emerald-600"></i> Thư mục: <span id="driveFolderPath" class="text-indigo-900 font-semibold">THCS/Lớp 9/Toán học</span>
@@ -411,14 +423,50 @@
     </main>
   </div>
 
+  <!-- BẢNG TOÁN NỔI DỰ PHÒNG (NẾU WIDGET NGOÀI CHƯA NẠP) -->
+  <div id="fallbackMathToolbar" class="hidden fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur shadow-2xl border border-indigo-200 rounded-xl p-3 w-80 sm:w-96">
+    <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+      <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+        <i class="fa-solid fa-calculator text-amber-500"></i> Bảng Ký Tự Toán Học
+      </span>
+      <button onclick="toggleFallbackToolbar()" class="text-slate-400 hover:text-rose-600 text-sm font-bold px-1 rounded">✕</button>
+    </div>
+    <div class="grid grid-cols-4 gap-1.5 text-xs font-semibold">
+      <button type="button" onclick="insertMathLiveSymbol('\\frac{#?}{#?}')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\frac{a}{b}$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\sqrt{#?}')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\sqrt{x}$</button>
+      <button type="button" onclick="insertMathLiveSymbol('^{#?}')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$x^2$</button>
+      <button type="button" onclick="insertMathLiveSymbol('_{#?}')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$x_1$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\ge')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\ge$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\le')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\le$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\ne')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\ne$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\pm')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\pm$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\pi')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\pi$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\alpha')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\alpha$</button>
+      <button type="button" onclick="insertMathLiveSymbol('\\Delta')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">$\Delta$</button>
+      <button type="button" onclick="insertMathLiveSymbol('^\\circ')" class="p-2 bg-slate-100 hover:bg-indigo-100 rounded border font-mono">^\circ</button>
+    </div>
+  </div>
+
   <!-- JavaScript Xử lý Toàn diện -->
   <script>
-    const API_BASE_URL = "https://eduexam-backend.onrender.com";
+    // Tự động nhận diện Domain Backend (Local vs Render Production)
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:8000'
+      : 'https://eduexam-backend.onrender.com';
+
     let currentExamData = null;
     let activeTab = 'quick';
     let isStudentExamMode = false;
     let timerInterval = null;
     let timeRemaining = 45 * 60;
+    let lastActiveMathField = null;
+
+    // Lắng nghe sự kiện click/focus vào các ô nhập tự luận MathLive
+    document.addEventListener('focusin', (e) => {
+      if (e.target && e.target.tagName.toLowerCase() === 'math-field') {
+        lastActiveMathField = e.target;
+      }
+    });
 
     // =========================================================================
     // BỘ BIÊN DỊCH KATEX TRỰC TIẾP CHUẨN XÁC (RENDER TO STRING)
@@ -474,8 +522,27 @@
     }
 
     function toggleMathWidget() {
-      if (window.mathWidgetInstance) {
+      if (window.mathWidgetInstance && typeof window.mathWidgetInstance.toggle === 'function') {
         window.mathWidgetInstance.toggle();
+      } else {
+        toggleFallbackToolbar();
+      }
+    }
+
+    function toggleFallbackToolbar() {
+      const tb = document.getElementById('fallbackMathToolbar');
+      if (tb) tb.classList.toggle('hidden');
+    }
+
+    function insertMathLiveSymbol(latex) {
+      if (!lastActiveMathField) {
+        lastActiveMathField = document.querySelector('math-field');
+      }
+      if (lastActiveMathField) {
+        lastActiveMathField.executeCommand(['insert', latex]);
+        lastActiveMathField.focus();
+      } else {
+        alert("Vui lòng bấm chọn một ô soạn thảo tự luận trước khi chèn công thức!");
       }
     }
 
@@ -763,8 +830,9 @@
         const data = await res.json();
         if (data.status === 'success' && data.content) {
           switchTab('notebook');
-          document.getElementById('sourceNotesInput').value = `[TÀI LIỆU NGUỒN TỪ DRIVE: ${fileName}]\n` + data.content;
-          alert(`Đã nạp thành công nội dung file "${fileName}" vào Notebook Ma trận!`);
+          const topicFilter = document.getElementById('driveTopicFilter')?.value || 'Toàn bộ tài liệu';
+          document.getElementById('sourceNotesInput').value = `[CHỦ ĐỀ LỰA CHỌN: ${topicFilter}]\n[TÀI LIỆU NGUỒN TỪ DRIVE: ${fileName}]\n` + data.content;
+          alert(`Đã nạp thành công nội dung file "${fileName}" kèm chủ đề "${topicFilter}" vào Notebook Ma trận!`);
         } else {
           alert('Không thể đọc nội dung file này.');
         }
@@ -895,7 +963,9 @@
         solutionsArea.classList.add('hidden');
         btnModeText.innerText = "Thoát Phòng Thi";
         
-        if (window.mathWidgetInstance) window.mathWidgetInstance.show();
+        if (window.mathWidgetInstance && typeof window.mathWidgetInstance.show === 'function') {
+          window.mathWidgetInstance.show();
+        }
 
         const sName = prompt("Nhập họ và tên học sinh dự thi:", "Nguyễn Văn A");
         if (sName) {
@@ -908,7 +978,9 @@
         onlineBar.classList.add('hidden');
         solutionsArea.classList.remove('hidden');
         btnModeText.innerText = "Bật Phòng Thi Online";
-        if (window.mathWidgetInstance) window.mathWidgetInstance.hide();
+        if (window.mathWidgetInstance && typeof window.mathWidgetInstance.hide === 'function') {
+          window.mathWidgetInstance.hide();
+        }
         clearInterval(timerInterval);
       }
 
