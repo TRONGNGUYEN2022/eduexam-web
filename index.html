@@ -886,41 +886,34 @@
       const selectedModel = getSelectedModel();
 
       let topic = `Kiến thức chuẩn GDPT 2018 Lớp ${grade}`;
-      let matrixSpec = null;
-      let sourceNotes = null;
+      let matrixSpec = document.getElementById('matrixSpecInput')?.value.trim() || null;
+      let sourceNotes = document.getElementById('sourceNotesInput')?.value.trim() || null;
 
+      // Nhận diện chủ đề thông minh từ mọi tab
       if (activeTab === 'quick') {
         topic = document.getElementById('topicSelect').value;
         if (topic === 'custom') {
-          topic = document.getElementById('customTopicInput').value.trim() || `Kiến thức tổng hợp Môn ${subject} Lớp ${grade}`;
+          topic = document.getElementById('customTopicInput').value.trim() || `Môn ${subject} Lớp ${grade}`;
         }
       } else if (activeTab === 'drive') {
         const driveTopic = document.getElementById('driveTopicFilter')?.value;
         topic = (driveTopic && driveTopic !== 'Toàn bộ chương trình') 
-          ? `${driveTopic} (Môn ${subject} Lớp ${grade})`
-          : `Kiến thức chuẩn SGK ${subject} Lớp ${grade}`;
-        sourceNotes = document.getElementById('sourceNotesInput')?.value.trim() || null;
+          ? driveTopic 
+          : `Kiến thức SGK ${subject} Lớp ${grade}`;
       } else {
-        matrixSpec = document.getElementById('matrixSpecInput').value.trim();
-        sourceNotes = document.getElementById('sourceNotesInput').value.trim();
-        
-        // Trích xuất chủ đề nếu có ghi chú từ Drive
+        // Tab Notebook: Bóc tách [CHỦ ĐỀ LỰA CHỌN: ...]
         if (sourceNotes && sourceNotes.includes('[CHỦ ĐỀ LỰA CHỌN:')) {
           const match = sourceNotes.match(/\[CHỦ ĐỀ LỰA CHỌN:\s*([^\]]+)\]/);
           if (match && match[1] && match[1] !== 'Toàn bộ chương trình') {
-            topic = `${match[1]} (Môn ${subject} Lớp ${grade})`;
-          } else {
-            topic = `Biên soạn theo Ma trận đặc tả & Tài liệu Notebook của giáo viên (Lớp ${grade})`;
+            topic = match[1].trim();
           }
-        } else {
-          topic = `Biên soạn theo Ma trận đặc tả & Tài liệu Notebook của giáo viên (Lớp ${grade})`;
         }
       }
 
       const essayMode = document.getElementById('essayModeSelect').value;
       const teacherAnswer = document.getElementById('teacherEssayText').value.trim();
 
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>${selectedModel} đang tổng hợp...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${topic}]...</span>`;
       btn.disabled = true;
 
       try {
@@ -958,7 +951,7 @@
           if (window.innerWidth < 768) {
             document.getElementById('examContainer').scrollIntoView({ behavior: 'smooth' });
           }
-          alert(`Đã hoàn tất tạo đề [${topic}] bằng ${selectedModel}!`);
+          alert(`Đã hoàn tất tạo đề [${topic}]!`);
         } else {
           alert('Có lỗi xảy ra: ' + (result.message || 'Không thể tạo đề'));
         }
