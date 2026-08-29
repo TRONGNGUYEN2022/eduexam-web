@@ -1,6 +1,6 @@
 @echo off
 chcp 65001 >nul
-title EduExam - Day Code Frontend Len GitHub Va Vercel Production
+title EduExam - Day Code Frontend Len GitHub
 color 0B
 
 echo ======================================================
@@ -23,19 +23,14 @@ git remote add origin https://github.com/TRONGNGUYEN2022/eduexam-web.git
 :: 3. Ep Git them tat ca cac file thay doi
 echo [*] Dang dong goi code va tao commit moi...
 git add -A
-git commit -m "Auto Update %date% %time% - Frontend Production Build" --allow-empty
+git commit -m "Auto Update %date% %time% - Floating Toolbar and KaTeX Direct Render" --allow-empty
 
 :: 4. Day thang len GitHub
 echo [*] Dang day code len GitHub (origin main)...
 git push -u origin main --force
 
-:: 5. Trien khai truc tiep len ten mien Production co dinh cua Vercel
-echo.
-echo [*] Dang deploy truc tiep len ten mien Production tren Vercel...
-call vercel --prod --yes
-
 echo.
 echo ======================================================
-echo    DA HOAN TAT! WEB DA DUOC CAP NHAT VAO TEN MIEN CHINH
+echo    DA HOAN TAT DAY FRONTEND LEN GITHUB!
 echo ======================================================
 pause
