@@ -194,9 +194,9 @@
             <label class="block font-semibold mb-0.5 text-slate-700">Khối lớp</label>
             <select id="grade" onchange="updateTopicList(); syncHeaderPreview(); if(activeTab==='drive') fetchDriveFiles();" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium">
               <option value="6">Lớp 6</option>
-              <option value="7">Lớp 7</option>
+              <option value="7" selected>Lớp 7</option>
               <option value="8">Lớp 8</option>
-              <option value="9" selected>Lớp 9</option>
+              <option value="9">Lớp 9</option>
             </select>
           </div>
         </div>
@@ -230,7 +230,7 @@
               <span>1. Khung Ma Trận Đặc Tả</span>
               <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu trắc nghiệm rút gọn căn); Phần 2 (1 câu Đúng/Sai biểu thức chứa căn); Phần 3 (Bài 1: giải PT chứa căn, Bài 2: bài toán biểu thức nguyên)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu trắc nghiệm số hữu tỉ); Phần 2 (1 câu Đúng/Sai biểu thức); Phần 3 (Bài 1: tính hợp lý, Bài 2: tìm x)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
 
           <div>
@@ -258,7 +258,7 @@
 
           <div class="flex items-center justify-between">
             <label class="block font-bold text-emerald-950 text-xs">
-              <i class="fa-brands fa-google-drive text-emerald-600"></i> Thư mục: <span id="driveFolderPath" class="text-indigo-900 font-semibold">THCS/Lớp 9/Toán học</span>
+              <i class="fa-brands fa-google-drive text-emerald-600"></i> Thư mục: <span id="driveFolderPath" class="text-indigo-900 font-semibold">THCS/Lớp 7/Toán học</span>
             </label>
             <button onclick="fetchDriveFiles()" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded shadow cursor-pointer">
               <i class="fa-solid fa-rotate"></i> Tải lại
@@ -344,7 +344,7 @@
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 9 - Thời gian: 45 phút</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
                 MÃ ĐỀ: 101
               </div>
@@ -423,7 +423,7 @@
     </main>
   </div>
 
-  <!-- BẢNG TOÁN NỔI DỰ PHÒNG (NẾU WIDGET NGOÀI CHƯA NẠP) -->
+  <!-- BẢNG TOÁN NỔI DỰ PHÒNG -->
   <div id="fallbackMathToolbar" class="hidden fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur shadow-2xl border border-indigo-200 rounded-xl p-3 w-80 sm:w-96">
     <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
       <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
@@ -449,7 +449,6 @@
 
   <!-- JavaScript Xử lý Toàn diện -->
   <script>
-    // Tự động nhận diện Domain Backend (Local vs Render Production)
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
       : 'https://eduexam-backend.onrender.com';
@@ -461,7 +460,6 @@
     let timeRemaining = 45 * 60;
     let lastActiveMathField = null;
 
-    // Lắng nghe sự kiện click/focus vào các ô nhập tự luận MathLive
     document.addEventListener('focusin', (e) => {
       if (e.target && e.target.tagName.toLowerCase() === 'math-field') {
         lastActiveMathField = e.target;
@@ -469,20 +467,16 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP CHUẨN XÁC (RENDER TO STRING)
+    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
-      // 1. Chuyển dòng an toàn
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
-
-      // 2. Vá lỗi phân số thiếu ngoặc: \frac1\sqrt -> \frac{1}{\sqrt}
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*([0-9a-zA-Z])/g, '\\frac{$1}{$2}');
 
-      // 3. Nếu chuỗi đã chứa $...$ thì biên dịch trực tiếp phần bên trong
       if (str.includes('$')) {
         str = str.replace(/\$([^$]+)\$/g, (match, formula) => {
           try {
@@ -493,7 +487,6 @@
         });
       }
 
-      // 4. Bóc tách và render các lệnh LaTeX trần còn lại (chưa có $)
       str = str.replace(/\\frac\{((?:[^{}]|\{[^{}]*\})*)\}\{((?:[^{}]|\{[^{}]*\})*)\}/g, (m, num, den) => {
         try { return katex.renderToString(`\\frac{${num}}{${den}}`, { throwOnError: false }); } catch(e){ return m; }
       });
@@ -542,7 +535,7 @@
         lastActiveMathField.executeCommand(['insert', latex]);
         lastActiveMathField.focus();
       } else {
-        alert("Vui lòng bấm chọn một ô soạn thảo tự luận trước khi chèn công thức!");
+        alert("Vui lòng nhấp chọn một ô soạn thảo tự luận trước!");
       }
     }
 
@@ -762,7 +755,6 @@
       return select.value;
     }
 
-    // Chuyển đổi Tab (Tạo nhanh / Notebook / Kho Drive)
     function switchTab(tab) {
       activeTab = tab;
       const btnQ = document.getElementById('tabBtnQuick');
@@ -828,13 +820,15 @@
       try {
         const res = await fetch(`${API_BASE_URL}/api/drive/read-content?file_id=${fileId}`);
         const data = await res.json();
-        if (data.status === 'success' && data.content) {
+        if (data.status === 'success') {
+          const topicFilter = document.getElementById('driveTopicFilter')?.value || 'Toàn bộ chương trình';
+          const fileText = data.content || `Tài liệu SGK: ${fileName}`;
+          
           switchTab('notebook');
-          const topicFilter = document.getElementById('driveTopicFilter')?.value || 'Toàn bộ tài liệu';
-          document.getElementById('sourceNotesInput').value = `[CHỦ ĐỀ LỰA CHỌN: ${topicFilter}]\n[TÀI LIỆU NGUỒN TỪ DRIVE: ${fileName}]\n` + data.content;
-          alert(`Đã nạp thành công nội dung file "${fileName}" kèm chủ đề "${topicFilter}" vào Notebook Ma trận!`);
+          document.getElementById('sourceNotesInput').value = `[CHỦ ĐỀ LỰA CHỌN: ${topicFilter}]\n[TÀI LIỆU NGUỒN TỪ DRIVE: ${fileName}]\n` + fileText;
+          alert(`Đã nạp thành công tài liệu "${fileName}" vào Notebook!`);
         } else {
-          alert('Không thể đọc nội dung file này.');
+          alert('Không thể tải thông tin file từ Google Drive.');
         }
       } catch (err) {
         alert("Lỗi tải file: " + err.message);
@@ -863,11 +857,21 @@
     }
 
     function fillSampleMatrix() {
-      document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): Khử mẫu biểu thức lấy căn, rút gọn biểu thức chứa căn.\n- Phần II (1 câu Đúng/Sai): Biểu thức chứa căn thức bậc hai, tìm ĐKXĐ và rút gọn.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Tìm x nguyên để biểu thức đạt giá trị nguyên.";
+      const gr = document.getElementById('grade').value;
+      if (gr == 7) {
+        document.getElementById('matrixSpecInput').value = "- Phần I (4 câu trắc nghiệm): Khái niệm số hữu tỉ, số đối, lũy thừa, giá trị tuyệt đối.\n- Phần II (1 câu Đúng/Sai): Biểu thức số hữu tỉ và điều kiện.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Tính hợp lý giá trị biểu thức; Bài 2 (1.5đ) Tìm số hữu tỉ x.";
+      } else {
+        document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): Khử mẫu biểu thức lấy căn, rút gọn biểu thức chứa căn.\n- Phần II (1 câu Đúng/Sai): Biểu thức chứa căn thức bậc hai, tìm ĐKXĐ và rút gọn.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Tìm x nguyên để biểu thức đạt giá trị nguyên.";
+      }
     }
 
     function fillSampleSources() {
-      document.getElementById('sourceNotesInput').value = "Cho biểu thức $P = \\left(\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}}\\right) : \\frac{\\sqrt{x}+1}{\\sqrt{x}-1}$. Giải phương trình $\\sqrt{4x-20} - 3\\sqrt{\\frac{x-5}{9}} = 4$.";
+      const gr = document.getElementById('grade').value;
+      if (gr == 7) {
+        document.getElementById('sourceNotesInput').value = "Thực hiện phép tính: $\\frac{5}{11} \\cdot \\frac{-3}{7} + \\frac{5}{11} \\cdot \\frac{-4}{7} + 1\\frac{5}{11}$. Tìm x biết $\\frac{3}{4} - (x + \\frac{1}{2}) = \\frac{4}{5}$.";
+      } else {
+        document.getElementById('sourceNotesInput').value = "Cho biểu thức $P = \\left(\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}}\\right) : \\frac{\\sqrt{x}+1}{\\sqrt{x}-1}$. Giải phương trình $\\sqrt{4x-20} - 3\\sqrt{\\frac{x-5}{9}} = 4$.";
+      }
     }
 
     async function triggerGenerate() {
@@ -878,7 +882,7 @@
       const examTitle = getSelectedText('examTitle');
       const selectedModel = getSelectedModel();
 
-      let topic = "Kiến thức chuẩn GDPT 2018";
+      let topic = `Kiến thức chuẩn GDPT 2018 Lớp ${grade}`;
       let matrixSpec = null;
       let sourceNotes = null;
 
@@ -890,7 +894,7 @@
       } else {
         matrixSpec = document.getElementById('matrixSpecInput').value.trim();
         sourceNotes = document.getElementById('sourceNotesInput').value.trim();
-        topic = "Biên soạn theo Ma trận đặc tả & Tài liệu Notebook của giáo viên";
+        topic = `Biên soạn theo Ma trận đặc tả & Tài liệu Notebook của giáo viên (Lớp ${grade})`;
       }
 
       const essayMode = document.getElementById('essayModeSelect').value;
@@ -934,7 +938,7 @@
           if (window.innerWidth < 768) {
             document.getElementById('examContainer').scrollIntoView({ behavior: 'smooth' });
           }
-          alert(`Đã hoàn tất tạo đề bằng ${selectedModel}!`);
+          alert(`Đã hoàn tất tạo đề Lớp ${grade} bằng ${selectedModel}!`);
         } else {
           alert('Có lỗi xảy ra: ' + (result.message || 'Không thể tạo đề'));
         }
@@ -1019,7 +1023,7 @@
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
-      // 1. Phần I (Trắc nghiệm 4 lựa chọn)
+      // 1. Phần I
       const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part1 || [];
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
@@ -1052,7 +1056,7 @@
         }).join('');
       }
 
-      // 2. Phần II (Đúng / Sai)
+      // 2. Phần II
       const p2List = exam.part_2_tf || exam.part2_true_false || exam.part2 || [];
       const part2Container = document.getElementById('part2Container');
       if (part2Container && p2List.length > 0) {
@@ -1088,7 +1092,7 @@
         }).join('');
       }
 
-      // 3. Phần III (Tự luận)
+      // 3. Phần III
       const p3List = exam.part_3_essay || exam.part3_essay || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container && p3List.length > 0) {
@@ -1104,7 +1108,7 @@
         }).join('');
       }
 
-      // 4. Ma trận 4 mã đề
+      // 4. Ma trận
       if (matrix && Object.keys(matrix).length > 0) {
         const tbody = document.getElementById('matrixTableBody');
         if (tbody) {
@@ -1126,11 +1130,11 @@
         }
       }
 
-      // 5. Hướng dẫn chấm & barem điểm chi tiết
+      // 5. Hướng dẫn chấm
       let answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer) {
         let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = cleanLatexMath(q.solution || q.answer || 'Học sinh thực hiện đúng theo các bước biến đổi để đạt điểm tối đa.');
+          let sol = cleanLatexMath(q.solution || q.answer || 'Học sinh thực hiện đúng các bước biến đổi để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Điều kiện xác định / Biến đổi ban đầu", points: "0.5 đ" },
             { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
@@ -1311,7 +1315,7 @@ strong { font-weight: bold; }
         if (!response.ok) throw new Error("Máy chủ không thể xuất file .docx");
 
         const blob = await response.blob();
-        const fileName = `De_Thi_${base.subject || 'THCS'}_Lop_${base.grade || '6'}.docx`;
+        const fileName = `De_Thi_${base.subject || 'THCS'}_Lop_${base.grade || '7'}.docx`;
 
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
