@@ -63,7 +63,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình TikZ Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Soạn thảo Equation Trực Quan</p>
       </div>
     </div>
     
@@ -519,7 +519,7 @@
       return str;
     }
 
-    // Render TikZ thông qua Backend Render Endpoint ổn định 100%
+    // Render TikZ qua Endpoint Backend tương ứng từng nội dung hình
     function formatTikzHtml(tikzCode) {
       if (!tikzCode || !tikzCode.trim()) return '';
       const encodedCode = encodeURIComponent(tikzCode.trim());
@@ -966,7 +966,7 @@
           : topicEl.value;
       }
 
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()}]...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
       btn.disabled = true;
 
       try {
@@ -1084,7 +1084,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (BẢNG 4 CỘT CĂN ĐỀU CHO PHẦN I)
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
