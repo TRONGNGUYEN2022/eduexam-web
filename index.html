@@ -32,7 +32,6 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Khung nhập MathLive trong phần tự luận */
     math-field {
       display: block;
       width: 100%;
@@ -63,7 +62,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Soạn thảo Equation Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình TikZ Trực Quan</p>
       </div>
     </div>
     
@@ -77,7 +76,7 @@
       <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-copy"></i> <span>Sao chép dán Word</span>
       </button>
-      <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
+      <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-file-word"></i> <span>Tải .doc</span>
       </button>
       <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-slate-600">
@@ -348,7 +347,7 @@
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 9 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
                 MÃ ĐỀ: 101
               </div>
@@ -519,7 +518,7 @@
       return str;
     }
 
-    // Render TikZ qua Endpoint Backend tương ứng từng nội dung hình
+    // Render TikZ qua Endpoint Backend độc lập
     function formatTikzHtml(tikzCode) {
       if (!tikzCode || !tikzCode.trim()) return '';
       const encodedCode = encodeURIComponent(tikzCode.trim());
@@ -1084,7 +1083,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (BẢNG 4 CỘT CĂN ĐỀU CHO PHẦN I)
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
