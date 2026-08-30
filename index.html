@@ -15,6 +15,10 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
+  <!-- TikZJax Engine: Biên dịch mọi khối mã TikZ sang Vector SVG ngay tại trình duyệt -->
+  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -63,7 +67,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Soạn thảo Equation Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình TikZ Trực Quan</p>
       </div>
     </div>
     
@@ -348,7 +352,7 @@
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 9 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
                 MÃ ĐỀ: 101
               </div>
@@ -519,20 +523,20 @@
       return str;
     }
 
-    // Render TikZ qua Endpoint Backend tương ứng từng nội dung hình
+    // Render TikZ Vector bằng WebAssembly Engine trực tiếp
     function formatTikzHtml(tikzCode) {
       if (!tikzCode || !tikzCode.trim()) return '';
-      const encodedCode = encodeURIComponent(tikzCode.trim());
-      const renderUrl = `${API_BASE_URL}/api/render-tikz?code=${encodedCode}`;
+      let cleanTikz = tikzCode.trim();
+      if (!cleanTikz.startsWith('\\begin{tikzpicture}')) {
+        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
+      }
 
       return `
         <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
           <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
             <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
           </span>
-          <img src="${renderUrl}" 
-               alt="Hình học TikZ" 
-               class="max-h-56 max-w-full object-contain my-1 border border-slate-100 rounded p-1 bg-white" />
+          <script type="text/tikz">${cleanTikz}<\/script>
         </div>
       `;
     }
@@ -1084,7 +1088,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (BẢNG 4 CỘT CĂN ĐỀU CHO PHẦN I)
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1271,6 +1275,13 @@
           <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
       }
+
+      // Kích hoạt TikZJax WebAssembly biên dịch toàn bộ script tikz vừa chèn
+      setTimeout(() => {
+        if (window.tikzjax && typeof window.tikzjax.process === 'function') {
+          window.tikzjax.process();
+        }
+      }, 50);
     }
 
     // =========================================================================
