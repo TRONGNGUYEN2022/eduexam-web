@@ -15,6 +15,10 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
+  <!-- TikZ Engine: Biên dịch hình vẽ TikZ thành SVG trực tiếp trên trình duyệt -->
+  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -466,7 +470,7 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP ĐẦY ĐỦ
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP ĐẦY ĐỦ
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
@@ -511,6 +515,20 @@
       }
 
       return str;
+    }
+
+    function formatTikzHtml(tikzCode) {
+      if (!tikzCode || !tikzCode.trim()) return '';
+      let cleanTikz = tikzCode.trim();
+      if (!cleanTikz.includes('\\begin{tikzpicture}')) {
+        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
+      }
+      return `
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center overflow-x-auto shadow-sm">
+          <span class="text-[11px] font-bold text-indigo-900 mb-1 flex items-center gap-1"><i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):</span>
+          <script type="text/tikz">${cleanTikz}<\/script>
+        </div>
+      `;
     }
 
     function toggleMathWidget() {
@@ -1092,6 +1110,7 @@
             return `
               <div class="space-y-1.5 p-2 rounded bg-slate-50/50">
                 <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
+                ${formatTikzHtml(q.tikz_code)}
                 <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
                   <tr>
                     <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
@@ -1140,6 +1159,7 @@
             return `
               <div class="space-y-2 p-2 rounded bg-slate-50/50">
                 <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
+                ${formatTikzHtml(q.tikz_code)}
                 <div class="pl-2 sm:pl-4 space-y-1.5">
                   ${['a', 'b', 'c', 'd'].map(k => {
                     const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
@@ -1181,6 +1201,7 @@
             return `
               <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
                 <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
+                ${formatTikzHtml(q.tikz_code)}
                 ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
               </div>
             `;
@@ -1225,6 +1246,7 @@
           return `
             <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
               <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> ${currentLevel === 'thpt' ? 'Câu' : 'Bài'} ${idx + 1} (${q.points || (currentLevel === 'thpt' ? 0.5 : 1.5)} điểm):</p>
+              ${formatTikzHtml(q.solution_tikz)}
               <div class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải / Đáp số:</strong><br/>${sol}</div>
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
@@ -1242,6 +1264,11 @@
           </h3>
           <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
+      }
+
+      // Kích hoạt TikZjax render sau khi chèn HTML
+      if (window.tikzjax && typeof window.tikzjax.process === 'function') {
+        window.tikzjax.process();
       }
     }
 
