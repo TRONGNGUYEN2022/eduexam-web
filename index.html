@@ -74,8 +74,8 @@
       <button id="btnToggleToolbar" onclick="toggleMathWidget()" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Di Động</span>
       </button>
-      <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
-        <i class="fa-solid fa-copy"></i> <span>Sao chép Equation</span>
+      <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
+        <i class="fa-solid fa-copy"></i> <span>Sao chép dán Word</span>
       </button>
       <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-file-word"></i> <span>Tải .doc</span>
@@ -901,7 +901,6 @@
           ? driveTopic 
           : `Kiến thức SGK ${subject} Lớp ${grade}`;
       } else {
-        // Tab Notebook: Bóc tách [CHỦ ĐỀ LỰA CHỌN: ...]
         if (sourceNotes && sourceNotes.includes('[CHỦ ĐỀ LỰA CHỌN:')) {
           const match = sourceNotes.match(/\[CHỦ ĐỀ LỰA CHỌN:\s*([^\]]+)\]/);
           if (match && match[1] && match[1] !== 'Toàn bộ chương trình') {
@@ -1031,39 +1030,65 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
+    // RENDER ĐỀ THI VỚI BẢNG 4 CỘT CĂN ĐỀU CHO PHẦN I
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
-      // 1. Phần I: Trắc nghiệm 4 lựa chọn (Tối ưu 4 cột trên 1 dòng)
+      // 1. Phần I: Trắc nghiệm 4 lựa chọn (Hiển thị bảng 4 cột phẳng)
       const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part1 || [];
       const part1Container = document.getElementById('part1Container');
       if (part1Container && p1List.length > 0) {
         part1Container.innerHTML = p1List.map((q, idx) => {
           const qText = cleanLatexMath(q.content || q.question_text || '');
-          let opts = [];
+          let optsDict = { 'A': '', 'B': '', 'C': '', 'D': '' };
+          
           if (Array.isArray(q.options)) {
-            opts = q.options;
-          } else if (q.options) {
-            ['A', 'B', 'C', 'D'].forEach(k => {
-              if (q.options[k] || q.options[k.toLowerCase()]) {
-                opts.push({ id: k, text: q.options[k] || q.options[k.toLowerCase()] });
+            q.options.forEach((o, i) => {
+              const label = ['A', 'B', 'C', 'D'][i] || 'A';
+              if (typeof o === 'object' && o !== null) {
+                optsDict[o.id || label] = cleanLatexMath(o.text || o.content || '');
+              } else {
+                optsDict[label] = cleanLatexMath(String(o));
               }
+            });
+          } else if (typeof q.options === 'object' && q.options !== null) {
+            ['A', 'B', 'C', 'D'].forEach(k => {
+              optsDict[k] = cleanLatexMath(q.options[k] || q.options[k.toLowerCase()] || '');
             });
           }
 
           return `
-            <div class="space-y-1.5 bg-slate-50/50 p-2.5 rounded border border-slate-100">
+            <div class="space-y-1.5 p-2 rounded">
               <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pl-2 sm:pl-4 pt-1">
-                ${opts.map(o => `
-                  <label class="flex items-center gap-1.5 cursor-pointer p-1 rounded hover:bg-indigo-50 transition">
-                    <input type="radio" name="student_p1_q${idx}" value="${o.id}" class="accent-indigo-600 shrink-0">
-                    <span class="truncate"><strong>${o.id}.</strong> ${cleanLatexMath(o.text || o.content || '')}</span>
-                  </label>
-                `).join('')}
-              </div>
+              <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
+                <tr>
+                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="student_p1_q${idx}" value="A" class="accent-indigo-600 shrink-0">
+                      <span><strong>A.</strong> ${optsDict['A']}</span>
+                    </label>
+                  </td>
+                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="student_p1_q${idx}" value="B" class="accent-indigo-600 shrink-0">
+                      <span><strong>B.</strong> ${optsDict['B']}</span>
+                    </label>
+                  </td>
+                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="student_p1_q${idx}" value="C" class="accent-indigo-600 shrink-0">
+                      <span><strong>C.</strong> ${optsDict['C']}</span>
+                    </label>
+                  </td>
+                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="radio" name="student_p1_q${idx}" value="D" class="accent-indigo-600 shrink-0">
+                      <span><strong>D.</strong> ${optsDict['D']}</span>
+                    </label>
+                  </td>
+                </tr>
+              </table>
             </div>
           `;
         }).join('');
@@ -1078,7 +1103,7 @@
           const st = q.statements || {};
 
           return `
-            <div class="space-y-2 bg-slate-50/50 p-2.5 rounded border border-slate-100">
+            <div class="space-y-2 p-2 rounded">
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
@@ -1201,9 +1226,9 @@
     }
 
     // =========================================================================
-    // SAO CHÉP WORD & XUẤT FILE .DOC/.DOCX
+    // SAO CHÉP DÁN WORD & XUẤT FILE .DOC/.DOCX
     // =========================================================================
-    function copyExamForWord() {
+    async function copyExamForWord() {
       if (!currentExamData) {
         alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi sao chép!');
         return;
@@ -1215,29 +1240,55 @@
       const btn = document.getElementById('btnCopyWord');
       const originalHtml = btn.innerHTML;
 
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNode(examEl);
-      selection.removeAllRanges();
-      selection.addRange(range);
+      const styledHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.35; color: #000; }
+            table { width: 100%; border-collapse: collapse; }
+            td { font-family: 'Times New Roman', serif; font-size: 12pt; vertical-align: top; }
+            p { margin: 0 0 5pt 0; }
+            strong { font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          ${examEl.innerHTML}
+        </body>
+        </html>
+      `;
 
       try {
-        const success = document.execCommand('copy');
-        if (success) {
-          btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
-          btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5";
-          
-          setTimeout(() => {
-            btn.innerHTML = originalHtml;
-            btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
-          }, 3000);
+        if (navigator.clipboard && window.ClipboardItem) {
+          const blobHtml = new Blob([styledHtml], { type: "text/html" });
+          const blobText = new Blob([examEl.innerText], { type: "text/plain" });
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/html": blobHtml,
+              "text/plain": blobText
+            })
+          ]);
         } else {
-          throw new Error("Không thể copy");
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNode(examEl);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          document.execCommand('copy');
+          selection.removeAllRanges();
         }
+
+        btn.innerHTML = `<i class="fa-solid fa-circle-check text-white"></i> <span>Đã sao chép! Dán Ctrl+V</span>`;
+        btn.className = "bg-green-700 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5";
+        
+        setTimeout(() => {
+          btn.innerHTML = originalHtml;
+          btn.className = "bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 border border-indigo-400";
+        }, 3000);
+
       } catch (err) {
-        alert('Vui lòng bôi đen toàn bộ trang và bấm Ctrl + C.');
-      } finally {
-        selection.removeAllRanges();
+        alert('Lỗi sao chép: ' + err.message);
       }
     }
 
@@ -1328,7 +1379,7 @@ strong { font-weight: bold; }
         if (!response.ok) throw new Error("Máy chủ không thể xuất file .docx");
 
         const blob = await response.blob();
-        const fileName = `De_Thi_${base.subject || 'THCS'}_Lop_${base.grade || '7'}.docx`;
+        const fileName = `De_Thi_THCS_Lop_${base.grade || '7'}.docx`;
 
         const blobUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
