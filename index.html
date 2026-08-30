@@ -15,10 +15,6 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZ Engine: Biên dịch hình vẽ TikZ thành SVG trực tiếp trên trình duyệt -->
-  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
-
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -168,12 +164,18 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Tổ chuyên môn</label>
-              <select id="deptSelect" onchange="handleSelectChange('dept')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
+              <select id="deptSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
               </select>
             </div>
             <div>
               <label class="block font-semibold mb-0.5 text-slate-600">Kỳ kiểm tra</label>
-              <select id="examTitleSelect" onchange="handleSelectChange('examTitle')" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
+              <select id="examTitleSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
+                <option value="ĐỀ KIỂM TRA ĐỊNH KỲ" selected>ĐỀ KIỂM TRA ĐỊNH KỲ</option>
+                <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 1">ĐỀ KIỂM TRA GIỮA HỌC KỲ 1</option>
+                <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 1">ĐỀ KIỂM TRA CUỐI HỌC KỲ 1</option>
+                <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 2">ĐỀ KIỂM TRA GIỮA HỌC KỲ 2</option>
+                <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 2">ĐỀ KIỂM TRA CUỐI HỌC KỲ 2</option>
+                <option value="ĐỀ KHẢO SÁT CHẤT LƯỢNG">ĐỀ KHẢO SÁT CHẤT LƯỢNG</option>
               </select>
             </div>
           </div>
@@ -344,7 +346,7 @@
               </div>
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I</p>
+              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
@@ -517,16 +519,20 @@
       return str;
     }
 
+    // Render TikZ qua Endpoint Backend tương ứng từng nội dung hình
     function formatTikzHtml(tikzCode) {
       if (!tikzCode || !tikzCode.trim()) return '';
-      let cleanTikz = tikzCode.trim();
-      if (!cleanTikz.includes('\\begin{tikzpicture}')) {
-        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
-      }
+      const encodedCode = encodeURIComponent(tikzCode.trim());
+      const renderUrl = `${API_BASE_URL}/api/render-tikz?code=${encodedCode}`;
+
       return `
-        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center overflow-x-auto shadow-sm">
-          <span class="text-[11px] font-bold text-indigo-900 mb-1 flex items-center gap-1"><i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):</span>
-          <script type="text/tikz">${cleanTikz}<\/script>
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
+          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
+          </span>
+          <img src="${renderUrl}" 
+               alt="Hình học TikZ" 
+               class="max-h-56 max-w-full object-contain my-1 border border-slate-100 rounded p-1 bg-white" />
         </div>
       `;
     }
@@ -933,7 +939,7 @@
 
     function fillSampleSources() {
       if (currentLevel === 'thpt') {
-        document.getElementById('sourceNotesInput').value = "Tìm giá trị lớn nhất, nhỏ nhất của hàm số $y = x^3 - 3x + 2$ trên đoạn $[0; 2]$. Giải phương trình $\\log_2(x-1) = 3$.";
+        document.getElementById('sourceNotesInput').value = "Tìm giá trị lớn nhất, nhỏ nhất của hàm số $y = x^3 - 3x + 2$ trên đoạn $[0; 2]$.";
       } else if (currentLevel === 'tieuhoc') {
         document.getElementById('sourceNotesInput').value = "Tính: $3 + 4 - 2 = \\dots$. Bạn Mai có 5 quả bóng, bạn Nam cho Mai thêm 3 quả bóng nữa. Hỏi bạn Mai có tất cả bao nhiêu quả bóng?";
       } else {
@@ -960,7 +966,7 @@
           : topicEl.value;
       }
 
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()}]...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
       btn.disabled = true;
 
       try {
@@ -1265,11 +1271,6 @@
           <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
       }
-
-      // Kích hoạt TikZjax render sau khi chèn HTML
-      if (window.tikzjax && typeof window.tikzjax.process === 'function') {
-        window.tikzjax.process();
-      }
     }
 
     // =========================================================================
@@ -1451,7 +1452,6 @@ strong { font-weight: bold; }
 
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
-      loadListOptions('examTitle', 'examTitleSelect');
       selectLevel('thcs');
       handleModelChange();
       handleEssayModeChange();
