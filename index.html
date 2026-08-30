@@ -15,10 +15,6 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZ Engine: Biên dịch hình vẽ TikZ thành SVG trực tiếp trên trình duyệt -->
-  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
-
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -67,7 +63,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Soạn thảo Equation Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình TikZ Trực Quan</p>
       </div>
     </div>
     
@@ -517,16 +513,27 @@
       return str;
     }
 
+    // Render TikZ sang hình ảnh SVG thời gian thực
     function formatTikzHtml(tikzCode) {
       if (!tikzCode || !tikzCode.trim()) return '';
       let cleanTikz = tikzCode.trim();
-      if (!cleanTikz.includes('\\begin{tikzpicture}')) {
+      if (!cleanTikz.startsWith('\\begin{tikzpicture}')) {
         cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
       }
+      const latexDoc = `\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{tikz,amsmath,amsfonts}\n\\begin{document}\n${cleanTikz}\n\\end{document}`;
+      const encoded = encodeURIComponent(latexDoc);
+      const svgUrl = `https://quicklatex.com/cache3/ql_${encodeURIComponent(cleanTikz.substring(0, 15))}.png`;
+      const directUrl = `https://quicklatex.com/create.math.formula.rails?fsize=16px&fcolor=000000&mode=0&out=1&remhost=quicklatex.com&formula=${encoded}`;
+
       return `
-        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center overflow-x-auto shadow-sm">
-          <span class="text-[11px] font-bold text-indigo-900 mb-1 flex items-center gap-1"><i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):</span>
-          <script type="text/tikz">${cleanTikz}<\/script>
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
+          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
+          </span>
+          <img src="https://quicklatex.com/cache3/${encodeURIComponent(cleanTikz)}" 
+               onerror="this.onerror=null; this.src='https://api.chart-img.com/v1/latex?latex=${encoded}';" 
+               alt="Hình học TikZ" 
+               class="max-h-56 max-w-full object-contain my-1 border border-slate-100 rounded p-1 bg-white" />
         </div>
       `;
     }
@@ -608,30 +615,19 @@
     };
 
     const CURRICULUM_TOPICS = {
-      // TIỂU HỌC
       "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Các số đến 100", "Hình phẳng và Đo độ dài"],
       "Toán học_2": ["Phép cộng, phép trừ có nhớ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan (Điểm, đoạn thẳng, đường thẳng)", "Phép nhân, phép chia"],
       "Toán học_3": ["Bảng nhân, bảng chia từ 6 đến 9", "Các số trong phạm vi 10 000, 100 000", "Diện tích hình chữ nhật, hình vuông", "Giải bài toán có đến hai bước tính"],
       "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi", "Dãy số liệu và Biểu đồ cột"],
       "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn", "Hình hộp chữ nhật, hình lập phương, thể tích", "Vận tốc, quãng đường, thời gian"],
-
-      // THCS
       "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường", "Tính đối xứng của hình phẳng trong tự nhiên"],
       "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Hình khối lăng trụ)", "Biểu thức đại số", "Xác suất & Thống kê"],
       "Toán học_8": ["Đa thức và Hằng đẳng thức đáng nhớ", "Phân thức đại số", "Tứ giác (Hình thang, hình bình hành, hình chữ nhật)", "Định lý Thalès và Tam giác đồng dạng", "Hình khối trong thực tiễn"],
-      "Toán học_9": [
-        "Căn bậc hai, Căn bậc ba và Rút gọn biểu thức",
-        "Hàm số bậc nhất và Hệ hai phương trình bậc nhất hai ẩn",
-        "Phương trình bậc hai một ẩn và Định lý Viète",
-        "Đường tròn, Góc với đường tròn, Tứ giác nội tiếp",
-        "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
-      ],
+      "Toán học_9": ["Căn bậc hai, Căn bậc ba và Rút gọn biểu thức", "Hàm số bậc nhất và Hệ hai phương trình bậc nhất hai ẩn", "Phương trình bậc hai một ẩn và Định lý Viète", "Đường tròn, Góc với đường tròn, Tứ giác nội tiếp", "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"],
       "Khoa học tự nhiên_6": ["Mở đầu về KHTN, Đo lường", "Tế bào", "Đa dạng thế giới sống", "Lực và Năng lượng"],
       "Khoa học tự nhiên_7": ["Nguyên tử, Bảng tuần hoàn", "Tốc độ chuyển động", "Trao đổi chất và Chuyển hóa năng lượng", "Âm thanh & Ánh sáng"],
       "Khoa học tự nhiên_8": ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối", "Cơ thể người", "Khối lượng riêng và Áp suất"],
       "Khoa học tự nhiên_9": ["Kim loại và Hợp chất hữu cơ", "Khúc xạ ánh sáng, Thấu kính", "Điện từ học", "Di truyền và Biến dị, Tiến hóa"],
-
-      // THPT
       "Toán học_10": ["Mệnh đề và Tập hợp", "Bất phương trình và Hệ BPT bậc nhất hai ẩn", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ", "Phương pháp tọa độ trong mặt phẳng"],
       "Toán học_11": ["Hàm số lượng giác và Phương trình lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Giới hạn và Hàm số liên tục", "Đạo hàm", "Quan hệ vuông góc trong không gian", "Xác suất có điều kiện"],
       "Toán học_12": ["Ứng dụng đạo hàm để khảo sát và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức", "Phương trình mặt cầu, mặt phẳng, đường thẳng", "Xác suất toàn phần và Công thức Bayes"],
@@ -659,7 +655,6 @@
 
     function loadLevelOptions() {
       const cfg = LEVEL_CONFIGS[currentLevel];
-
       const gradeSel = document.getElementById('grade');
       gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">${currentLevel === 'tieuhoc' ? 'Lớp ' + g : 'Lớp ' + g}</option>`).join('');
 
@@ -1078,7 +1073,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (BẢNG 4 CỘT CĂN ĐỀU CHO PHẦN I)
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1264,11 +1259,6 @@
           </h3>
           <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
-      }
-
-      // Kích hoạt TikZjax render sau khi chèn HTML
-      if (window.tikzjax && typeof window.tikzjax.process === 'function') {
-        window.tikzjax.process();
       }
     }
 
