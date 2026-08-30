@@ -642,19 +642,15 @@
     function loadLevelOptions() {
       const cfg = LEVEL_CONFIGS[currentLevel];
 
-      // Đảm bảo value luôn là số nguyên (1, 2, 3...)
       const gradeSel = document.getElementById('grade');
       gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">${currentLevel === 'tieuhoc' ? 'Lớp ' + g : 'Lớp ' + g}</option>`).join('');
 
-      // Subjects
       const subjSel = document.getElementById('subject');
       subjSel.innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
 
-      // Schools & Depts
       loadListOptions('school', 'schoolSelect');
       loadListOptions('dept', 'deptSelect');
 
-      // Duration default
       const durSel = document.getElementById('duration');
       if (currentLevel === 'tieuhoc') durSel.value = '35';
       else if (currentLevel === 'thpt') durSel.value = '90';
@@ -934,35 +930,17 @@
       const btn = document.getElementById('btnGenerate');
       const subject = document.getElementById('subject').value;
       const grade = parseInt(document.getElementById('grade').value) || 1;
-      const duration = parseInt(document.getElementById('duration').value) || 45;
-      const examTitle = getSelectedText('examTitle');
+      const duration = parseInt(document.getElementById('duration').value) || 35;
+      const examTitle = getSelectedText('examTitle') || "ĐỀ KIỂM TRA ĐỊNH KỲ";
       const selectedModel = getSelectedModel();
 
-      let topic = `Kiến thức chuẩn GDPT 2018 Lớp ${grade}`;
-      let matrixSpec = document.getElementById('matrixSpecInput')?.value.trim() || null;
-      let sourceNotes = document.getElementById('sourceNotesInput')?.value.trim() || null;
-
-      if (activeTab === 'quick') {
-        topic = document.getElementById('topicSelect').value;
-        if (topic === 'custom') {
-          topic = document.getElementById('customTopicInput').value.trim() || `Môn ${subject} Lớp ${grade}`;
-        }
-      } else if (activeTab === 'drive') {
-        const driveTopic = document.getElementById('driveTopicFilter')?.value;
-        topic = (driveTopic && driveTopic !== 'Toàn bộ chương trình') 
-          ? driveTopic 
-          : `Kiến thức SGK ${subject} Lớp ${grade}`;
-      } else {
-        if (sourceNotes && sourceNotes.includes('[CHỦ ĐỀ LỰA CHỌN:')) {
-          const match = sourceNotes.match(/\[CHỦ ĐỀ LỰA CHỌN:\s*([^\]]+)\]/);
-          if (match && match[1] && match[1] !== 'Toàn bộ chương trình') {
-            topic = match[1].trim();
-          }
-        }
+      let topic = "Kiến thức trọng tâm";
+      const topicEl = document.getElementById('topicSelect');
+      if (topicEl && topicEl.value) {
+        topic = topicEl.value === 'custom' 
+          ? (document.getElementById('customTopicInput')?.value.trim() || `Môn ${subject} Lớp ${grade}`)
+          : topicEl.value;
       }
-
-      const essayMode = document.getElementById('essayModeSelect').value;
-      const teacherAnswer = document.getElementById('teacherEssayText').value.trim();
 
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()}]...</span>`;
       btn.disabled = true;
@@ -978,10 +956,8 @@
             topic: topic,
             duration_minutes: duration,
             exam_title: examTitle,
-            matrix_spec: matrixSpec,
-            source_notes: sourceNotes,
-            essay_mode: essayMode,
-            essay_teacher_answer: teacherAnswer,
+            matrix_spec: document.getElementById('matrixSpecInput')?.value.trim() || null,
+            source_notes: document.getElementById('sourceNotesInput')?.value.trim() || null,
             model_name: selectedModel
           })
         });
@@ -992,22 +968,23 @@
         }
 
         const result = await response.json();
-        if (result.status === 'success' || result.base_exam) {
-          currentExamData = result;
-          const examObj = result.base_exam || result;
-          const matrixObj = result.answer_matrix || {};
-          
-          renderExamToView(examObj, matrixObj);
-          syncHeaderPreview();
-          
-          if (window.innerWidth < 768) {
-            document.getElementById('examContainer').scrollIntoView({ behavior: 'smooth' });
-          }
-          alert(`Đã hoàn tất tạo đề [${currentLevel.toUpperCase()} - ${topic}]!`);
-        } else {
-          alert('Có lỗi xảy ra: ' + (result.message || 'Không thể tạo đề'));
+        const examObj = result.base_exam || result;
+        const matrixObj = result.answer_matrix || examObj.answer_matrix || {};
+        
+        currentExamData = {
+          status: "success",
+          base_exam: examObj,
+          answer_matrix: matrixObj
+        };
+        
+        renderExamToView(examObj, matrixObj);
+        syncHeaderPreview();
+        
+        if (window.innerWidth < 768) {
+          document.getElementById('examContainer')?.scrollIntoView({ behavior: 'smooth' });
         }
       } catch (err) {
+        console.error(err);
         alert('Lỗi kết nối Backend: ' + err.message);
       } finally {
         btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề</span>`;
@@ -1088,116 +1065,129 @@
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
-      // 1. Phần I: Trắc nghiệm 4 lựa chọn (Bảng 4 cột căn lề đều 25%)
-      const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part1 || [];
+      // 1. Phần I: Trắc nghiệm 4 lựa chọn
+      const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part_1 || exam.part1 || [];
       const part1Container = document.getElementById('part1Container');
-      if (part1Container && p1List.length > 0) {
-        part1Container.innerHTML = p1List.map((q, idx) => {
-          const qText = cleanLatexMath(q.content || q.question_text || '');
-          let optsDict = { 'A': '', 'B': '', 'C': '', 'D': '' };
-          
-          if (Array.isArray(q.options)) {
-            q.options.forEach((o, i) => {
-              const label = ['A', 'B', 'C', 'D'][i] || 'A';
-              if (typeof o === 'object' && o !== null) {
-                optsDict[o.id || label] = cleanLatexMath(o.text || o.content || '');
-              } else {
-                optsDict[label] = cleanLatexMath(String(o));
-              }
-            });
-          } else if (typeof q.options === 'object' && q.options !== null) {
-            ['A', 'B', 'C', 'D'].forEach(k => {
-              optsDict[k] = cleanLatexMath(q.options[k] || q.options[k.toLowerCase()] || '');
-            });
-          }
+      if (part1Container) {
+        if (p1List.length > 0) {
+          part1Container.innerHTML = p1List.map((q, idx) => {
+            const qText = cleanLatexMath(q.content || q.question_text || q.question || '');
+            let optsDict = { 'A': '', 'B': '', 'C': '', 'D': '' };
+            
+            if (Array.isArray(q.options)) {
+              q.options.forEach((o, i) => {
+                const label = ['A', 'B', 'C', 'D'][i] || 'A';
+                if (typeof o === 'object' && o !== null) {
+                  optsDict[o.id || label] = cleanLatexMath(o.text || o.content || '');
+                } else {
+                  optsDict[label] = cleanLatexMath(String(o));
+                }
+              });
+            } else if (typeof q.options === 'object' && q.options !== null) {
+              ['A', 'B', 'C', 'D'].forEach(k => {
+                optsDict[k] = cleanLatexMath(q.options[k] || q.options[k.toLowerCase()] || '');
+              });
+            }
 
-          return `
-            <div class="space-y-1.5 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-              <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
-                <tr>
-                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="student_p1_q${idx}" value="A" class="accent-indigo-600 shrink-0">
-                      <span><strong>A.</strong> ${optsDict['A']}</span>
-                    </label>
-                  </td>
-                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="student_p1_q${idx}" value="B" class="accent-indigo-600 shrink-0">
-                      <span><strong>B.</strong> ${optsDict['B']}</span>
-                    </label>
-                  </td>
-                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="student_p1_q${idx}" value="C" class="accent-indigo-600 shrink-0">
-                      <span><strong>C.</strong> ${optsDict['C']}</span>
-                    </label>
-                  </td>
-                  <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
-                    <label class="flex items-center gap-1.5 cursor-pointer">
-                      <input type="radio" name="student_p1_q${idx}" value="D" class="accent-indigo-600 shrink-0">
-                      <span><strong>D.</strong> ${optsDict['D']}</span>
-                    </label>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          `;
-        }).join('');
+            return `
+              <div class="space-y-1.5 p-2 rounded bg-slate-50/50">
+                <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
+                <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
+                  <tr>
+                    <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                      <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="student_p1_q${idx}" value="A" class="accent-indigo-600 shrink-0">
+                        <span><strong>A.</strong> ${optsDict['A']}</span>
+                      </label>
+                    </td>
+                    <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                      <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="student_p1_q${idx}" value="B" class="accent-indigo-600 shrink-0">
+                        <span><strong>B.</strong> ${optsDict['B']}</span>
+                      </label>
+                    </td>
+                    <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                      <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="student_p1_q${idx}" value="C" class="accent-indigo-600 shrink-0">
+                        <span><strong>C.</strong> ${optsDict['C']}</span>
+                      </label>
+                    </td>
+                    <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
+                      <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="student_p1_q${idx}" value="D" class="accent-indigo-600 shrink-0">
+                        <span><strong>D.</strong> ${optsDict['D']}</span>
+                      </label>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            `;
+          }).join('');
+        } else {
+          part1Container.innerHTML = `<p class="text-slate-400 italic">Không có câu hỏi trắc nghiệm cho chủ đề này.</p>`;
+        }
       }
 
       // 2. Phần II: Đúng / Sai
-      const p2List = exam.part_2_tf || exam.part2_true_false || exam.part2 || [];
+      const p2List = exam.part_2_tf || exam.part2_true_false || exam.part_2 || exam.part2 || [];
       const part2Container = document.getElementById('part2Container');
-      if (part2Container && p2List.length > 0) {
-        part2Container.innerHTML = p2List.map((q, idx) => {
-          const prompt = cleanLatexMath(q.prompt || q.content || q.question_text || '');
-          const st = q.statements || {};
+      if (part2Container) {
+        if (p2List.length > 0) {
+          part2Container.innerHTML = p2List.map((q, idx) => {
+            const prompt = cleanLatexMath(q.prompt || q.content || q.question_text || '');
+            const st = q.statements || {};
 
-          return `
-            <div class="space-y-2 p-2 rounded">
-              <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
-              <div class="pl-2 sm:pl-4 space-y-1.5">
-                ${['a', 'b', 'c', 'd'].map(k => {
-                  const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
-                  return `
-                    <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
-                      <span class="flex-1"><strong>${k})</strong> ${val}</span>
-                      <div class="flex items-center gap-3 shrink-0">
-                        <label class="flex items-center gap-1 text-xs cursor-pointer">
-                          <input type="radio" name="student_p2_q${idx}_${k}" value="Đ" class="accent-emerald-600">
-                          <span class="font-semibold text-emerald-700">Đúng</span>
-                        </label>
-                        <label class="flex items-center gap-1 text-xs cursor-pointer">
-                          <input type="radio" name="student_p2_q${idx}_${k}" value="S" class="accent-rose-600">
-                          <span class="font-semibold text-rose-700">Sai</span>
-                        </label>
+            return `
+              <div class="space-y-2 p-2 rounded bg-slate-50/50">
+                <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
+                <div class="pl-2 sm:pl-4 space-y-1.5">
+                  ${['a', 'b', 'c', 'd'].map(k => {
+                    const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
+                    if (!val) return '';
+                    return `
+                      <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
+                        <span class="flex-1"><strong>${k})</strong> ${val}</span>
+                        <div class="flex items-center gap-3 shrink-0">
+                          <label class="flex items-center gap-1 text-xs cursor-pointer">
+                            <input type="radio" name="student_p2_q${idx}_${k}" value="Đ" class="accent-emerald-600">
+                            <span class="font-semibold text-emerald-700">Đúng</span>
+                          </label>
+                          <label class="flex items-center gap-1 text-xs cursor-pointer">
+                            <input type="radio" name="student_p2_q${idx}_${k}" value="S" class="accent-rose-600">
+                            <span class="font-semibold text-rose-700">Sai</span>
+                          </label>
+                        </div>
                       </div>
-                    </div>
-                  `;
-                }).join('')}
+                    `;
+                  }).join('')}
+                </div>
               </div>
-            </div>
-          `;
-        }).join('');
+            `;
+          }).join('');
+        } else {
+          part2Container.innerHTML = `<p class="text-slate-400 italic">Không có câu hỏi đúng sai.</p>`;
+        }
       }
 
-      // 3. Phần III: Tự luận (Tiểu học & THCS) hoặc Trả lời ngắn (THPT)
-      const p3List = exam.part_3_essay || exam.part_3_short_ans || exam.part3 || [];
+      // 3. Phần III: Tự luận hoặc Điền số ngắn
+      const p3List = exam.part_3_essay || exam.part_3_short_ans || exam.part_3 || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
-      if (part3Container && p3List.length > 0) {
-        const isShortAns = currentLevel === 'thpt';
-        part3Container.innerHTML = p3List.map((q, idx) => {
-          const qText = cleanLatexMath(q.content || q.question_text || '');
-          const pts = q.points || (isShortAns ? 0.5 : 1.5);
-          return `
-            <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
-              <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
-              ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
-            </div>
-          `;
-        }).join('');
+      if (part3Container) {
+        if (p3List.length > 0) {
+          const isShortAns = currentLevel === 'thpt';
+          part3Container.innerHTML = p3List.map((q, idx) => {
+            const qText = cleanLatexMath(q.content || q.question_text || '');
+            const pts = q.points || (isShortAns ? 0.5 : 1.5);
+            return `
+              <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
+                <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
+                ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
+              </div>
+            `;
+          }).join('');
+        } else {
+          part3Container.innerHTML = `<p class="text-slate-400 italic">Không có câu hỏi tự luận.</p>`;
+        }
       }
 
       // 4. Ma trận 4 mã đề
@@ -1222,51 +1212,26 @@
         }
       }
 
-      // 5. Hướng dẫn chấm
-      let answerKeyContainer = document.getElementById('answerKeySection');
-      if (answerKeyContainer) {
-        let essaySolutionsHtml = p3List.map((q, idx) => {
-          let sol = cleanLatexMath(q.solution || q.answer || 'Học sinh thực hiện đúng các bước để đạt điểm tối đa.');
+      // 5. Hướng dẫn chấm & Lời giải
+      const answerKeyContainer = document.getElementById('answerKeySection');
+      if (answerKeyContainer && p3List.length > 0) {
+        const essaySolutionsHtml = p3List.map((q, idx) => {
+          const sol = cleanLatexMath(q.solution || q.answer || 'Học sinh thực hiện phép tính đúng để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
-            { step: "Bước 1: Phép tính hoặc điều kiện ban đầu", points: "0.5 đ" },
-            { step: "Bước 2: Các bước giải chính", points: "0.5 đ" },
-            { step: "Bước 3: Đáp số và Kết luận", points: "0.5 đ" }
+            { step: "Bước 1: Phép tính hoặc lập luận ban đầu", points: "0.75 đ" },
+            { step: "Bước 2: Đáp số và đơn vị", points: "0.75 đ" }
           ];
 
           return `
             <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
               <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> ${currentLevel === 'thpt' ? 'Câu' : 'Bài'} ${idx + 1} (${q.points || (currentLevel === 'thpt' ? 0.5 : 1.5)} điểm):</p>
               <div class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải / Đáp số:</strong><br/>${sol}</div>
-              ${q.scoring_guide ? `
-                <div class="mt-1 pt-1 border-t border-emerald-200">
-                  <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
-                  <div class="space-y-1 pl-2">
-                    ${guides.map(g => `<p class="text-slate-700">- ${cleanLatexMath(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.5 đ'})</strong></p>`).join('')}
-                  </div>
+              <div class="mt-1 pt-1 border-t border-emerald-200">
+                <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
+                <div class="space-y-1 pl-2">
+                  ${guides.map(g => `<p class="text-slate-700">- ${cleanLatexMath(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.75 đ'})</strong></p>`).join('')}
                 </div>
-              ` : ''}
-            </div>
-          `;
-        }).join('');
-
-        let tfAnswersHtml = p2List.map((q, idx) => {
-          const ans = q.answers || {};
-          const isA = (ans.a === true || ans.A === true || ans.a === 'Đ' || ans.a === 'đ');
-          const isB = (ans.b === true || ans.B === true || ans.b === 'Đ' || ans.b === 'đ');
-          const isC = (ans.c === true || ans.C === true || ans.c === 'Đ' || ans.c === 'đ');
-          const isD = (ans.d === true || ans.D === true || ans.d === 'Đ' || ans.d === 'đ');
-          let exp = cleanLatexMath(q.explanation || '');
-
-          return `
-            <div class="bg-blue-50/70 border border-blue-200 p-2.5 rounded text-xs">
-              <p class="font-bold text-blue-900 mb-1">Đáp án Đúng/Sai Câu ${idx + 1}:</p>
-              <p class="text-slate-800">
-                a) <strong class="${isA ? 'text-emerald-700' : 'text-rose-700'}">${isA ? 'ĐÚNG' : 'SAI'}</strong> | 
-                b) <strong class="${isB ? 'text-emerald-700' : 'text-rose-700'}">${isB ? 'ĐÚNG' : 'SAI'}</strong> | 
-                c) <strong class="${isC ? 'text-emerald-700' : 'text-rose-700'}">${isC ? 'ĐÚNG' : 'SAI'}</strong> | 
-                d) <strong class="${isD ? 'text-emerald-700' : 'text-rose-700'}">${isD ? 'ĐÚNG' : 'SAI'}</strong>
-              </p>
-              ${exp ? `<div class="text-slate-600 mt-1 italic">• Giải thích:<br/>${exp}</div>` : ''}
+              </div>
             </div>
           `;
         }).join('');
@@ -1275,8 +1240,7 @@
           <h3 class="text-center font-bold text-sm uppercase text-indigo-900 tracking-wide pb-2 border-b border-indigo-200">
             <i class="fa-solid fa-clipboard-check"></i> HƯỚNG DẪN CHẤM & ĐÁP ÁN CHI TIẾT
           </h3>
-          ${tfAnswersHtml ? `<div class="space-y-1.5"><h4 class="font-bold text-xs uppercase text-slate-700">Đáp án Phần II (Đúng/Sai):</h4>${tfAnswersHtml}</div>` : ''}
-          <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn giải Phần III:</h4>${essaySolutionsHtml}</div>
+          <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
       }
     }
