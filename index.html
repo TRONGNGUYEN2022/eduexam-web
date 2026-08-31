@@ -519,23 +519,67 @@
       return str;
     }
 
-    // Hiển thị ảnh minh họa trực tiếp từ Google Drive do Backend Python tạo sẵn
-    function formatTikzHtml(imageUrlOrTikz) {
-      if (!imageUrlOrTikz || typeof imageUrlOrTikz !== 'string') return '';
-      const val = imageUrlOrTikz.trim();
-      if (!val || val === "null" || val === "None") return '';
+    // =========================================================================
+    // HÀM HIỂN THỊ HÌNH VẼ 3 LỚP (DRIVE / DATA URI / KROKI FALLBACK)
+    // =========================================================================
+    function formatTikzHtml(imageSource) {
+      if (!imageSource || typeof imageSource !== 'string') return '';
+      const val = imageSource.trim();
+      if (!val || val === "null" || val === "None" || val.length < 5) return '';
 
+      // 1. Nếu là URL ảnh Google Drive hoặc chuỗi Data URI SVG do backend Python trả về
       if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
         return `
           <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
             <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
-              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa (Vector / Drive):
+              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa:
             </span>
             <img src="${val}" alt="Hình vẽ minh họa đề thi" class="max-w-full h-auto object-contain bg-white p-1 rounded" style="max-height: 280px;" />
           </div>
         `;
       }
-      return '';
+
+      // 2. Nếu là chuỗi mã TikZ thô (Frontend tự động gọi Kroki Engine)
+      const containerId = 'tikz_box_' + Math.random().toString(36).substring(2, 9);
+      let cleanTikz = val;
+      if (!cleanTikz.includes('\\begin{tikzpicture}')) {
+        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
+      }
+
+      setTimeout(() => {
+        fetch('https://kroki.io/tikz/svg', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: cleanTikz
+        })
+        .then(res => {
+          if (!res.ok) throw new Error("Render error");
+          return res.text();
+        })
+        .then(svgText => {
+          const el = document.getElementById(containerId);
+          if (el) {
+            el.innerHTML = svgText;
+          }
+        })
+        .catch(() => {
+          const el = document.getElementById(containerId);
+          if (el) {
+            el.parentElement.remove();
+          }
+        });
+      }, 50);
+
+      return `
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
+          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa:
+          </span>
+          <div id="${containerId}" class="flex justify-center items-center w-full min-h-[60px] overflow-x-auto">
+            <span class="text-xs text-slate-400 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang dựng hình vector...</span>
+          </div>
+        </div>
+      `;
     }
 
     function toggleMathWidget() {
