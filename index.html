@@ -472,11 +472,11 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP
+    // BỘ BIÊN DỊCH KATEX & CHUẨN HÓA TIẾNG VIỆT
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
-      let str = String(raw);
+      let str = String(raw).normalize('NFC');
 
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
@@ -502,20 +502,6 @@
         try { return katex.renderToString(`\\sqrt{${body}}`, { throwOnError: false }); } catch(e){ return m; }
       });
 
-      const symbolMap = {
-        '\\\\ge': '≥', '\\\\le': '≤', '\\\\neq': '≠', '\\\\ne': '≠', '\\\\pm': '±', '\\\\mp': '∓',
-        '\\\\cdot': '·', '\\\\times': '×', '\\\\div': '÷', '\\\\approx': '≈', '\\\\equiv': '≡',
-        '\\\\infty': '∞', '\\\\in': '∈', '\\\\notin': '∉', '\\\\subset': '⊂', '\\\\supset': '⊃',
-        '\\\\cap': '∩', '\\\\cup': '∪', '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\theta': 'θ',
-        '\\\\pi': 'π', '\\\\Delta': 'Δ', '\\\\implies': '⟹', '\\\\iff': '⟺', '\\\\Leftrightarrow': '⟺',
-        '\\\\Rightarrow': '⟹', '\\\\angle': '∠'
-      };
-
-      for (let k in symbolMap) {
-        const reg = new RegExp(k + '(?![a-zA-Z])', 'g');
-        str = str.replace(reg, symbolMap[k]);
-      }
-
       return str;
     }
 
@@ -530,16 +516,16 @@
       // 1. Nếu là URL ảnh Google Drive hoặc chuỗi Data URI SVG
       if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
         return `
-          <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
-            <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
-              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa:
+          <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm max-w-lg mx-auto">
+            <span class="text-[11px] font-sans font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa (Vector / Drive):
             </span>
             <img src="${val}" alt="Hình vẽ minh họa đề thi" class="max-w-full h-auto object-contain bg-white p-1 rounded" style="max-height: 280px;" />
           </div>
         `;
       }
 
-      // 2. Nếu là chuỗi mã TikZ thô
+      // 2. Nếu là chuỗi mã TikZ thô (Frontend tự động chuyển thành SVG qua Kroki)
       const containerId = 'tikz_box_' + Math.random().toString(36).substring(2, 9);
       let cleanTikz = val;
       if (!cleanTikz.includes('\\begin{tikzpicture}')) {
@@ -571,8 +557,8 @@
       }, 50);
 
       return `
-        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
-          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm max-w-lg mx-auto">
+          <span class="text-[11px] font-sans font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
             <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa:
           </span>
           <div id="${containerId}" class="flex justify-center items-center w-full min-h-[60px] overflow-x-auto">
