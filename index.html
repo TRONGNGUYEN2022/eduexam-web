@@ -15,6 +15,10 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
+  <!-- TikZJax Engine: Biên dịch mọi khối mã TikZ sang Vector SVG ngay tại trình duyệt -->
+  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
+  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -74,10 +78,10 @@
       <button id="btnToggleToolbar" onclick="toggleMathWidget()" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Di Động</span>
       </button>
-      <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
+      <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-copy"></i> <span>Sao chép dán Word</span>
       </button>
-      <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-900 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
+      <button id="btnExportDoc" onclick="exportExamToWordNativeDoc()" class="bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-file-word"></i> <span>Tải .doc</span>
       </button>
       <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-slate-600">
@@ -186,8 +190,6 @@
               <option value="Giáo dục công dân">Giáo dục công dân</option>
               <option value="Tin học">Tin học</option>
               <option value="Công nghệ">Công nghệ</option>
-              <option value="Âm nhạc">Âm nhạc</option>
-              <option value="Mĩ thuật">Mĩ thuật</option>
             </select>
           </div>
           <div>
@@ -334,7 +336,7 @@
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
           <tr>
             <td style="width: 45%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)</p>
+              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THCS NGUYỄN DU</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;" id="previewDept">TỔ KHOA HỌC TỰ NHIÊN</p>
               <div style="text-align: left; font-size: 12px; line-height: 1.6; margin-top: 6px;">
                 <p style="margin: 0;">Họ và tên: <span id="displayStudentName" class="font-bold text-indigo-900">......................................................</span></p>
@@ -342,7 +344,7 @@
               </div>
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I</p>
+              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
@@ -357,10 +359,10 @@
           
           <!-- Phần I: Trắc nghiệm 4 lựa chọn -->
           <div>
-            <div class="font-bold text-sm sm:text-[15px] mb-1">
+            <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (4,0 điểm)
             </div>
-            <p class="italic text-xs mb-3 text-slate-600">Thí sinh trả lời từ câu 1 đến câu 4. Mỗi câu hỏi chỉ chọn một phương án chính xác nhất.</p>
+            <p class="italic text-xs mb-3 text-slate-600">Thí sinh trả lời từ câu hỏi dưới đây. Mỗi câu hỏi chỉ chọn một phương án chính xác nhất.</p>
             <div class="space-y-4 text-xs sm:text-sm" id="part1Container">
               <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp & Sinh Đề" để tạo câu hỏi trắc nghiệm...</p>
             </div>
@@ -368,7 +370,7 @@
 
           <!-- Phần II: Đúng / Sai -->
           <div>
-            <div class="font-bold text-sm sm:text-[15px] mb-1">
+            <div id="p2Heading" class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (3,0 điểm)
             </div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh chọn Đúng (Đ) hoặc Sai (S) cho mỗi ý a), b), c), d).</p>
@@ -379,7 +381,7 @@
 
           <!-- Phần III: Tự luận -->
           <div>
-            <div class="font-bold text-sm sm:text-[15px] mb-1">
+            <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN III. TỰ LUẬN (3,0 điểm)
             </div>
             <div class="space-y-4 text-xs sm:text-sm" id="part3Container">
@@ -467,7 +469,7 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP ĐẦY ĐỦ
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
@@ -514,6 +516,24 @@
       return str;
     }
 
+    // Render TikZ Vector bằng WebAssembly Engine trực tiếp
+    function formatTikzHtml(tikzCode) {
+      if (!tikzCode || !tikzCode.trim()) return '';
+      let cleanTikz = tikzCode.trim();
+      if (!cleanTikz.startsWith('\\begin{tikzpicture}')) {
+        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
+      }
+
+      return `
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
+          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+            <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
+          </span>
+          <script type="text/tikz">${cleanTikz}<\/script>
+        </div>
+      `;
+    }
+
     function toggleMathWidget() {
       if (window.mathWidgetInstance && typeof window.mathWidgetInstance.toggle === 'function') {
         window.mathWidgetInstance.toggle();
@@ -552,31 +572,25 @@
 
     const DEFAULT_CONFIGS = {
       school: [
-        "TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)",
-        "TRƯỜNG THCS NGUYỄN DU (QUẬN 1)",
-        "TRƯỜNG THCS TRẦN ĐẠI NGHĨA (TP. THỦ ĐỨC)",
-        "TRƯỜNG THCS VÕ TRƯỜNG TOẢN (QUẬN 1)",
-        "TRƯỜNG THCS COLETTE (QUẬN 3)",
-        "TRƯỜNG THCS HỒNG BÀNG (QUẬN 5)",
-        "TRƯỜNG THCS NGUYỄN GIA THIỀU (QUẬN TÂN BÌNH)",
-        "TRƯỜNG THCS HÀ HUY TẬP (QUẬN BÌNH THẠNH)",
-        "TRƯỜNG THCS NGUYỄN VĂN TỐ (QUẬN 10)"
+        "TRƯỜNG THCS NGUYỄN DU",
+        "TRƯỜNG THCS LÊ QUÝ ĐÔN",
+        "TRƯỜNG THCS TRẦN ĐẠI NGHĨA",
+        "TRƯỜNG THCS VÕ TRƯỜNG TOẢN",
+        "TRƯỜNG THCS HỒNG BÀNG",
+        "TRƯỜNG THCS NGUYỄN GIA THIỀU"
       ],
       dept: [
         "TỔ KHOA HỌC TỰ NHIÊN",
         "TỔ TOÁN - TIN HỌC",
         "TỔ KHOA HỌC XÃ HỘI",
-        "TỔ NGỮ VĂN",
-        "TỔ NGOẠI NGỮ",
-        "TỔ LỊCH SỬ - ĐỊA LÍ"
+        "TỔ NGỮ VĂN"
       ],
       examTitle: [
-        "ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ I",
-        "ĐỀ KIỂM TRA ĐỊNH KỲ CUỐI HỌC KỲ I",
-        "ĐỀ KIỂM TRA ĐỊNH KỲ GIỮA HỌC KỲ II",
-        "ĐỀ KIỂM TRA ĐỊNH KỲ CUỐI HỌC KỲ II",
-        "ĐỀ KHẢO SÁT CHẤT LƯỢNG ĐẦU NĂM",
-        "ĐỀ THI THỬ TUYỂN SINH VÀO LỚP 10 THPT"
+        "ĐỀ KIỂM TRA ĐỊNH KỲ",
+        "ĐỀ KIỂM TRA GIỮA HỌC KỲ 1",
+        "ĐỀ KIỂM TRA CUỐI HỌC KỲ 1",
+        "ĐỀ KIỂM TRA GIỮA HỌC KỲ 2",
+        "ĐỀ KIỂM TRA CUỐI HỌC KỲ 2"
       ]
     };
 
@@ -584,7 +598,7 @@
       "Toán học": {
         6: ["Tập hợp số tự nhiên", "Số nguyên", "Phân số", "Hình học trực quan"],
         7: ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Hình khối)", "Biểu thức đại số"],
-        8: ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác", "Định lý Thalès"],
+        8: ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác", "Định lý Thalès", "Hình khối trong thực tiễn"],
         9: [
           "Căn bậc hai, Căn bậc ba và Rút gọn biểu thức",
           "Hàm số bậc nhất và Hệ hai phương trình bậc nhất",
@@ -631,8 +645,8 @@
     function handleSelectChange(type) {
       const selectMap = {
         school: { select: 'schoolSelect', box: 'customSchoolBox', input: 'customSchoolInput' },
-        dept: { select: 'deptSelect', box: 'customDeptBox', input: 'customDeptInput' },
-        examTitle: { select: 'examTitleSelect', box: 'customExamTitleBox', input: 'customExamTitleInput' }
+        dept: { select: 'deptSelect' },
+        examTitle: { select: 'examTitleSelect' }
       };
       const cfg = selectMap[type];
       const selectEl = document.getElementById(cfg.select);
@@ -671,7 +685,7 @@
 
     function getSelectedText(type) {
       const selectMap = {
-        school: { select: 'schoolSelect', input: 'customSchoolInput', fallback: 'TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)' },
+        school: { select: 'schoolSelect', input: 'customSchoolInput', fallback: 'TRƯỜNG THCS NGUYỄN DU' },
         dept: { select: 'deptSelect', fallback: 'TỔ KHOA HỌC TỰ NHIÊN' },
         examTitle: { select: 'examTitleSelect', fallback: 'ĐỀ KIỂM TRA ĐỊNH KỲ' }
       };
@@ -734,9 +748,6 @@
         if (val.includes('3.7')) {
           badge.innerText = "3.7 Ultra";
           badge.className = "text-[10px] bg-amber-300 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm";
-        } else if (val.includes('3.6') || val.includes('3.5')) {
-          badge.innerText = "3.x Fast";
-          badge.className = "text-[10px] bg-blue-200 text-blue-900 font-semibold px-1.5 py-0.5 rounded";
         } else if (val.includes('pro')) {
           badge.innerText = "Pro Logic";
           badge.className = "text-[10px] bg-rose-200 text-rose-900 font-semibold px-1.5 py-0.5 rounded";
@@ -861,7 +872,7 @@
       if (gr == 7) {
         document.getElementById('matrixSpecInput').value = "- Phần I (4 câu trắc nghiệm): Khái niệm số hữu tỉ, số đối, lũy thừa, giá trị tuyệt đối.\n- Phần II (1 câu Đúng/Sai): Biểu thức số hữu tỉ và điều kiện.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Tính hợp lý giá trị biểu thức; Bài 2 (1.5đ) Tìm số hữu tỉ x.";
       } else {
-        document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): Khử mẫu biểu thức lấy căn, rút gọn biểu thức chứa căn.\n- Phần II (1 câu Đúng/Sai): Biểu thức chứa căn thức bậc hai, tìm ĐKXĐ và rút gọn.\n- Phần III (2 câu tự luận): Bài 1 (1.5đ) Giải phương trình chứa căn; Bài 2 (1.5đ) Tìm x nguyên để biểu thức đạt giá trị nguyên.";
+        document.getElementById('matrixSpecInput').value = "- Phần I (4 câu): Căn bậc hai số học, vị trí tương đối đường tròn.\n- Phần II (1 câu Đúng/Sai): Tam giác vuông nội tiếp đường tròn.\n- Phần III (2 bài tự luận): Bài 1 (1.5đ) Chứng minh tiếp tuyến hình học; Bài 2 (1.5đ) Rút gọn căn thức.";
       }
     }
 
@@ -870,7 +881,7 @@
       if (gr == 7) {
         document.getElementById('sourceNotesInput').value = "Thực hiện phép tính: $\\frac{5}{11} \\cdot \\frac{-3}{7} + \\frac{5}{11} \\cdot \\frac{-4}{7} + 1\\frac{5}{11}$. Tìm x biết $\\frac{3}{4} - (x + \\frac{1}{2}) = \\frac{4}{5}$.";
       } else {
-        document.getElementById('sourceNotesInput').value = "Cho biểu thức $P = \\left(\\frac{\\sqrt{x}}{\\sqrt{x}-1} - \\frac{1}{x-\\sqrt{x}}\\right) : \\frac{\\sqrt{x}+1}{\\sqrt{x}-1}$. Giải phương trình $\\sqrt{4x-20} - 3\\sqrt{\\frac{x-5}{9}} = 4$.";
+        document.getElementById('sourceNotesInput').value = "Cho đường tròn $(O; R)$ và điểm $A$ nằm ngoài đường tròn. Từ $A$ kẻ hai tiếp tuyến $AB, AC$ với đường tròn. Chứng minh rằng $OA \\perp BC$.";
       }
     }
 
@@ -889,7 +900,6 @@
       let matrixSpec = document.getElementById('matrixSpecInput')?.value.trim() || null;
       let sourceNotes = document.getElementById('sourceNotesInput')?.value.trim() || null;
 
-      // Nhận diện chủ đề thông minh từ mọi tab
       if (activeTab === 'quick') {
         topic = document.getElementById('topicSelect').value;
         if (topic === 'custom') {
@@ -1030,7 +1040,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI VỚI BẢNG 4 CỘT CĂN ĐỀU CHO PHẦN I
+    // RENDER ĐỀ THI VỚI BẢNG 4 CỘT CĂN ĐỀU VÀ TIKZJAX VECTOR CHO HÌNH HỌC
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1061,6 +1071,7 @@
           return `
             <div class="space-y-1.5 p-2 rounded">
               <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
+              ${formatTikzHtml(q.tikz_code)}
               <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
                 <tr>
                   <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
@@ -1105,6 +1116,7 @@
           return `
             <div class="space-y-2 p-2 rounded">
               <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
+              ${formatTikzHtml(q.tikz_code)}
               <div class="pl-2 sm:pl-4 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
                   const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
@@ -1140,6 +1152,7 @@
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
               <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
+              ${formatTikzHtml(q.tikz_code)}
               <math-field id="mathMf_${idx}"></math-field>
             </div>
           `;
@@ -1182,6 +1195,7 @@
           return `
             <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
               <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> Bài ${idx + 1} (${q.points || 1.5} điểm):</p>
+              ${formatTikzHtml(q.solution_tikz)}
               <div class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải chi tiết:</strong><br/>${sol}</div>
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
@@ -1223,6 +1237,13 @@
           <div class="space-y-2"><h4 class="font-bold text-xs uppercase text-slate-700">Hướng dẫn chấm Phần III (Tự luận & Barem điểm):</h4>${essaySolutionsHtml}</div>
         `;
       }
+
+      // Kích hoạt TikZJax WebAssembly biên dịch toàn bộ script tikz vừa chèn
+      setTimeout(() => {
+        if (window.tikzjax && typeof window.tikzjax.process === 'function') {
+          window.tikzjax.process();
+        }
+      }, 50);
     }
 
     // =========================================================================
