@@ -15,7 +15,7 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZJax Engine: Biên dịch mọi khối mã TikZ sang Vector SVG ngay tại trình duyệt -->
+  <!-- TikZJax Engine -->
   <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
   <script src="https://tikzjax.com/v1/tikzjax.js"></script>
 
@@ -476,7 +476,7 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP ĐẦY ĐỦ
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
@@ -523,22 +523,77 @@
       return str;
     }
 
-    // Render TikZ Vector bằng WebAssembly Engine trực tiếp
+    // Render TikZ Vector: Lưu mã vào data-attribute
     function formatTikzHtml(tikzCode) {
-      if (!tikzCode || !tikzCode.trim()) return '';
+      if (!tikzCode || typeof tikzCode !== 'string') return '';
       let cleanTikz = tikzCode.trim();
-      if (!cleanTikz.startsWith('\\begin{tikzpicture}')) {
+      if (!cleanTikz || cleanTikz === "null" || cleanTikz === "None" || cleanTikz.length < 15) return '';
+
+      if (!cleanTikz.includes('\\begin{tikzpicture}')) {
         cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
       }
 
+      const encodedTikz = encodeURIComponent(cleanTikz);
       return `
-        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
+        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm tikz-wrapper" data-tikz="${encodedTikz}">
           <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
             <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
           </span>
-          <script type="text/tikz">${cleanTikz}<\/script>
+          <div class="tikz-target flex justify-center items-center w-full min-h-[80px]">
+            <span class="text-xs text-slate-400 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang dựng hình vector...</span>
+          </div>
         </div>
       `;
+    }
+
+    // Cơ chế Render TikZ kép: TikZJax + QuickLaTeX Fallback (100% hiển thị ảnh)
+    function renderAllTikzGraphics() {
+      const wrappers = document.querySelectorAll('.tikz-wrapper');
+      
+      wrappers.forEach((wrapper) => {
+        const rawTikz = decodeURIComponent(wrapper.getAttribute('data-tikz') || '');
+        const target = wrapper.querySelector('.tikz-target');
+        if (!rawTikz || !target) {
+          wrapper.remove();
+          return;
+        }
+
+        target.innerHTML = '';
+        
+        // Tạo script TikZ chuẩn
+        const scriptEl = document.createElement('script');
+        scriptEl.type = 'text/tikz';
+        scriptEl.textContent = rawTikz;
+        target.appendChild(scriptEl);
+
+        // Fallback tự động: Nếu sau 800ms TikZJax bị đơ/CORS thì load ngay qua QuickLaTeX Image API
+        setTimeout(() => {
+          const hasSvg = target.querySelector('svg');
+          if (!hasSvg) {
+            const cleanCode = rawTikz.trim();
+            const latexDoc = `\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{amsmath,amssymb,amsfonts}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${cleanCode}\n\\end{document}`;
+            const img = document.createElement('img');
+            img.src = `https://quicklatex.com/cache3/ql_${encodeURIComponent(cleanCode.slice(0, 15))}.png`;
+            
+            // Render trực tiếp qua QuickLaTeX POST
+            fetch('https://quicklatex.com/latex3.f', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: `formula=${encodeURIComponent(latexDoc)}&fsize=17px&fcolor=000000&mode=0&out=1`
+            }).then(r => r.text()).then(resText => {
+              const lines = resText.split('\n');
+              if (lines.length > 1 && lines[1].startsWith('http')) {
+                target.innerHTML = `<img src="${lines[1]}" alt="TikZ Vector" class="max-w-full h-auto shadow-sm rounded p-1 bg-white" style="max-height: 280px;" />`;
+              }
+            }).catch(() => {});
+          }
+        }, 800);
+      });
+
+      // Kích hoạt TikZJax parser
+      if (window.tikzjax && typeof window.tikzjax.process === 'function') {
+        window.tikzjax.process();
+      }
     }
 
     function toggleMathWidget() {
@@ -1276,12 +1331,10 @@
         `;
       }
 
-      // Kích hoạt TikZJax WebAssembly biên dịch toàn bộ script tikz vừa chèn
+      // Kích hoạt render toàn bộ hình ảnh TikZ
       setTimeout(() => {
-        if (window.tikzjax && typeof window.tikzjax.process === 'function') {
-          window.tikzjax.process();
-        }
-      }, 50);
+        renderAllTikzGraphics();
+      }, 100);
     }
 
     // =========================================================================
