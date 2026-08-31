@@ -15,10 +15,6 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZJax Engine -->
-  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
-
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -67,7 +63,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình TikZ Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình Trực Quan</p>
       </div>
     </div>
     
@@ -311,7 +307,7 @@
       <div class="pt-1 mt-auto">
         <button onclick="triggerGenerate()" id="btnGenerate" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-md shadow transition flex items-center justify-center gap-2 text-sm cursor-pointer">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span id="btnGenerateText">AI Tổng Hợp &amp; Sinh Đề</span>
+          <span id="btnGenerateText">AI Tổng Hợp &amp; Sinh Đề (Kèm Ảnh Trực Quan)</span>
         </button>
       </div>
     </aside>
@@ -476,7 +472,7 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP
+    // BỘ BIÊN DỊCH KATEX TRỰC TIẾP
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
@@ -523,77 +519,23 @@
       return str;
     }
 
-    // Render TikZ Vector: Lưu mã vào data-attribute
-    function formatTikzHtml(tikzCode) {
-      if (!tikzCode || typeof tikzCode !== 'string') return '';
-      let cleanTikz = tikzCode.trim();
-      if (!cleanTikz || cleanTikz === "null" || cleanTikz === "None" || cleanTikz.length < 15) return '';
+    // Hiển thị ảnh minh họa trực tiếp từ Google Drive do Backend Python tạo sẵn
+    function formatTikzHtml(imageUrlOrTikz) {
+      if (!imageUrlOrTikz || typeof imageUrlOrTikz !== 'string') return '';
+      const val = imageUrlOrTikz.trim();
+      if (!val || val === "null" || val === "None") return '';
 
-      if (!cleanTikz.includes('\\begin{tikzpicture}')) {
-        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
-      }
-
-      const encodedTikz = encodeURIComponent(cleanTikz);
-      return `
-        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm tikz-wrapper" data-tikz="${encodedTikz}">
-          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
-            <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
-          </span>
-          <div class="tikz-target flex justify-center items-center w-full min-h-[80px]">
-            <span class="text-xs text-slate-400 italic"><i class="fa-solid fa-spinner fa-spin"></i> Đang dựng hình vector...</span>
+      if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
+        return `
+          <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
+            <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa (Vector / Drive):
+            </span>
+            <img src="${val}" alt="Hình vẽ minh họa đề thi" class="max-w-full h-auto object-contain bg-white p-1 rounded" style="max-height: 280px;" />
           </div>
-        </div>
-      `;
-    }
-
-    // Cơ chế Render TikZ kép: TikZJax + QuickLaTeX Fallback (100% hiển thị ảnh)
-    function renderAllTikzGraphics() {
-      const wrappers = document.querySelectorAll('.tikz-wrapper');
-      
-      wrappers.forEach((wrapper) => {
-        const rawTikz = decodeURIComponent(wrapper.getAttribute('data-tikz') || '');
-        const target = wrapper.querySelector('.tikz-target');
-        if (!rawTikz || !target) {
-          wrapper.remove();
-          return;
-        }
-
-        target.innerHTML = '';
-        
-        // Tạo script TikZ chuẩn
-        const scriptEl = document.createElement('script');
-        scriptEl.type = 'text/tikz';
-        scriptEl.textContent = rawTikz;
-        target.appendChild(scriptEl);
-
-        // Fallback tự động: Nếu sau 800ms TikZJax bị đơ/CORS thì load ngay qua QuickLaTeX Image API
-        setTimeout(() => {
-          const hasSvg = target.querySelector('svg');
-          if (!hasSvg) {
-            const cleanCode = rawTikz.trim();
-            const latexDoc = `\\documentclass[tikz,border=2pt]{standalone}\n\\usepackage{amsmath,amssymb,amsfonts}\n\\usepackage{pgfplots}\n\\pgfplotsset{compat=1.18}\n\\begin{document}\n${cleanCode}\n\\end{document}`;
-            const img = document.createElement('img');
-            img.src = `https://quicklatex.com/cache3/ql_${encodeURIComponent(cleanCode.slice(0, 15))}.png`;
-            
-            // Render trực tiếp qua QuickLaTeX POST
-            fetch('https://quicklatex.com/latex3.f', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: `formula=${encodeURIComponent(latexDoc)}&fsize=17px&fcolor=000000&mode=0&out=1`
-            }).then(r => r.text()).then(resText => {
-              const lines = resText.split('\n');
-              if (lines.length > 1 && lines[1].startsWith('http')) {
-                target.innerHTML = `<img src="${lines[1]}" alt="TikZ Vector" class="max-w-full h-auto shadow-sm rounded p-1 bg-white" style="max-height: 280px;" />`;
-              }
-            }).catch(() => {});
-          }
-        }, 800);
-      });
-
-      // Kích hoạt TikZJax parser
-      if (window.tikzjax && typeof window.tikzjax.process === 'function') {
-        window.tikzjax.process();
+        `;
       }
+      return '';
     }
 
     function toggleMathWidget() {
@@ -1025,7 +967,7 @@
           : topicEl.value;
       }
 
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang dựng hình & Biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
       btn.disabled = true;
 
       try {
@@ -1070,7 +1012,7 @@
         console.error(err);
         alert('Lỗi kết nối Backend: ' + err.message);
       } finally {
-        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề (Kèm Ảnh Trực Quan)</span>`;
         btn.disabled = false;
       }
     }
@@ -1175,7 +1117,7 @@
             return `
               <div class="space-y-1.5 p-2 rounded bg-slate-50/50">
                 <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-                ${formatTikzHtml(q.tikz_code)}
+                ${formatTikzHtml(q.image_url || q.tikz_code)}
                 <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
                   <tr>
                     <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
@@ -1224,7 +1166,7 @@
             return `
               <div class="space-y-2 p-2 rounded bg-slate-50/50">
                 <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
-                ${formatTikzHtml(q.tikz_code)}
+                ${formatTikzHtml(q.image_url || q.tikz_code)}
                 <div class="pl-2 sm:pl-4 space-y-1.5">
                   ${['a', 'b', 'c', 'd'].map(k => {
                     const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
@@ -1266,7 +1208,7 @@
             return `
               <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
                 <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
-                ${formatTikzHtml(q.tikz_code)}
+                ${formatTikzHtml(q.image_url || q.tikz_code)}
                 ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
               </div>
             `;
@@ -1311,7 +1253,7 @@
           return `
             <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
               <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> ${currentLevel === 'thpt' ? 'Câu' : 'Bài'} ${idx + 1} (${q.points || (currentLevel === 'thpt' ? 0.5 : 1.5)} điểm):</p>
-              ${formatTikzHtml(q.solution_tikz)}
+              ${formatTikzHtml(q.solution_image_url || q.solution_tikz)}
               <div class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải / Đáp số:</strong><br/>${sol}</div>
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
@@ -1330,11 +1272,6 @@
           <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
       }
-
-      // Kích hoạt render toàn bộ hình ảnh TikZ
-      setTimeout(() => {
-        renderAllTikzGraphics();
-      }, 100);
     }
 
     // =========================================================================
