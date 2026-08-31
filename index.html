@@ -520,14 +520,14 @@
     }
 
     // =========================================================================
-    // HÀM HIỂN THỊ HÌNH VẼ 3 LỚP (DRIVE / DATA URI / KROKI FALLBACK)
+    // HÀM HIỂN THỊ HÌNH VẼ ĐA NĂNG
     // =========================================================================
     function formatTikzHtml(imageSource) {
       if (!imageSource || typeof imageSource !== 'string') return '';
       const val = imageSource.trim();
       if (!val || val === "null" || val === "None" || val.length < 5) return '';
 
-      // 1. Nếu là URL ảnh Google Drive hoặc chuỗi Data URI SVG do backend Python trả về
+      // 1. Nếu là URL ảnh Google Drive hoặc chuỗi Data URI SVG
       if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
         return `
           <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
@@ -539,7 +539,7 @@
         `;
       }
 
-      // 2. Nếu là chuỗi mã TikZ thô (Frontend tự động gọi Kroki Engine)
+      // 2. Nếu là chuỗi mã TikZ thô
       const containerId = 'tikz_box_' + Math.random().toString(36).substring(2, 9);
       let cleanTikz = val;
       if (!cleanTikz.includes('\\begin{tikzpicture}')) {
@@ -549,7 +549,7 @@
       setTimeout(() => {
         fetch('https://kroki.io/tikz/svg', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
           body: cleanTikz
         })
         .then(res => {
