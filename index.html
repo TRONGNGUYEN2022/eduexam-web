@@ -132,7 +132,7 @@
           </div>
         </div>
 
-        <!-- Chọn Model Gemini (ĐẦY ĐỦ MODEL NHƯ BẢN GỐC) -->
+        <!-- Chọn Model Gemini -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <label class="block font-bold text-slate-800 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
@@ -635,6 +635,45 @@
       }
     }
 
+    const LEVEL_CONFIGS = {
+      tieuhoc: {
+        name: "Tiểu học",
+        grades: [1, 2, 3, 4, 5],
+        subjects: ["Toán học", "Tiếng Việt", "Tự nhiên và Xã hội", "Khoa học", "Lịch sử và Địa lí", "Tin học", "Tiếng Anh"],
+        schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT (QUẬN 3)", "TRƯỜNG TIỂU HỌC NGUYỄN BỈNH KHIÊM (QUẬN 1)", "TRƯỜNG TIỂU HỌC HỒNG ĐÀO (QUẬN TÂN BÌNH)"],
+        depts: ["TỔ KHỐI 1", "TỔ KHỐI 2", "TỔ KHỐI 3", "TỔ KHỐI 4", "TỔ KHỐI 5"]
+      },
+      thcs: {
+        name: "THCS",
+        grades: [6, 7, 8, 9],
+        subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Lịch sử và Địa lí", "Tiếng Anh", "Tin học", "Giáo dục công dân"],
+        schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)", "TRƯỜNG THCS NGUYỄN DU (QUẬN 1)", "TRƯỜNG THCS TRẦN ĐẠI NGHĨA (TP. THỦ ĐỨC)"],
+        depts: ["TỔ KHOA HỌC TỰ NHIÊN", "TỔ TOÁN - TIN HỌC", "TỔ KHOA HỌC XÃ HỘI", "TỔ NGỮ VĂN"]
+      },
+      thpt: {
+        name: "THPT",
+        grades: [10, 11, 12],
+        subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Lịch sử", "Địa lí", "Tin học", "Tiếng Anh"],
+        schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG", "TRƯỜNG THPT NGUYỄN THỊ MINH KHAI", "TRƯỜNG THPT BÙI THỊ XUÂN"],
+        depts: ["TỔ TOÁN HỌC", "TỔ VẬT LÍ", "TỔ HÓA HỌC", "TỔ NGỮ VĂN", "TỔ TIẾNG ANH"]
+      }
+    };
+
+    const CURRICULUM_TOPICS = {
+      "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Hình phẳng và Đo độ dài"],
+      "Toán học_2": ["Phép cộng, phép trừ có nhớ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan"],
+      "Toán học_3": ["Bảng nhân, bảng chia từ 6 đến 9", "Các số trong phạm vi 10 000, 100 000", "Diện tích hình chữ nhật, hình vuông"],
+      "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi"],
+      "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn"],
+      "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường"],
+      "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Lăng trụ)", "Biểu thức đại số"],
+      "Toán học_8": ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác", "Định lý Thalès và Tam giác đồng dạng"],
+      "Toán học_9": ["Căn bậc hai, Căn bậc ba", "Hệ hai phương trình bậc nhất hai ẩn", "Phương trình bậc hai và Định lý Viète", "Đường tròn và Góc"],
+      "Toán học_10": ["Mệnh đề và Tập hợp", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ"],
+      "Toán học_11": ["Hàm số lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Quan hệ vuông góc trong không gian", "Xác suất"],
+      "Toán học_12": ["Khảo sát sự biến thiên và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức"]
+    };
+
     function updateTopicList() {
       const subject = document.getElementById('subject').value;
       const grade = document.getElementById('grade').value;
@@ -690,7 +729,7 @@
     }
 
     // =========================================================================
-    // GOOGLE DRIVE API INTEGRATION & FILE UPLOAD
+    // GOOGLE DRIVE API INTEGRATION & FILE UPLOAD BASE64
     // =========================================================================
     async function fetchDriveFiles() {
       const grade = parseInt(document.getElementById('grade').value) || 1;
@@ -746,29 +785,35 @@
       const file = event.target.files[0];
       if (!file) return;
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("level", currentLevel);
-      formData.append("grade", document.getElementById('grade').value);
-      formData.append("subject", document.getElementById('subject').value);
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/drive/upload`, {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (data.status === 'success') {
-          switchTab('notebook');
-          document.getElementById('sourceNotesInput').value = `[TÀI LIỆU VỪA TẢI LÊN: ${file.name}]\n` + data.content;
-          alert(`Đã tải lên và nạp thành công tài liệu "${file.name}" vào Notebook!`);
-          fetchDriveFiles();
-        } else {
-          alert("Lỗi tải lên tài liệu.");
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/drive/upload`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              base64_content: base64Data,
+              level: currentLevel,
+              grade: document.getElementById('grade').value,
+              subject: document.getElementById('subject').value
+            })
+          });
+          const data = await res.json();
+          if (data.status === 'success') {
+            switchTab('notebook');
+            document.getElementById('sourceNotesInput').value = `[TÀI LIỆU VỪA TẢI LÊN: ${file.name}]\n` + data.content;
+            alert(`Đã tải lên và nạp thành công tài liệu "${file.name}" vào Notebook!`);
+            fetchDriveFiles();
+          } else {
+            alert("Lỗi tải lên tài liệu.");
+          }
+        } catch (err) {
+          alert("Lỗi kết nối: " + err.message);
         }
-      } catch (e) {
-        alert("Lỗi kết nối: " + e.message);
-      }
+      };
+      reader.readAsDataURL(file);
     }
 
     function fillSampleMatrix() {
