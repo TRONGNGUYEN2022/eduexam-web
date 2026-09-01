@@ -15,10 +15,6 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZJax Engine: Biên dịch mọi khối mã TikZ sang Vector SVG ngay tại trình duyệt -->
-  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
-
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -67,7 +63,7 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình TikZ Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV & Vẽ hình Trực Quan</p>
       </div>
     </div>
     
@@ -311,7 +307,7 @@
       <div class="pt-1 mt-auto">
         <button onclick="triggerGenerate()" id="btnGenerate" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-md shadow transition flex items-center justify-center gap-2 text-sm cursor-pointer">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span id="btnGenerateText">AI Tổng Hợp &amp; Sinh Đề</span>
+          <span id="btnGenerateText">AI Tổng Hợp &amp; Sinh Đề (Kèm Ảnh Trực Quan)</span>
         </button>
       </div>
     </aside>
@@ -476,13 +472,16 @@
     });
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP ĐẦY ĐỦ
+    // BỘ BIÊN DỊCH KATEX & CHUẨN HÓA TIẾNG VIỆT
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
-      let str = String(raw);
+      let str = String(raw).normalize('NFC');
 
+      str = str.replace(/\\newline/g, '<br/>');
+      str = str.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
+
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*([0-9a-zA-Z])/g, '\\frac{$1}{$2}');
 
@@ -506,39 +505,59 @@
         try { return katex.renderToString(`\\sqrt{${body}}`, { throwOnError: false }); } catch(e){ return m; }
       });
 
-      const symbolMap = {
-        '\\\\ge': '≥', '\\\\le': '≤', '\\\\neq': '≠', '\\\\ne': '≠', '\\\\pm': '±', '\\\\mp': '∓',
-        '\\\\cdot': '·', '\\\\times': '×', '\\\\div': '÷', '\\\\approx': '≈', '\\\\equiv': '≡',
-        '\\\\infty': '∞', '\\\\in': '∈', '\\\\notin': '∉', '\\\\subset': '⊂', '\\\\supset': '⊃',
-        '\\\\cap': '∩', '\\\\cup': '∪', '\\\\alpha': 'α', '\\\\beta': 'β', '\\\\theta': 'θ',
-        '\\\\pi': 'π', '\\\\Delta': 'Δ', '\\\\implies': '⟹', '\\\\iff': '⟺', '\\\\Leftrightarrow': '⟺',
-        '\\\\Rightarrow': '⟹', '\\\\angle': '∠'
-      };
-
-      for (let k in symbolMap) {
-        const reg = new RegExp(k + '(?![a-zA-Z])', 'g');
-        str = str.replace(reg, symbolMap[k]);
-      }
-
       return str;
     }
 
-    // Render TikZ Vector bằng WebAssembly Engine trực tiếp
-    function formatTikzHtml(tikzCode) {
-      if (!tikzCode || !tikzCode.trim()) return '';
-      let cleanTikz = tikzCode.trim();
-      if (!cleanTikz.startsWith('\\begin{tikzpicture}')) {
-        cleanTikz = `\\begin{tikzpicture}\n${cleanTikz}\n\\end{tikzpicture}`;
+    // =========================================================================
+    // HÀM HIỂN THỊ HÌNH VẼ & QUÉT TIKZ ẨN TRONG VĂN BẢN
+    // =========================================================================
+    function formatTextWithTikz(text) {
+      if (!text) return '';
+      let cleanText = cleanLatexMath(text);
+
+      const tikzRegex = /(\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\})/g;
+      if (tikzRegex.test(cleanText)) {
+        cleanText = cleanText.replace(tikzRegex, (match) => {
+          const containerId = 'tikz_inline_' + Math.random().toString(36).substring(2, 9);
+          setTimeout(() => {
+            fetch('https://kroki.io/tikz/svg', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+              body: match
+            })
+            .then(res => res.ok ? res.text() : Promise.reject())
+            .then(svg => {
+              const el = document.getElementById(containerId);
+              if (el) el.innerHTML = svg;
+            })
+            .catch(() => {
+              const el = document.getElementById(containerId);
+              if (el) el.innerHTML = `<span class="text-xs text-rose-500">[Không thể render hình vẽ TikZ]</span>`;
+            });
+          }, 50);
+          return `<div id="${containerId}" class="my-2 flex justify-center items-center overflow-x-auto"><span class="text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Đang dựng hình vẽ...</span></div>`;
+        });
+      }
+      return cleanText;
+    }
+
+    function formatTikzHtml(imageSource) {
+      if (!imageSource || typeof imageSource !== 'string') return '';
+      const val = imageSource.trim();
+      if (!val || val === "null" || val === "None" || val.length < 5) return '';
+
+      if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
+        return `
+          <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm max-w-lg mx-auto">
+            <span class="text-[11px] font-sans font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
+              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa:
+            </span>
+            <img src="${val}" alt="Hình minh họa đề thi" class="max-w-full h-auto object-contain bg-white p-1 rounded" style="max-height: 280px;" />
+          </div>
+        `;
       }
 
-      return `
-        <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm">
-          <span class="text-[11px] font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
-            <i class="fa-solid fa-draw-polygon text-indigo-600"></i> Hình vẽ minh họa (TikZ Vector):
-          </span>
-          <script type="text/tikz">${cleanTikz}<\/script>
-        </div>
-      `;
+      return formatTextWithTikz(val);
     }
 
     function toggleMathWidget() {
@@ -970,7 +989,7 @@
           : topicEl.value;
       }
 
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang dựng hình & Biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
       btn.disabled = true;
 
       try {
@@ -1015,7 +1034,7 @@
         console.error(err);
         alert('Lỗi kết nối Backend: ' + err.message);
       } finally {
-        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp & Sinh Đề (Kèm Ảnh Trực Quan)</span>`;
         btn.disabled = false;
       }
     }
@@ -1099,28 +1118,28 @@
       if (part1Container) {
         if (p1List.length > 0) {
           part1Container.innerHTML = p1List.map((q, idx) => {
-            const qText = cleanLatexMath(q.content || q.question_text || q.question || '');
+            const qText = formatTextWithTikz(q.content || q.question_text || q.question || '');
             let optsDict = { 'A': '', 'B': '', 'C': '', 'D': '' };
             
             if (Array.isArray(q.options)) {
               q.options.forEach((o, i) => {
                 const label = ['A', 'B', 'C', 'D'][i] || 'A';
                 if (typeof o === 'object' && o !== null) {
-                  optsDict[o.id || label] = cleanLatexMath(o.text || o.content || '');
+                  optsDict[o.id || label] = formatTextWithTikz(o.text || o.content || '');
                 } else {
-                  optsDict[label] = cleanLatexMath(String(o));
+                  optsDict[label] = formatTextWithTikz(String(o));
                 }
               });
             } else if (typeof q.options === 'object' && q.options !== null) {
               ['A', 'B', 'C', 'D'].forEach(k => {
-                optsDict[k] = cleanLatexMath(q.options[k] || q.options[k.toLowerCase()] || '');
+                optsDict[k] = formatTextWithTikz(q.options[k] || q.options[k.toLowerCase()] || '');
               });
             }
 
             return `
               <div class="space-y-1.5 p-2 rounded bg-slate-50/50">
                 <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-                ${formatTikzHtml(q.tikz_code)}
+                ${formatTikzHtml(q.image_url || q.tikz_code)}
                 <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
                   <tr>
                     <td style="width: 25%; vertical-align: top; border: none; padding: 2px 4px;">
@@ -1163,16 +1182,16 @@
       if (part2Container) {
         if (p2List.length > 0) {
           part2Container.innerHTML = p2List.map((q, idx) => {
-            const prompt = cleanLatexMath(q.prompt || q.content || q.question_text || '');
+            const prompt = formatTextWithTikz(q.prompt || q.content || q.question_text || '');
             const st = q.statements || {};
 
             return `
               <div class="space-y-2 p-2 rounded bg-slate-50/50">
                 <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
-                ${formatTikzHtml(q.tikz_code)}
+                ${formatTikzHtml(q.image_url || q.tikz_code)}
                 <div class="pl-2 sm:pl-4 space-y-1.5">
                   ${['a', 'b', 'c', 'd'].map(k => {
-                    const val = cleanLatexMath(st[k] || st[k.toUpperCase()] || '');
+                    const val = formatTextWithTikz(st[k] || st[k.toUpperCase()] || '');
                     if (!val) return '';
                     return `
                       <div class="flex flex-wrap items-center justify-between p-1.5 bg-white rounded border border-slate-200 gap-2">
@@ -1206,12 +1225,12 @@
         if (p3List.length > 0) {
           const isShortAns = currentLevel === 'thpt';
           part3Container.innerHTML = p3List.map((q, idx) => {
-            const qText = cleanLatexMath(q.content || q.question_text || '');
+            const qText = formatTextWithTikz(q.content || q.question_text || '');
             const pts = q.points || (isShortAns ? 0.5 : 1.5);
             return `
               <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
                 <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
-                ${formatTikzHtml(q.tikz_code)}
+                ${formatTikzHtml(q.image_url || q.tikz_code)}
                 ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
               </div>
             `;
@@ -1221,24 +1240,26 @@
         }
       }
 
-      // 4. Ma trận 4 mã đề
+      // 4. Ma trận 4 mã đề hiển thị hàng ngang
       if (matrix && Object.keys(matrix).length > 0) {
         const tbody = document.getElementById('matrixTableBody');
         if (tbody) {
-          const totalQ = p1List.length > 0 ? p1List.length : 4;
+          const codes = ['101', '102', '103', '104'];
+          const sampleCode = codes.find(c => matrix[c]) || '101';
+          const qKeys = Object.keys(matrix[sampleCode] || {});
+          
           let html = '';
-          for (let i = 1; i <= totalQ; i++) {
-            const qKey = `Câu ${i}`;
+          qKeys.forEach((qk, idx) => {
             html += `
-              <tr class="${i % 2 === 1 ? 'bg-slate-50' : ''}">
-                <td class="border border-slate-400 font-bold p-1" style="border: 1px solid #64748b;">${qKey}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['101']?.[qKey] || '-'}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['102']?.[qKey] || '-'}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['103']?.[qKey] || '-'}</td>
-                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['104']?.[qKey] || '-'}</td>
+              <tr class="${idx % 2 === 1 ? 'bg-slate-50' : ''}">
+                <td class="border border-slate-400 font-bold p-1" style="border: 1px solid #64748b;">${qk}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['101']?.[qk] || '-'}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['102']?.[qk] || '-'}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['103']?.[qk] || '-'}</td>
+                <td class="border border-slate-400 font-semibold" style="border: 1px solid #64748b;">${matrix['104']?.[qk] || '-'}</td>
               </tr>
             `;
-          }
+          });
           tbody.innerHTML = html;
         }
       }
@@ -1247,7 +1268,7 @@
       const answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer && p3List.length > 0) {
         const essaySolutionsHtml = p3List.map((q, idx) => {
-          const sol = cleanLatexMath(q.solution || q.answer || 'Học sinh thực hiện phép tính đúng để đạt điểm tối đa.');
+          const sol = formatTextWithTikz(q.solution || q.answer || 'Học sinh thực hiện phép tính đúng để đạt điểm tối đa.');
           const guides = q.scoring_guide || q.guide || [
             { step: "Bước 1: Phép tính hoặc lập luận ban đầu", points: "0.75 đ" },
             { step: "Bước 2: Đáp số và đơn vị", points: "0.75 đ" }
@@ -1256,12 +1277,12 @@
           return `
             <div class="bg-emerald-50/70 border border-emerald-300 p-3 rounded text-xs space-y-2">
               <p class="font-bold text-emerald-900 text-sm"><i class="fa-solid fa-check-circle"></i> ${currentLevel === 'thpt' ? 'Câu' : 'Bài'} ${idx + 1} (${q.points || (currentLevel === 'thpt' ? 0.5 : 1.5)} điểm):</p>
-              ${formatTikzHtml(q.solution_tikz)}
+              ${formatTikzHtml(q.solution_image_url || q.solution_tikz)}
               <div class="text-slate-800 leading-relaxed font-medium"><strong>• Lời giải / Đáp số:</strong><br/>${sol}</div>
               <div class="mt-1 pt-1 border-t border-emerald-200">
                 <p class="font-semibold text-emerald-950 mb-1"><strong>• Barem thang điểm:</strong></p>
                 <div class="space-y-1 pl-2">
-                  ${guides.map(g => `<p class="text-slate-700">- ${cleanLatexMath(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.75 đ'})</strong></p>`).join('')}
+                  ${guides.map(g => `<p class="text-slate-700">- ${formatTextWithTikz(g.step || g.content || '')} <strong class="text-emerald-700">(${g.points || g.score || '0.75 đ'})</strong></p>`).join('')}
                 </div>
               </div>
             </div>
@@ -1275,13 +1296,6 @@
           <div class="space-y-2 mt-2">${essaySolutionsHtml}</div>
         `;
       }
-
-      // Kích hoạt TikZJax WebAssembly biên dịch toàn bộ script tikz vừa chèn
-      setTimeout(() => {
-        if (window.tikzjax && typeof window.tikzjax.process === 'function') {
-          window.tikzjax.process();
-        }
-      }, 50);
     }
 
     // =========================================================================
