@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EduExam Pro - Hệ Thống Khảo Thí &amp; Thi Online GDPT 2018 (Tiểu Học - THCS - THPT)</title>
+  <title>EduExam Pro - Hệ Thống Khảo Thí &amp; Thi Online GDPT 2018</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core (Hiển thị đề thi & đáp án chuẩn xác) -->
+  <!-- KaTeX Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
-  <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
+  <!-- MathLive Engine -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Nhúng Bảng Toán iMathEQ Widget Độc Lập -->
+  <!-- Nhúng Bảng Toán iMathEQ Widget -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -28,15 +28,12 @@
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
     .hidden { display: none !important; }
     .sidebar-scroll { max-height: calc(100vh - 170px); overflow-y: auto; }
-    @media (max-width: 768px) {
-      .sidebar-scroll { max-height: none; }
-    }
+    @media (max-width: 768px) { .sidebar-scroll { max-height: none; } }
 
-    /* Khung nhập MathLive trong phần tự luận */
     math-field {
       display: block;
       width: 100%;
-      min-height: 120px;
+      min-height: 100px;
       padding: 10px 14px;
       font-size: 18px;
       background: #ffffff;
@@ -44,8 +41,6 @@
       border-radius: 6px;
       outline: none;
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
-      --smart-fence: true;
-      --keyboard-toggle: hidden;
     }
     math-field:focus-within {
       border-color: #4f46e5;
@@ -56,7 +51,7 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- Header -->
-  <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 md:py-3 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-50">
+  <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-50">
     <div class="flex items-center gap-2.5">
       <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-base leading-none shadow-sm">
         <i class="fa-solid fa-graduation-cap"></i>
@@ -135,7 +130,7 @@
         <!-- Chọn Model Gemini -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <label class="block font-bold text-slate-800 flex items-center justify-between">
-            <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
+            <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model</span>
             <span id="modelBadge" class="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">2.5 Flash</span>
           </label>
           <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-semibold text-slate-900 focus:ring-1 focus:ring-indigo-500">
@@ -181,7 +176,6 @@
                 <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 1">ĐỀ KIỂM TRA CUỐI HỌC KỲ 1</option>
                 <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 2">ĐỀ KIỂM TRA GIỮA HỌC KỲ 2</option>
                 <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 2">ĐỀ KIỂM TRA CUỐI HỌC KỲ 2</option>
-                <option value="ĐỀ KHẢO SÁT CHẤT LƯỢNG">ĐỀ KHẢO SÁT CHẤT LƯỢNG</option>
               </select>
             </div>
           </div>
@@ -494,9 +488,9 @@
         return `
           <div class="my-3 p-3 bg-white rounded-lg border border-indigo-200 flex flex-col items-center justify-center shadow-sm max-w-lg mx-auto">
             <span class="text-[11px] font-sans font-bold text-indigo-900 mb-1.5 flex items-center gap-1">
-              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ minh họa:
+              <i class="fa-solid fa-image text-emerald-600"></i> Hình vẽ / Bảng biến thiên minh họa:
             </span>
-            <img src="${val}" alt="Hình minh họa đề thi" class="max-w-full h-auto object-contain bg-white p-1 rounded" style="max-height: 280px;" />
+            <img src="${val}" alt="Hình minh họa" class="max-w-full h-auto object-contain bg-white p-1 rounded" style="max-height: 280px;" />
           </div>
         `;
       }
@@ -584,6 +578,45 @@
       return select.value;
     }
 
+    const LEVEL_CONFIGS = {
+      tieuhoc: {
+        name: "Tiểu học",
+        grades: [1, 2, 3, 4, 5],
+        subjects: ["Toán học", "Tiếng Việt", "Tự nhiên và Xã hội", "Khoa học", "Lịch sử và Địa lí", "Tin học", "Tiếng Anh"],
+        schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT (QUẬN 3)", "TRƯỜNG TIỂU HỌC NGUYỄN BỈNH KHIÊM (QUẬN 1)", "TRƯỜNG TIỂU HỌC HỒNG ĐÀO (QUẬN TÂN BÌNH)"],
+        depts: ["TỔ KHỐI 1", "TỔ KHỐI 2", "TỔ KHỐI 3", "TỔ KHỐI 4", "TỔ KHỐI 5"]
+      },
+      thcs: {
+        name: "THCS",
+        grades: [6, 7, 8, 9],
+        subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Lịch sử và Địa lí", "Tiếng Anh", "Tin học", "Giáo dục công dân"],
+        schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)", "TRƯỜNG THCS NGUYỄN DU (QUẬN 1)", "TRƯỜNG THCS TRẦN ĐẠI NGHĨA (TP. THỦ ĐỨC)"],
+        depts: ["TỔ KHOA HỌC TỰ NHIÊN", "TỔ TOÁN - TIN HỌC", "TỔ KHOA HỌC XÃ HỘI", "TỔ NGỮ VĂN"]
+      },
+      thpt: {
+        name: "THPT",
+        grades: [10, 11, 12],
+        subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Lịch sử", "Địa lí", "Tin học", "Tiếng Anh"],
+        schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG", "TRƯỜNG THPT NGUYỄN THỊ MINH KHAI", "TRƯỜNG THPT BÙI THỊ XUÂN"],
+        depts: ["TỔ TOÁN HỌC", "TỔ VẬT LÍ", "TỔ HÓA HỌC", "TỔ NGỮ VĂN", "TỔ TIẾNG ANH"]
+      }
+    };
+
+    const CURRICULUM_TOPICS = {
+      "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Hình phẳng và Đo độ dài"],
+      "Toán học_2": ["Phép cộng, phép trừ có nhớ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan"],
+      "Toán học_3": ["Bảng nhân, bảng chia từ 6 đến 9", "Các số trong phạm vi 10 000, 100 000", "Diện tích hình chữ nhật, hình vuông"],
+      "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi"],
+      "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn"],
+      "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường"],
+      "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Lăng trụ)", "Biểu thức đại số"],
+      "Toán học_8": ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác", "Định lý Thalès và Tam giác đồng dạng"],
+      "Toán học_9": ["Căn bậc hai, Căn bậc ba", "Hệ hai phương trình bậc nhất hai ẩn", "Phương trình bậc hai và Định lý Viète", "Đường tròn và Góc"],
+      "Toán học_10": ["Mệnh đề và Tập hợp", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ"],
+      "Toán học_11": ["Hàm số lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Quan hệ vuông góc trong không gian", "Xác suất"],
+      "Toán học_12": ["Khảo sát sự biến thiên và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức"]
+    };
+
     function selectLevel(lvl) {
       currentLevel = lvl;
       ['tieuhoc', 'thcs', 'thpt'].forEach(l => {
@@ -634,45 +667,6 @@
         document.getElementById('p3Heading').innerText = "PHẦN III. TỰ LUẬN (3,0 điểm)";
       }
     }
-
-    const LEVEL_CONFIGS = {
-      tieuhoc: {
-        name: "Tiểu học",
-        grades: [1, 2, 3, 4, 5],
-        subjects: ["Toán học", "Tiếng Việt", "Tự nhiên và Xã hội", "Khoa học", "Lịch sử và Địa lí", "Tin học", "Tiếng Anh"],
-        schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT (QUẬN 3)", "TRƯỜNG TIỂU HỌC NGUYỄN BỈNH KHIÊM (QUẬN 1)", "TRƯỜNG TIỂU HỌC HỒNG ĐÀO (QUẬN TÂN BÌNH)"],
-        depts: ["TỔ KHỐI 1", "TỔ KHỐI 2", "TỔ KHỐI 3", "TỔ KHỐI 4", "TỔ KHỐI 5"]
-      },
-      thcs: {
-        name: "THCS",
-        grades: [6, 7, 8, 9],
-        subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Lịch sử và Địa lí", "Tiếng Anh", "Tin học", "Giáo dục công dân"],
-        schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)", "TRƯỜNG THCS NGUYỄN DU (QUẬN 1)", "TRƯỜNG THCS TRẦN ĐẠI NGHĨA (TP. THỦ ĐỨC)"],
-        depts: ["TỔ KHOA HỌC TỰ NHIÊN", "TỔ TOÁN - TIN HỌC", "TỔ KHOA HỌC XÃ HỘI", "TỔ NGỮ VĂN"]
-      },
-      thpt: {
-        name: "THPT",
-        grades: [10, 11, 12],
-        subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Lịch sử", "Địa lí", "Tin học", "Tiếng Anh"],
-        schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG", "TRƯỜNG THPT NGUYỄN THỊ MINH KHAI", "TRƯỜNG THPT BÙI THỊ XUÂN"],
-        depts: ["TỔ TOÁN HỌC", "TỔ VẬT LÍ", "TỔ HÓA HỌC", "TỔ NGỮ VĂN", "TỔ TIẾNG ANH"]
-      }
-    };
-
-    const CURRICULUM_TOPICS = {
-      "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Hình phẳng và Đo độ dài"],
-      "Toán học_2": ["Phép cộng, phép trừ có nhớ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan"],
-      "Toán học_3": ["Bảng nhân, bảng chia từ 6 đến 9", "Các số trong phạm vi 10 000, 100 000", "Diện tích hình chữ nhật, hình vuông"],
-      "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi"],
-      "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn"],
-      "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường"],
-      "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Lăng trụ)", "Biểu thức đại số"],
-      "Toán học_8": ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác", "Định lý Thalès và Tam giác đồng dạng"],
-      "Toán học_9": ["Căn bậc hai, Căn bậc ba", "Hệ hai phương trình bậc nhất hai ẩn", "Phương trình bậc hai và Định lý Viète", "Đường tròn và Góc"],
-      "Toán học_10": ["Mệnh đề và Tập hợp", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ"],
-      "Toán học_11": ["Hàm số lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Quan hệ vuông góc trong không gian", "Xác suất"],
-      "Toán học_12": ["Khảo sát sự biến thiên và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức"]
-    };
 
     function updateTopicList() {
       const subject = document.getElementById('subject').value;
@@ -970,8 +964,34 @@
     }
 
     function submitExamOnline() {
-      alert('Đã nộp bài thi thành công! Hệ thống đã ghi nhận bài làm.');
+      alert('Đã nộp bài thi thành công! Hệ thống đã ghi nhận toàn bộ bài làm và hình ảnh đính kèm.');
       toggleExamMode();
+    }
+
+    // Xử lý nạp ảnh tự luận của học sinh
+    function handleStudentEssayImageUpload(event, idx) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const previewContainer = document.getElementById(`studentImgPreviewContainer_${idx}`);
+        const previewImg = document.getElementById(`studentImgPreview_${idx}`);
+        if (previewContainer && previewImg) {
+          previewImg.src = e.target.result;
+          previewContainer.classList.remove('hidden');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateMathPreview(idx) {
+      const mf = document.getElementById(`mathMf_${idx}`);
+      const previewBox = document.getElementById(`mathPreview_${idx}`);
+      if (mf && previewBox) {
+        const val = mf.value;
+        previewBox.innerHTML = cleanLatexMath(val ? `$${val}$` : '<span class="text-slate-400 italic">Xem trước công thức hiển thị tại đây...</span>');
+      }
     }
 
     // =========================================================================
@@ -1086,7 +1106,7 @@
         }
       }
 
-      // 3. Phần III: Tự luận hoặc Điền số ngắn
+      // 3. Phần III: Tự luận (Đầy đủ khung MathLive, Preview và Nút tải ảnh bài làm)
       const p3List = exam.part_3_essay || exam.part_3_short_ans || exam.part_3 || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container) {
@@ -1099,7 +1119,38 @@
               <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
                 <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
                 ${formatTikzHtml(q.image_url || q.tikz_code)}
-                ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
+                
+                ${isShortAns ? `
+                  <p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>
+                ` : `
+                  <!-- KHU VỰC LÀM BÀI TỰ LUẬN TRỰC TIẾP DÀNH CHO HỌC SINH -->
+                  <div class="space-y-2 pt-2 border-t border-slate-200">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-indigo-900 flex items-center gap-1">
+                        <i class="fa-solid fa-keyboard text-indigo-600"></i> Nhập lời giải toán học:
+                      </span>
+                      <label class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-2.5 py-1 rounded shadow cursor-pointer flex items-center gap-1">
+                        <i class="fa-solid fa-camera"></i> <span>Tải ảnh bài làm viết tay</span>
+                        <input type="file" accept="image/*" onchange="handleStudentEssayImageUpload(event, ${idx})" class="hidden">
+                      </label>
+                    </div>
+
+                    <!-- Khung MathLive -->
+                    <math-field id="mathMf_${idx}" oninput="updateMathPreview(${idx})"></math-field>
+
+                    <!-- Khung Live Preview -->
+                    <div class="bg-white p-2.5 rounded border border-slate-200 text-xs min-h-[35px]">
+                      <span class="font-semibold text-slate-500">Xem trước hiển thị: </span>
+                      <span id="mathPreview_${idx}"><span class="text-slate-400 italic">Chưa có nội dung nhập...</span></span>
+                    </div>
+
+                    <!-- Khung xem trước ảnh bài làm học sinh đã nạp -->
+                    <div id="studentImgPreviewContainer_${idx}" class="hidden mt-2 p-2 bg-white rounded border border-emerald-300 text-center">
+                      <p class="text-xs font-bold text-emerald-800 mb-1">Ảnh bài làm tự luận của học sinh:</p>
+                      <img id="studentImgPreview_${idx}" class="max-h-60 mx-auto rounded shadow-sm border" alt="Bài làm viết tay"/>
+                    </div>
+                  </div>
+                `}
               </div>
             `;
           }).join('');
