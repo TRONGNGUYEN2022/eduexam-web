@@ -5,20 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam Pro - Hệ Thống Khảo Thí GDPT 2018</title>
   
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- KaTeX Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  
-  <!-- MathLive Engine -->
   <script defer src="https://unpkg.com/mathlive"></script>
-
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Nhúng Bảng Toán iMathEQ Widget -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -30,24 +21,13 @@
     .sidebar-scroll { max-height: calc(100vh - 170px); overflow-y: auto; }
     @media (max-width: 768px) { .sidebar-scroll { max-height: none; } }
 
-    /* MathLive gọn gàng để nhập đáp số / biểu thức tự luận */
     math-field {
-      display: block;
-      width: 100%;
-      min-height: 40px;
-      padding: 5px 8px;
-      font-size: 16px;
-      background: #ffffff;
-      border: 1.5px solid #94a3b8;
-      border-radius: 6px;
-      outline: none;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
-      --smart-fence: true;
-      --keyboard-toggle: hidden;
+      display: block; width: 100%; min-height: 40px; padding: 5px 8px; font-size: 16px;
+      background: #ffffff; border: 1.5px solid #94a3b8; border-radius: 6px; outline: none;
+      --smart-fence: true; --keyboard-toggle: hidden;
     }
     math-field:focus-within {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 2.5px rgba(79, 70, 229, 0.15);
+      border-color: #4f46e5; box-shadow: 0 0 0 2.5px rgba(79, 70, 229, 0.15);
     }
   </style>
 </head>
@@ -56,7 +36,7 @@
   <!-- Header -->
   <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-50">
     <div class="flex items-center gap-2.5">
-      <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-base leading-none shadow-sm">
+      <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-base shadow-sm">
         <i class="fa-solid fa-graduation-cap"></i>
       </div>
       <div>
@@ -66,6 +46,15 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+      <!-- Nút Tải Markdown và JSON -->
+      <button onclick="downloadExamMarkdown()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400" title="Lưu đề thi dạng Markdown">
+        <i class="fa-brands fa-markdown text-sky-400"></i> <span>Tải .md</span>
+      </button>
+
+      <button onclick="downloadExamJson()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400" title="Lưu cấu trúc dữ liệu JSON">
+        <i class="fa-solid fa-code text-amber-300"></i> <span>Tải .json</span>
+      </button>
+
       <button id="btnStudentLogin" onclick="openStudentLoginModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3.5 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-user-graduate"></i> <span id="btnLoginText">HS Vào Thi Online</span>
       </button>
@@ -73,9 +62,11 @@
       <button id="btnToggleToolbar" onclick="toggleMathWidget()" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Di Động</span>
       </button>
+      
       <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
-        <i class="fa-solid fa-copy"></i> <span>Sao chép dán Word</span>
+        <i class="fa-solid fa-copy"></i> <span>Sao chép Word</span>
       </button>
+      
       <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-slate-600">
         <i class="fa-solid fa-file-word text-amber-400"></i> <span>Tải .docx</span>
       </button>
@@ -103,13 +94,29 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- Ô CẤU HÌNH API KEY (Đầy đủ Lưu & Đổi) -->
-        <div class="bg-amber-50/80 p-2.5 rounded-lg border border-amber-300 space-y-1.5">
+        <!-- CÔNG TẮC CHỌN CHẾ ĐỘ: DÙNG AI HOẶC KHÔNG DÙNG AI -->
+        <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-300 space-y-1.5">
+          <label class="block font-bold text-indigo-950 text-xs flex justify-between items-center">
+            <span><i class="fa-solid fa-sliders"></i> Chế độ tạo đề:</span>
+            <span id="modeBadge" class="text-[10px] bg-indigo-600 text-white font-bold px-1.5 py-0.5 rounded">Dùng AI</span>
+          </label>
+          <div class="grid grid-cols-2 gap-1.5 text-center font-bold text-xs">
+            <button type="button" onclick="setGenerationMode('ai')" id="btnModeAi" class="py-1.5 rounded border border-indigo-600 bg-indigo-600 text-white shadow cursor-pointer">
+              <i class="fa-solid fa-robot"></i> Dùng AI Gemini
+            </button>
+            <button type="button" onclick="setGenerationMode('manual')" id="btnModeManual" class="py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 cursor-pointer">
+              <i class="fa-solid fa-database"></i> Không dùng AI
+            </button>
+          </div>
+        </div>
+
+        <!-- Ô CẤU HÌNH GEMINI API KEY -->
+        <div id="apiKeyWrapper" class="bg-amber-50/90 p-2.5 rounded-lg border-2 border-amber-400 space-y-1.5">
           <div class="flex items-center justify-between">
             <label class="block font-bold text-amber-950 flex items-center gap-1">
-              <i class="fa-solid fa-key text-amber-600"></i> Gemini API Key
+              <i class="fa-solid fa-key text-amber-600"></i> Gemini API Key:
             </label>
-            <span id="apiKeyBadge" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">Chưa lưu</span>
+            <span id="apiKeyBadge" class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">Chưa có Key</span>
           </div>
           <div class="flex items-center gap-1">
             <input type="password" id="apiKeyInput" placeholder="Dán khóa API (AIzaSy...)" class="flex-1 border border-amber-300 rounded p-1.5 bg-white text-xs font-mono outline-none">
@@ -128,19 +135,19 @@
         <!-- BỘ CHỌN CẤP HỌC MỤC TIÊU -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-indigo-950 flex items-center gap-1"><i class="fa-solid fa-school text-indigo-600"></i> Cấp học khảo thí:</span>
-            <span id="levelBadge" class="text-[10px] bg-indigo-200 text-indigo-900 font-bold px-1.5 py-0.5 rounded">THPT</span>
+            <span class="font-bold text-indigo-950 flex items-center gap-1"><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu:</span>
+            <span id="levelBadge" class="text-[10px] bg-indigo-200 text-indigo-900 font-bold px-1.5 py-0.5 rounded">THCS</span>
           </div>
           <div class="grid grid-cols-3 gap-1.5 text-center font-bold">
             <button type="button" onclick="selectLevel('tieuhoc')" id="btnLvlTieuhoc" class="py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-indigo-100 text-slate-700 transition cursor-pointer">Tiểu học</button>
-            <button type="button" onclick="selectLevel('thcs')" id="btnLvlThcs" class="py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-indigo-100 text-slate-700 transition cursor-pointer">THCS</button>
-            <button type="button" onclick="selectLevel('thpt')" id="btnLvlThpt" class="py-1.5 px-2 rounded border border-indigo-600 bg-indigo-600 text-white shadow transition cursor-pointer">THPT</button>
+            <button type="button" onclick="selectLevel('thcs')" id="btnLvlThcs" class="py-1.5 px-2 rounded border border-indigo-600 bg-indigo-600 text-white shadow transition cursor-pointer">THCS</button>
+            <button type="button" onclick="selectLevel('thpt')" id="btnLvlThpt" class="py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-indigo-100 text-slate-700 transition cursor-pointer">THPT</button>
           </div>
-          <p class="text-[10px] text-indigo-800 italic mt-1" id="levelSpecDesc">Chuẩn THPT: 12 MCQ (3đ) + 4 Đúng/Sai (4đ) + 6 Trả lời ngắn (3đ)</p>
+          <p class="text-[10px] text-indigo-800 italic mt-1" id="levelSpecDesc">Chuẩn THCS: 12 MCQ (3đ) + Tự luận toán thực tế & hình học (7đ)</p>
         </div>
 
-        <!-- Chọn Model Gemini đầy đủ -->
-        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
+        <!-- Chọn Model Gemini -->
+        <div id="modelSelectWrapper" class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <div class="flex items-center justify-between">
             <label class="block font-bold text-slate-800 flex items-center gap-1">
               <i class="fa-solid fa-microchip text-indigo-600"></i> AI Model:
@@ -148,59 +155,16 @@
             <span id="modelBadge" class="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded">2.5 Flash</span>
           </div>
           <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-semibold text-slate-900">
-            <optgroup label="⚡ Dòng Tiêu Chuẩn Ổn Định (Khuyên dùng)">
-              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh &amp; Ổn định nhất)</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu &amp; Barem chi tiết)</option>
+            <optgroup label="⚡ Dòng Tiêu Chuẩn (Khuyên dùng)">
+              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh &amp; Ổn định)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu)</option>
               <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
             </optgroup>
             <optgroup label="🚀 Dòng Mới (Gemini 3.x)">
               <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
               <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-              <option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
-            </optgroup>
-            <optgroup label="⚙️ Tùy biến">
-              <option value="__custom__">Nhập mã Model tùy chỉnh...</option>
             </optgroup>
           </select>
-          <div id="customModelBox" class="hidden pt-1">
-            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs">
-          </div>
-        </div>
-
-        <!-- Khối Trường / Đơn vị -->
-        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
-          <div>
-            <label class="block font-semibold mb-0.5 text-slate-600">Trường học / Đơn vị</label>
-            <select id="schoolSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Tổ chuyên môn</label>
-              <select id="deptSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
-            </div>
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Kỳ kiểm tra</label>
-              <select id="examTitleSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-                <option value="ĐỀ KIỂM TRA ĐỊNH KỲ" selected>ĐỀ KIỂM TRA ĐỊNH KỲ</option>
-                <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 1">ĐỀ KIỂM TRA GIỮA HỌC KỲ 1</option>
-                <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 1">ĐỀ KIỂM TRA CUỐI HỌC KỲ 1</option>
-                <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 2">ĐỀ KIỂM TRA GIỮA HỌC KỲ 2</option>
-                <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 2">ĐỀ KIỂM TRA CUỐI HỌC KỲ 2</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Năm học</label>
-              <input type="text" id="schoolYear" value="2025 - 2026" oninput="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-            </div>
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Mã đề hiển thị</label>
-              <input type="text" id="examCode" value="101" oninput="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-            </div>
-          </div>
         </div>
 
         <!-- Môn & Lớp -->
@@ -237,25 +201,34 @@
         <div id="panelNotebook" class="hidden space-y-2.5 bg-amber-50/70 p-3 rounded-lg border border-amber-200">
           <div>
             <label class="block font-bold text-amber-900 mb-1 flex items-center justify-between">
-              <span>1. Khung Ma Trận Đặc Tả</span>
+              <span>Khung Ma Trận Yêu Cầu</span>
               <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Đặc tả mức độ Nhận biết, Thông hiểu, Vận dụng..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Đặc tả các mức độ nhận thức..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
           <div>
-            <label class="block font-bold text-amber-900 mb-1">2. Đề Thô / Tài Liệu Nguồn</label>
-            <textarea id="sourceNotesInput" rows="3" placeholder="Dán nội dung đề nguồn..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <label class="block font-bold text-amber-900 mb-1">Tài Liệu Nguồn / Đề Thô</label>
+            <textarea id="sourceNotesInput" rows="3" placeholder="Dán nội dung bài tập mẫu..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
         </div>
 
-        <!-- TAB 3: KHO GOOGLE DRIVE -->
+        <!-- TAB 3: KHO GOOGLE DRIVE GIÁO VIÊN & TẢI FILE NGUỒN -->
         <div id="panelDrive" class="hidden space-y-2.5 bg-emerald-50/70 p-3 rounded-lg border border-emerald-300">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-emerald-950">Kho thư mục Drive GV:</span>
             <button onclick="fetchDriveFiles()" class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded shadow cursor-pointer">Tải lại</button>
           </div>
+
+          <div class="bg-white p-2 rounded border border-emerald-200 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-emerald-900">Bóc tách file nguồn (AI):</span>
+            <label class="text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded cursor-pointer shadow flex items-center gap-1">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Nạp ảnh / PDF / Word
+              <input type="file" id="uploadSourceFileInput" accept=".docx,.pdf,.png,.jpg,.jpeg" onchange="handleSourceFileUpload(event)" class="hidden">
+            </label>
+          </div>
+
           <div id="driveFilesList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-            <p class="text-slate-500 italic text-[11px]">Đang nạp file Drive...</p>
+            <p class="text-slate-500 italic text-[11px]">Đang nạp dữ liệu Drive...</p>
           </div>
         </div>
 
@@ -264,7 +237,7 @@
       <div class="pt-1 mt-auto">
         <button onclick="triggerGenerate()" id="btnGenerate" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-bold py-3 px-4 rounded-md shadow transition flex items-center justify-center gap-2 text-xs cursor-pointer">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span id="btnGenerateText">AI Tổng Hợp &amp; Sinh Đề (Kèm Bảng Biến Thiên)</span>
+          <span id="btnGenerateText">AI Soạn Đề Mới 100%</span>
         </button>
       </div>
     </aside>
@@ -291,15 +264,14 @@
         </div>
       </div>
 
-      <!-- Tờ Giấy Thi Preview 2 Cột Chuẩn Mực -->
+      <!-- Tờ Giấy Thi Preview 2 Cột -->
       <div id="examContainer" class="bg-white w-full max-w-4xl p-5 sm:p-10 shadow-lg rounded exam-paper text-[14px] md:text-[15px] leading-relaxed text-black border border-slate-300">
         
-        <!-- Header đề thi 2 cột -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
           <tr>
             <td style="width: 45%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;" id="previewDept">TỔ TOÁN HỌC</p>
+              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;">TRƯỜNG THCS LÊ QUÝ ĐÔN</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;">TỔ TOÁN - KHOA HỌC TỰ NHIÊN</p>
               <div style="text-align: left; font-size: 12px; line-height: 1.6; margin-top: 6px;">
                 <p style="margin: 0;">Họ và tên: <span id="displayStudentName" class="font-bold text-indigo-900">......................................................</span></p>
                 <p style="margin: 0;">Số báo danh: <span id="displayStudentId" class="font-bold text-indigo-900">....................</span> Lớp: <span id="displayStudentClass" class="font-bold text-indigo-900">................</span></p>
@@ -307,9 +279,9 @@
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 12 - Thời gian: 45 phút</p>
-              <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;">NĂM HỌC 2025 - 2026</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
+              <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;">
                 MÃ ĐỀ: 101
               </div>
             </td>
@@ -319,25 +291,26 @@
         <!-- Nội dung đề thi phân 3 phần động -->
         <div id="examBody" class="space-y-6">
           
-          <!-- Phần I: Trắc nghiệm -->
           <div id="part1Wrapper">
-            <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN I. CÂU TRẮC NGHIỆM NHIỀU LỰA CHỌN (3,0 điểm)</div>
+            <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN I. CÂU TRẮC NGHIỆM (3,0 điểm)</div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh trả lời các câu hỏi dưới đây. Mỗi câu chỉ chọn một phương án.</p>
             <div class="space-y-4 text-xs sm:text-sm" id="part1Container">
-              <p class="text-slate-400 italic text-center py-6">Nhấn "AI Tổng Hợp & Sinh Đề" để tạo đề thi...</p>
+              <div class="p-6 bg-slate-50 border border-dashed rounded text-center text-slate-500">
+                <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 text-xl mb-2"></i>
+                <p class="font-semibold">Chưa có đề thi được nạp.</p>
+                <p class="text-xs">Dán Gemini API Key hoặc chọn "Không dùng AI" rồi bấm nút tạo đề ở cột bên trái.</p>
+              </div>
             </div>
           </div>
 
-          <!-- Phần II: Đúng / Sai -->
           <div id="part2Wrapper" class="hidden">
             <div id="p2Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (4,0 điểm)</div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh chọn Đúng (Đ) hoặc Sai (S) cho mỗi ý a), b), c), d).</p>
             <div class="text-xs sm:text-sm space-y-3" id="part2Container"></div>
           </div>
 
-          <!-- Phần III: Trả lời ngắn / Tự luận -->
           <div id="part3Wrapper" class="hidden">
-            <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN III. TRẢ LỜI NGẮN (3,0 điểm)</div>
+            <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN III. TỰ LUẬN (7,0 điểm)</div>
             <div class="space-y-4 text-xs sm:text-sm" id="part3Container"></div>
           </div>
         </div>
@@ -364,7 +337,7 @@
         </div>
         <div>
           <label class="block font-semibold mb-1">Lớp:</label>
-          <input type="text" id="loginStudentClass" class="w-full border rounded p-2" placeholder="12A1">
+          <input type="text" id="loginStudentClass" class="w-full border rounded p-2" placeholder="7A1">
         </div>
       </div>
       <div class="flex gap-2 pt-2">
@@ -393,7 +366,8 @@
       : 'https://eduexam-backend.onrender.com';
 
     let currentExamData = null;
-    let currentLevel = 'thpt';
+    let currentLevel = 'thcs';
+    let currentGenMode = 'ai'; // 'ai' hoặc 'manual'
     let activeTab = 'quick';
     let timerInterval = null;
     let timeRemaining = 45 * 60;
@@ -428,7 +402,6 @@
       return `<div class="my-2.5 text-center"><img src="${url}" class="max-h-52 inline-block bg-white p-1 rounded border shadow-sm"/></div>`;
     }
 
-    // Quản lý Gemini API Key
     function checkApiKeyStatus() {
       const savedKey = localStorage.getItem('eduexam_gemini_api_key');
       const input = document.getElementById('apiKeyInput');
@@ -437,13 +410,13 @@
         if (input) input.value = savedKey;
         if (badge) { badge.innerText = "Đã lưu"; badge.className = "text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold"; }
       } else {
-        if (badge) { badge.innerText = "Chưa lưu"; badge.className = "text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold"; }
+        if (badge) { badge.innerText = "Chưa có Key"; badge.className = "text-[10px] bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded font-bold"; }
       }
     }
 
     function saveApiKey() {
       const key = getVal('apiKeyInput').trim();
-      if (!key) { alert("Vui lòng dán mã API Key trước khi lưu!"); return; }
+      if (!key) { alert("Vui lòng dán mã API Key trước khi bấm Lưu!"); return; }
       localStorage.setItem('eduexam_gemini_api_key', key);
       checkApiKeyStatus();
       alert("Đã lưu Gemini API Key thành công!");
@@ -468,17 +441,9 @@
 
     function handleModelChange() {
       const val = getVal('geminiModelSelect');
-      const customBox = document.getElementById('customModelBox');
       const badge = document.getElementById('modelBadge');
-      if (val === '__custom__') {
-        if (customBox) customBox.classList.remove('hidden');
-        if (badge) { badge.innerText = "Custom"; badge.className = "text-[10px] bg-purple-200 text-purple-800 font-bold px-1.5 py-0.5 rounded"; }
-      } else {
-        if (customBox) customBox.classList.add('hidden');
-        if (badge) {
-          badge.innerText = val.includes('pro') ? "Pro Logic" : (val.includes('3.7') ? "3.7 Flash" : "2.5 Flash");
-          badge.className = "text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded";
-        }
+      if (badge) {
+        badge.innerText = val.includes('pro') ? "Pro Logic" : (val.includes('3.7') ? "3.7 Flash" : "2.5 Flash");
       }
     }
 
@@ -488,30 +453,51 @@
       }
     }
 
+    function setGenerationMode(mode) {
+      currentGenMode = mode;
+      const btnAi = document.getElementById('btnModeAi');
+      const btnManual = document.getElementById('btnModeManual');
+      const badge = document.getElementById('modeBadge');
+      const apiKeyWrapper = document.getElementById('apiKeyWrapper');
+      const modelWrapper = document.getElementById('modelSelectWrapper');
+
+      if (mode === 'ai') {
+        btnAi.className = "py-1.5 rounded border border-indigo-600 bg-indigo-600 text-white shadow cursor-pointer";
+        btnManual.className = "py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 cursor-pointer";
+        badge.innerText = "Dùng AI";
+        badge.className = "text-[10px] bg-indigo-600 text-white font-bold px-1.5 py-0.5 rounded";
+        if (apiKeyWrapper) apiKeyWrapper.classList.remove('opacity-40', 'pointer-events-none');
+        if (modelWrapper) modelWrapper.classList.remove('opacity-40', 'pointer-events-none');
+        document.getElementById('btnGenerateText').innerText = "AI Soạn Đề Mới 100%";
+      } else {
+        btnManual.className = "py-1.5 rounded border border-emerald-600 bg-emerald-600 text-white shadow cursor-pointer";
+        btnAi.className = "py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 cursor-pointer";
+        badge.innerText = "Thủ công / Mẫu";
+        badge.className = "text-[10px] bg-emerald-600 text-white font-bold px-1.5 py-0.5 rounded";
+        if (apiKeyWrapper) apiKeyWrapper.classList.add('opacity-40', 'pointer-events-none');
+        if (modelWrapper) modelWrapper.classList.add('opacity-40', 'pointer-events-none');
+        document.getElementById('btnGenerateText').innerText = "Tạo Đề Từ Ngân Hàng Mẫu";
+      }
+    }
+
     const LEVEL_CONFIGS = {
       tieuhoc: {
         name: "Tiểu học",
         specText: "Chuẩn Tiểu học: 8 MCQ trực quan (4đ) + 3 Bài tự luận có lời văn (6đ)",
         grades: [1, 2, 3, 4, 5],
-        subjects: ["Toán học", "Tiếng Việt"],
-        schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT", "TRƯỜNG TIỂU HỌC NGUYỄN BỈNH KHIÊM"],
-        depts: ["TỔ KHỐI 1", "TỔ KHỐI 2", "TỔ KHỐI 3", "TỔ KHỐI 4", "TỔ KHỐI 5"]
+        subjects: ["Toán học", "Tiếng Việt"]
       },
       thcs: {
         name: "THCS",
         specText: "Chuẩn THCS: 12 MCQ (3đ) + Tự luận toán thực tế & hình học (7đ)",
         grades: [6, 7, 8, 9],
-        subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn"],
-        schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN", "TRƯỜNG THCS NGUYỄN DU", "TRƯỜNG THCS TRẦN ĐẠI NGHĨA"],
-        depts: ["TỔ TOÁN - TIN HỌC", "TỔ KHOA HỌC TỰ NHIÊN", "TỔ NGỮ VĂN"]
+        subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn"]
       },
       thpt: {
         name: "THPT",
         specText: "Chuẩn THPT: 12 MCQ (3đ) + 4 Đúng/Sai (4đ) + 6 Trả lời ngắn (3đ)",
         grades: [10, 11, 12],
-        subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học"],
-        schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG", "TRƯỜNG THPT NGUYỄN THỊ MINH KHAI", "TRƯỜNG THPT BÙI THỊ XUÂN"],
-        depts: ["TỔ TOÁN HỌC", "TỔ VẬT LÍ", "TỔ HÓA HỌC"]
+        subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học"]
       }
     };
 
@@ -520,7 +506,9 @@
       "Toán học_11": ["Hàm số lượng giác", "Cấp số cộng và Cấp số nhân", "Quan hệ vuông góc"],
       "Toán học_10": ["Mệnh đề và Tập hợp", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác"],
       "Toán học_9": ["Căn bậc hai & Căn bậc ba", "Hệ hai phương trình bậc nhất hai ẩn", "Đường tròn"],
+      "Toán học_8": ["Đa thức và Hằng đẳng thức", "Tứ giác", "Định lý Thalès"],
       "Toán học_7": ["Số hữu tỉ", "Hình học trực quan (Góc, Tam giác, Lăng trụ)", "Biểu thức đại số"],
+      "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân"],
       "Toán học_5": ["Số thập phân & Các phép tính", "Hình tam giác, hình thang, hình tròn"]
     };
 
@@ -547,27 +535,17 @@
       const cfg = LEVEL_CONFIGS[currentLevel];
       const gradeSel = document.getElementById('grade');
       const subjSel = document.getElementById('subject');
-      const schoolSel = document.getElementById('schoolSelect');
-      const deptSel = document.getElementById('deptSelect');
 
       if (gradeSel) gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
       if (subjSel) subjSel.innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
-      if (schoolSel) schoolSel.innerHTML = cfg.schools.map(item => `<option value="${item}">${item}</option>`).join('');
-      if (deptSel) deptSel.innerHTML = cfg.depts.map(item => `<option value="${item}">${item}</option>`).join('');
 
       const durSel = document.getElementById('duration');
-      if (durSel) durSel.value = currentLevel === 'tieuhoc' ? '35' : (currentLevel === 'thpt' ? '45' : '45');
+      if (durSel) durSel.value = currentLevel === 'tieuhoc' ? '35' : '45';
     }
 
     function syncHeaderPreview() {
-      setTxt('previewSchool', getVal('schoolSelect', 'TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG'));
-      setTxt('previewDept', getVal('deptSelect', 'TỔ TOÁN HỌC'));
-      setTxt('previewTitle', getVal('examTitleSelect', 'ĐỀ KIỂM TRA ĐỊNH KỲ'));
-      setTxt('previewYear', `NĂM HỌC ${getVal('schoolYear', '2025 - 2026')}`);
-      setTxt('previewCode', `MÃ ĐỀ: ${getVal('examCode', '101')}`);
-      
       const subj = getVal('subject', 'TOÁN HỌC').toUpperCase();
-      const gr = getVal('grade', '12');
+      const gr = getVal('grade', '7');
       const dur = getVal('duration', '45');
       setTxt('previewSubjectDuration', `Môn: ${subj} ${gr} - Thời gian: ${dur} phút`);
 
@@ -577,7 +555,7 @@
         setTxt('p3Heading', "PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm) - 6 CÂU");
       } else if (currentLevel === 'thcs') {
         setTxt('p1Heading', "PHẦN I. TRẮC NGHIỆM (3,0 điểm) - 12 CÂU");
-        setTxt('p3Heading', "PHẦN II. TỰ LUẬN (7,0 điểm) - 4 ĐẾN 5 BÀI TOÁN THỰC TẾ & HÌNH HỌC");
+        setTxt('p3Heading', "PHẦN II. TỰ LUẬN (7,0 điểm) - 4 BÀI TOÁN THỰC TẾ & HÌNH HỌC");
       } else {
         setTxt('p1Heading', "PHẦN I. TRẮC NGHIỆM TRỰC QUAN (4,0 điểm) - 8 CÂU");
         setTxt('p3Heading', "PHẦN II. TỰ LUẬN GIẢI TOÁN CÓ LỜI VĂN (6,0 điểm)");
@@ -586,12 +564,12 @@
 
     function updateTopicList() {
       const subject = getVal('subject', 'Toán học');
-      const grade = getVal('grade', '12');
+      const grade = getVal('grade', '7');
       const topicSelect = document.getElementById('topicSelect');
       if (!topicSelect) return;
 
       const key = `${subject}_${grade}`;
-      let topics = CURRICULUM_TOPICS[key] || [`Kiến thức trọng tâm ${subject} Lớp ${grade}`, "Chủ đề 1: Lý thuyết cơ bản", "Chủ đề 2: Vận dụng thực tế"];
+      let topics = CURRICULUM_TOPICS[key] || [`Kiến thức trọng tâm ${subject} Lớp ${grade}`];
       topicSelect.innerHTML = topics.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
@@ -618,6 +596,7 @@
       } else if (tab === 'drive' && btnD && panelD) {
         btnD.className = "flex-1 pb-2 border-b-2 border-emerald-600 text-emerald-700 font-bold flex items-center justify-center gap-1 cursor-pointer";
         panelD.classList.remove('hidden');
+        fetchDriveFiles();
       }
     }
 
@@ -626,17 +605,115 @@
       if (inp) inp.value = currentLevel === 'thpt' ? "12 câu MCQ + 4 câu Đúng/Sai + 6 câu Trả lời ngắn" : "12 câu MCQ + 4 bài tự luận toán thực tế";
     }
 
+    async function fetchDriveFiles() {
+      const grade = parseInt(getVal('grade', '7')) || 7;
+      const subject = getVal('subject', 'Toán học');
+      const listEl = document.getElementById('driveFilesList');
+      if (!listEl) return;
+      
+      listEl.innerHTML = `<p class="text-slate-500 italic text-[11px]"><i class="fa-solid fa-spinner fa-spin"></i> Đang nạp danh sách Drive...</p>`;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/drive/files?level=${currentLevel}&grade=${grade}&subject=${encodeURIComponent(subject)}`);
+        const data = await res.json();
+        if (data.status === 'success' && data.files && data.files.length > 0) {
+          listEl.innerHTML = data.files.map(f => `
+            <div class="flex items-center justify-between p-1.5 bg-white border border-slate-200 rounded text-xs hover:bg-emerald-50 transition">
+              <span class="truncate font-medium text-slate-800" title="${f.name}">${f.name}</span>
+              <button onclick="loadDriveFileContent('${f.id}', '${f.name}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] shrink-0 cursor-pointer shadow">
+                Nạp đề
+              </button>
+            </div>
+          `).join('');
+        } else {
+          listEl.innerHTML = `<p class="text-slate-500 italic text-[11px]">Chưa có tài liệu trong thư mục.</p>`;
+        }
+      } catch (err) {
+        listEl.innerHTML = `<p class="text-rose-500 text-[11px]">Lỗi Drive: ${err.message}</p>`;
+      }
+    }
+
+    async function loadDriveFileContent(fileId, fileName) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/drive/read-content?file_id=${fileId}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          switchTab('notebook');
+          const sourceInput = document.getElementById('sourceNotesInput');
+          if (sourceInput) sourceInput.value = `[TÀI LIỆU NGUỒN DRIVE: ${fileName}]\n` + data.content;
+          alert(`Đã nạp file "${fileName}" vào Notebook!`);
+        }
+      } catch (err) { alert("Lỗi tải file: " + err.message); }
+    }
+
+    async function handleSourceFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const apiKey = getVal('apiKeyInput').trim() || localStorage.getItem('eduexam_gemini_api_key') || '';
+      if (!apiKey) {
+        alert("⚠️ Vui lòng dán và lưu Gemini API Key để AI bóc tách file!");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Data = e.target.result.split(',')[1];
+        let fileType = "docx";
+        if (file.name.endsWith(".pdf")) fileType = "pdf";
+        else if (file.type.startsWith("image/")) fileType = "image";
+
+        const btn = document.getElementById('btnGenerate');
+        if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang bóc tách ${file.name}...`;
+
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/exams/extract-from-file`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              file_type: fileType,
+              base64_data: base64Data,
+              level: currentLevel,
+              grade: parseInt(getVal('grade', '7')) || 7,
+              subject: getVal('subject', 'Toán học'),
+              api_key: apiKey
+            })
+          });
+
+          if (!res.ok) throw new Error(`Lỗi phân tích (${res.status})`);
+          const data = await res.json();
+          currentExamData = data.base_exam;
+          renderExamToView(currentExamData);
+          syncHeaderPreview();
+          alert(`Đã bóc tách thành công đề thi từ "${file.name}"!`);
+        } catch (err) {
+          alert("Lỗi bóc tách tài liệu: " + err.message);
+        } finally {
+          if (btn) btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Soạn Đề Mới 100%</span>`;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
     async function triggerGenerate() {
+      const apiKey = getVal('apiKeyInput').trim() || localStorage.getItem('eduexam_gemini_api_key') || '';
+      
+      if (currentGenMode === 'ai' && !apiKey) {
+        alert("⚠️ BẠN CHƯA NHẬP GEMINI API KEY!\n\nVui lòng dán mã API Key của bạn vào ô màu vàng và bấm 'Lưu Key'.\n\nNếu muốn tạo đề ngay mà không cần Key, hãy chuyển sang chế độ 'Không dùng AI'!");
+        const keyInp = document.getElementById('apiKeyInput');
+        if (keyInp) keyInp.focus();
+        return;
+      }
+
       const btn = document.getElementById('btnGenerate');
       if (btn) {
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang sinh đề chuẩn ${currentLevel.toUpperCase()}...</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang khởi tạo đề Lớp ${getVal('grade')}...</span>`;
         btn.disabled = true;
       }
 
       const subject = getVal('subject', 'Toán học');
-      const grade = parseInt(getVal('grade', '12')) || 12;
+      const grade = parseInt(getVal('grade', '7')) || 7;
       const topic = getVal('topicSelect', 'Kiến thức trọng tâm');
-      const apiKey = getVal('apiKeyInput').trim() || localStorage.getItem('eduexam_gemini_api_key') || '';
       const selectedModel = getVal('geminiModelSelect', 'gemini-2.5-flash');
 
       try {
@@ -649,29 +726,37 @@
             grade: grade,
             topic: topic,
             duration_minutes: parseInt(getVal('duration', '45')) || 45,
+            generation_mode: currentGenMode,
             model_name: selectedModel,
-            api_key: apiKey
+            api_key: apiKey,
+            matrix_spec: getVal('matrixSpecInput').trim() || null,
+            source_notes: getVal('sourceNotesInput').trim() || null
           })
         });
 
-        if (!res.ok) throw new Error(`Lỗi máy chủ (${res.status})`);
         const data = await res.json();
+        if (!res.ok) {
+          if (res.status === 429) {
+            alert("🚨 HẾT QUOTA GEMINI API:\n\n" + data.detail + "\n\n👉 Chuyển sang chế độ 'Không dùng AI' hoặc đổi Key khác.");
+          } else {
+            alert("Lỗi: " + (data.detail || "Không thể khởi tạo đề."));
+          }
+          return;
+        }
+
         currentExamData = data.base_exam;
         renderExamToView(currentExamData);
         syncHeaderPreview();
       } catch (err) {
-        alert('Lỗi tải đề: ' + err.message);
+        alert('Lỗi kết nối: ' + err.message);
       } finally {
         if (btn) {
-          btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>AI Tổng Hợp &amp; Sinh Đề (Kèm Bảng Biến Thiên)</span>`;
+          btn.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles"></i> <span>${currentGenMode === 'ai' ? 'AI Soạn Đề Mới 100%' : 'Tạo Đề Từ Ngân Hàng Mẫu'}</span>`;
           btn.disabled = false;
         }
       }
     }
 
-    // =========================================================================
-    // RENDER ĐỀ THEO ĐÚNG 3 CẤU TRÚC GDPT 2018
-    // =========================================================================
     function renderExamToView(base) {
       if (!base) return;
 
@@ -709,7 +794,7 @@
         }).join('');
       }
 
-      // 2. Phần II: Đúng/Sai (Chỉ áp dụng THPT)
+      // 2. Phần II: Đúng/Sai (THPT)
       const p2List = base.part_2_tf || [];
       const p2Wrapper = document.getElementById('part2Wrapper');
       const p2Container = document.getElementById('part2Container');
@@ -745,7 +830,7 @@
         p2Wrapper.classList.add('hidden');
       }
 
-      // 3. Phần III: Trả lời ngắn (THPT) HOẶC Tự luận (THCS & Tiểu học)
+      // 3. Phần III: Trả lời ngắn hoặc Tự luận
       const p3Short = base.part_3_short_ans || [];
       const p3Essay = base.part_3_essay || [];
       const p3Wrapper = document.getElementById('part3Wrapper');
@@ -808,6 +893,93 @@
       if (el) el.classList.toggle('hidden');
     }
 
+    // =========================================================================
+    // LƯU FILE MARKDOWN VÀ JSON VỀ MÁY
+    // =========================================================================
+    function downloadExamJson() {
+      if (!currentExamData) {
+        alert("Chưa có dữ liệu đề thi! Vui lòng tạo đề trước khi tải.");
+        return;
+      }
+      const jsonStr = JSON.stringify(currentExamData, null, 2);
+      const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `De_Thi_${currentLevel.toUpperCase()}_Lop_${currentExamData.grade || 7}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function downloadExamMarkdown() {
+      if (!currentExamData) {
+        alert("Chưa có dữ liệu đề thi! Vui lòng tạo đề trước khi tải.");
+        return;
+      }
+
+      const base = currentExamData;
+      let md = `# ĐỀ KIỂM TRA ĐỊNH KỲ\n`;
+      md += `**Môn:** ${base.subject || 'Toán học'} ${base.grade || ''} | **Cấp học:** ${currentLevel.toUpperCase()} | **Thời gian:** 45 phút\n\n`;
+      md += `---\n\n`;
+
+      const p1 = base.part_1_mcq || [];
+      if (p1.length > 0) {
+        md += `## PHẦN I. CÂU TRẮC NGHIỆM NHIỀU LỰA CHỌN (3,0 điểm)\n\n`;
+        p1.forEach((q, idx) => {
+          md += `**Câu ${idx + 1}:** ${q.content}\n\n`;
+          if (q.tikz_code) md += `\`\`\`latex\n${q.tikz_code}\n\`\`\`\n\n`;
+          (q.options || []).forEach(o => { md += `- **${o.id}.** ${o.text}\n`; });
+          md += `\n* **Đáp án:** ${q.answer}\n`;
+          md += `* **Lời giải chi tiết:** ${q.solution || ''}\n\n`;
+        });
+      }
+
+      const p2 = base.part_2_tf || [];
+      if (p2.length > 0 && currentLevel === 'thpt') {
+        md += `## PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (4,0 điểm)\n\n`;
+        p2.forEach((q, idx) => {
+          md += `**Câu ${idx + 1}:** ${q.prompt}\n\n`;
+          if (q.statements) {
+            for (const [k, val] of Object.entries(q.statements)) {
+              const ansStr = q.answers && q.answers[k] !== undefined ? (q.answers[k] ? 'Đúng' : 'Sai') : '';
+              md += `- **${k})** ${val} *(Đáp án: ${ansStr})*\n`;
+            }
+          }
+          md += `\n* **Giải thích:** ${q.explanation || ''}\n\n`;
+        });
+      }
+
+      const p3Short = base.part_3_short_ans || [];
+      const p3Essay = base.part_3_essay || [];
+
+      if (p3Short.length > 0 && currentLevel === 'thpt') {
+        md += `## PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm)\n\n`;
+        p3Short.forEach((q, idx) => {
+          md += `**Câu ${idx + 1}:** ${q.content}\n\n`;
+          md += `* **Đáp số:** ${q.answer || ''}\n`;
+          md += `* **Lời giải:** ${q.solution || ''}\n\n`;
+        });
+      } else if (p3Essay.length > 0) {
+        md += `## PHẦN II. TỰ LUẬN (${currentLevel === 'thcs' ? '7,0 điểm' : '6,0 điểm'})\n\n`;
+        p3Essay.forEach((q, idx) => {
+          md += `### Bài ${idx + 1} (${q.points || 1.5} điểm):\n${q.content}\n\n`;
+          if (q.solution_tikz) md += `\`\`\`latex\n${q.solution_tikz}\n\`\`\`\n\n`;
+          md += `* **Lời giải:**\n${q.solution || ''}\n\n`;
+          if (q.scoring_guide) {
+            md += `* **Barem:**\n`;
+            q.scoring_guide.forEach(g => { md += `  - ${g.step}: **${g.points}**\n`; });
+            md += `\n`;
+          }
+        });
+      }
+
+      const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `De_Thi_${currentLevel.toUpperCase()}_Lop_${base.grade || 7}.md`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
     // Thi Online & Chấm điểm
     function openStudentLoginModal() {
       if (!currentExamData) { alert("Vui lòng tạo đề trước khi vào thi online!"); return; }
@@ -823,7 +995,7 @@
     function startOnlineExam() {
       const name = getVal('loginStudentName').trim();
       const sbd = getVal('loginStudentId').trim() || 'SBD01';
-      const cls = getVal('loginStudentClass').trim() || '12A1';
+      const cls = getVal('loginStudentClass').trim() || '7A1';
       if (!name) { alert("Vui lòng nhập họ tên thí sinh!"); return; }
 
       setTxt('displayStudentName', name.toUpperCase());
@@ -903,13 +1075,13 @@
         const blob = await res.blob();
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `De_Thi_${currentLevel.toUpperCase()}_Lop_${currentExamData.grade || 12}.docx`;
+        a.download = `De_Thi_${currentLevel.toUpperCase()}_Lop_${currentExamData.grade || 7}.docx`;
         a.click();
       } catch (e) { alert("Lỗi xuất file: " + e.message); }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      selectLevel('thpt');
+      selectLevel('thcs');
       checkApiKeyStatus();
     });
   </script>
