@@ -41,19 +41,48 @@
       </div>
       <div>
         <h1 class="font-bold text-base md:text-lg leading-tight">EduExam Pro (Tiểu học - THCS - THPT)</h1>
-        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV &amp; Vẽ hình Vector Trực Quan</p>
+        <p class="text-[11px] md:text-xs text-indigo-200">Khảo thí GDPT 2018 đa cấp học, Lưu trữ Đám mây Google Drive &amp; Thi Online</p>
       </div>
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
-      <!-- Nút Tải Markdown và JSON -->
-      <button onclick="downloadExamMarkdown()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400" title="Lưu đề thi dạng Markdown">
+      
+      <!-- CỤM LƯU FILE LÊN GOOGLE DRIVE -->
+      <div class="relative inline-block text-left">
+        <button onclick="toggleDriveDropdown()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-emerald-400">
+          <i class="fa-brands fa-google-drive text-amber-300"></i> <span>Lưu lên Drive</span> <i class="fa-solid fa-caret-down text-[10px]"></i>
+        </button>
+        <div id="driveSaveDropdown" class="hidden absolute right-0 mt-1 w-44 bg-white rounded-md shadow-lg py-1 z-50 border border-slate-200 text-xs font-semibold text-slate-800">
+          <button onclick="saveCurrentExamToDrive('json')" class="w-full text-left px-3 py-1.5 hover:bg-emerald-50 flex items-center gap-2">
+            <i class="fa-solid fa-code text-amber-500"></i> Lưu dạng .JSON lên Drive
+          </button>
+          <button onclick="saveCurrentExamToDrive('md')" class="w-full text-left px-3 py-1.5 hover:bg-emerald-50 flex items-center gap-2">
+            <i class="fa-brands fa-markdown text-sky-500"></i> Lưu dạng .MD lên Drive
+          </button>
+          <button onclick="saveCurrentExamToDrive('docx')" class="w-full text-left px-3 py-1.5 hover:bg-emerald-50 flex items-center gap-2">
+            <i class="fa-solid fa-file-word text-indigo-600"></i> Lưu dạng .DOCX lên Drive
+          </button>
+        </div>
+      </div>
+
+      <!-- CỤM TẢI FILE VỀ MÁY TÍNH -->
+      <button onclick="downloadExamMarkdown()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400" title="Tải file Markdown về máy">
         <i class="fa-brands fa-markdown text-sky-400"></i> <span>Tải .md</span>
       </button>
 
-      <button onclick="downloadExamJson()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400" title="Lưu cấu trúc dữ liệu JSON">
+      <button onclick="downloadExamJson()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400" title="Tải file JSON về máy">
         <i class="fa-solid fa-code text-amber-300"></i> <span>Tải .json</span>
       </button>
+
+      <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-slate-600" title="Tải file Word về máy">
+        <i class="fa-solid fa-file-word text-amber-400"></i> <span>Tải .docx</span>
+      </button>
+
+      <!-- NẠP LẠI ĐỀ TỪ FILE ĐÃ LƯU (OFFLINE) -->
+      <label class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-emerald-400" title="Mở file JSON hoặc Markdown đã lưu để xem và thi offline">
+        <i class="fa-solid fa-folder-open text-amber-300"></i> <span>Mở Đề File</span>
+        <input type="file" id="inputLoadExamFile" accept=".json,.md" onchange="loadExamFromFile(event)" class="hidden">
+      </label>
 
       <button id="btnStudentLogin" onclick="openStudentLoginModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3.5 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-user-graduate"></i> <span id="btnLoginText">HS Vào Thi Online</span>
@@ -61,14 +90,6 @@
 
       <button id="btnToggleToolbar" onclick="toggleMathWidget()" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Di Động</span>
-      </button>
-      
-      <button id="btnCopyWord" onclick="copyExamForWord()" class="bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
-        <i class="fa-solid fa-copy"></i> <span>Sao chép Word</span>
-      </button>
-      
-      <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-slate-600">
-        <i class="fa-solid fa-file-word text-amber-400"></i> <span>Tải .docx</span>
       </button>
     </div>
   </header>
@@ -94,7 +115,7 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- CÔNG TẮC CHỌN CHẾ ĐỘ: DÙNG AI HOẶC KHÔNG DÙNG AI -->
+        <!-- CÔNG TẮC CHỌN CHẾ ĐỘ: DÙNG AI HOẶC THỦ CÔNG (OFFLINE) -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-300 space-y-1.5">
           <label class="block font-bold text-indigo-950 text-xs flex justify-between items-center">
             <span><i class="fa-solid fa-sliders"></i> Chế độ tạo đề:</span>
@@ -279,7 +300,7 @@
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;">NĂM HỌC 2025 - 2026</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 7 - Thời gian: 45 phút</p>
               <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;">
                 MÃ ĐỀ: 101
@@ -367,7 +388,7 @@
 
     let currentExamData = null;
     let currentLevel = 'thcs';
-    let currentGenMode = 'ai'; // 'ai' hoặc 'manual'
+    let currentGenMode = 'ai';
     let activeTab = 'quick';
     let timerInterval = null;
     let timeRemaining = 45 * 60;
@@ -400,6 +421,58 @@
     function formatTikzHtml(url) {
       if (!url || typeof url !== 'string' || url.length < 10) return '';
       return `<div class="my-2.5 text-center"><img src="${url}" class="max-h-52 inline-block bg-white p-1 rounded border shadow-sm"/></div>`;
+    }
+
+    function toggleDriveDropdown() {
+      const dd = document.getElementById('driveSaveDropdown');
+      if (dd) dd.classList.toggle('hidden');
+    }
+
+    // Đóng dropdown khi bấm ra ngoài
+    window.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[onclick="toggleDriveDropdown()"]');
+      const dd = document.getElementById('driveSaveDropdown');
+      if (!btn && dd && !dd.contains(e.target)) {
+        dd.classList.add('hidden');
+      }
+    });
+
+    // =========================================================================
+    // LƯU ĐỀ THI TRỰC TIẾP LÊN GOOGLE DRIVE
+    // =========================================================================
+    async function saveCurrentExamToDrive(format) {
+      if (!currentExamData) {
+        alert("Chưa có dữ liệu đề thi để lưu lên Google Drive! Hãy tạo hoặc nạp đề trước.");
+        return;
+      }
+
+      const dd = document.getElementById('driveSaveDropdown');
+      if (dd) dd.classList.add('hidden');
+
+      const subject = getVal('subject', 'Toán học');
+      const grade = parseInt(getVal('grade', '7')) || 7;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/drive/save-exam`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            format: format,
+            exam_data: currentExamData,
+            level: currentLevel,
+            grade: grade,
+            subject: subject
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `Lỗi lưu Drive (${res.status})`);
+
+        alert(`✅ ĐÃ LƯU THÀNH CÔNG LÊN GOOGLE DRIVE!\n\nTên file: ${data.filename}\nLiên kết: ${data.link}`);
+        if (activeTab === 'drive') fetchDriveFiles();
+      } catch (err) {
+        alert("Lỗi lưu lên Google Drive: " + err.message);
+      }
     }
 
     function checkApiKeyStatus() {
@@ -638,6 +711,18 @@
         const res = await fetch(`${API_BASE_URL}/api/drive/read-content?file_id=${fileId}`);
         const data = await res.json();
         if (data.status === 'success') {
+          // Nếu là file JSON thì parse thẳng thành đề thi
+          if (fileName.endsWith('.json')) {
+            try {
+              const parsed = JSON.parse(data.content);
+              currentExamData = parsed.base_exam || parsed;
+              renderExamToView(currentExamData);
+              syncHeaderPreview();
+              setGenerationMode('manual');
+              alert(`Đã nạp đề thi "${fileName}" từ Google Drive!`);
+              return;
+            } catch (je) {}
+          }
           switchTab('notebook');
           const sourceInput = document.getElementById('sourceNotesInput');
           if (sourceInput) sourceInput.value = `[TÀI LIỆU NGUỒN DRIVE: ${fileName}]\n` + data.content;
@@ -760,7 +845,6 @@
     function renderExamToView(base) {
       if (!base) return;
 
-      // 1. Phần I: MCQ
       const p1List = base.part_1_mcq || [];
       const p1Wrapper = document.getElementById('part1Wrapper');
       const p1Container = document.getElementById('part1Container');
@@ -794,7 +878,6 @@
         }).join('');
       }
 
-      // 2. Phần II: Đúng/Sai (THPT)
       const p2List = base.part_2_tf || [];
       const p2Wrapper = document.getElementById('part2Wrapper');
       const p2Container = document.getElementById('part2Container');
@@ -830,7 +913,6 @@
         p2Wrapper.classList.add('hidden');
       }
 
-      // 3. Phần III: Trả lời ngắn hoặc Tự luận
       const p3Short = base.part_3_short_ans || [];
       const p3Essay = base.part_3_essay || [];
       const p3Wrapper = document.getElementById('part3Wrapper');
@@ -894,7 +976,85 @@
     }
 
     // =========================================================================
-    // LƯU FILE MARKDOWN VÀ JSON VỀ MÁY
+    // NẠP ĐỀ TỪ FILE JSON HOẶC MARKDOWN ĐÃ LƯU
+    // =========================================================================
+    function loadExamFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      if (file.name.endsWith('.json')) {
+        reader.onload = function(e) {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            const examObj = parsed.base_exam || parsed;
+            currentExamData = examObj;
+            if (examObj.level) selectLevel(examObj.level);
+            renderExamToView(currentExamData);
+            syncHeaderPreview();
+            setGenerationMode('manual');
+            alert(`Đã nạp thành công đề thi từ file: ${file.name}`);
+          } catch (err) {
+            alert("Lỗi đọc file JSON: " + err.message);
+          }
+        };
+        reader.readAsText(file, "UTF-8");
+      } else if (file.name.endsWith('.md')) {
+        reader.onload = function(e) {
+          try {
+            const text = e.target.result;
+            const examObj = parseMarkdownToExamObject(text);
+            currentExamData = examObj;
+            renderExamToView(currentExamData);
+            syncHeaderPreview();
+            setGenerationMode('manual');
+            alert(`Đã nạp thành công đề thi từ file Markdown: ${file.name}`);
+          } catch (err) {
+            alert("Lỗi đọc file Markdown: " + err.message);
+          }
+        };
+        reader.readAsText(file, "UTF-8");
+      }
+      event.target.value = '';
+    }
+
+    function parseMarkdownToExamObject(mdText) {
+      const lines = mdText.split('\n');
+      let exam = {
+        subject: getVal('subject', 'Toán học'),
+        grade: parseInt(getVal('grade', '7')) || 7,
+        level: currentLevel,
+        part_1_mcq: [],
+        part_2_tf: [],
+        part_3_short_ans: [],
+        part_3_essay: []
+      };
+
+      let currentSection = '';
+      let currentQ = null;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('## PHẦN I')) currentSection = 'p1';
+        else if (trimmed.startsWith('## PHẦN II')) currentSection = currentLevel === 'thpt' ? 'p2' : 'p3';
+        else if (trimmed.startsWith('## PHẦN III')) currentSection = 'p3';
+        
+        if (currentSection === 'p1' && trimmed.startsWith('**Câu ')) {
+          currentQ = { content: trimmed.replace(/^\*\*Câu \d+:\*\*\s*/, ''), options: [], answer: 'A', solution: '' };
+          exam.part_1_mcq.push(currentQ);
+        } else if (currentSection === 'p1' && currentQ && trimmed.startsWith('- **')) {
+          const match = trimmed.match(/- \*\*([A-D])\.\*\*\s*(.*)/);
+          if (match) currentQ.options.push({ id: match[1], text: match[2] });
+        } else if (currentSection === 'p1' && currentQ && trimmed.startsWith('*Đáp án:*')) {
+          currentQ.answer = trimmed.replace('*Đáp án:*', '').trim();
+        }
+      });
+
+      return exam;
+    }
+
+    // =========================================================================
+    // TẢI FILE VỀ MÁY TÍNH (JSON, MARKDOWN, DOCX)
     // =========================================================================
     function downloadExamJson() {
       if (!currentExamData) {
@@ -918,8 +1078,7 @@
 
       const base = currentExamData;
       let md = `# ĐỀ KIỂM TRA ĐỊNH KỲ\n`;
-      md += `**Môn:** ${base.subject || 'Toán học'} ${base.grade || ''} | **Cấp học:** ${currentLevel.toUpperCase()} | **Thời gian:** 45 phút\n\n`;
-      md += `---\n\n`;
+      md += `**Môn:** ${base.subject || 'Toán học'} ${base.grade || ''} | **Cấp học:** ${currentLevel.toUpperCase()} | **Thời gian:** 45 phút\n\n---\n\n`;
 
       const p1 = base.part_1_mcq || [];
       if (p1.length > 0) {
@@ -928,8 +1087,7 @@
           md += `**Câu ${idx + 1}:** ${q.content}\n\n`;
           if (q.tikz_code) md += `\`\`\`latex\n${q.tikz_code}\n\`\`\`\n\n`;
           (q.options || []).forEach(o => { md += `- **${o.id}.** ${o.text}\n`; });
-          md += `\n* **Đáp án:** ${q.answer}\n`;
-          md += `* **Lời giải chi tiết:** ${q.solution || ''}\n\n`;
+          md += `\n* **Đáp án:** ${q.answer}\n* **Lời giải chi tiết:** ${q.solution || ''}\n\n`;
         });
       }
 
@@ -954,9 +1112,7 @@
       if (p3Short.length > 0 && currentLevel === 'thpt') {
         md += `## PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm)\n\n`;
         p3Short.forEach((q, idx) => {
-          md += `**Câu ${idx + 1}:** ${q.content}\n\n`;
-          md += `* **Đáp số:** ${q.answer || ''}\n`;
-          md += `* **Lời giải:** ${q.solution || ''}\n\n`;
+          md += `**Câu ${idx + 1}:** ${q.content}\n\n* **Đáp số:** ${q.answer || ''}\n* **Lời giải:** ${q.solution || ''}\n\n`;
         });
       } else if (p3Essay.length > 0) {
         md += `## PHẦN II. TỰ LUẬN (${currentLevel === 'thcs' ? '7,0 điểm' : '6,0 điểm'})\n\n`;
@@ -980,7 +1136,25 @@
       URL.revokeObjectURL(a.href);
     }
 
-    // Thi Online & Chấm điểm
+    async function downloadWordDocxPython() {
+      if (!currentExamData) { alert("Vui lòng tạo đề trước khi xuất file!"); return; }
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base_exam: currentExamData })
+        });
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `De_Thi_${currentLevel.toUpperCase()}_Lop_${currentExamData.grade || 7}.docx`;
+        a.click();
+      } catch (e) { alert("Lỗi xuất file: " + e.message); }
+    }
+
+    // =========================================================================
+    // THI ONLINE & CHẤM ĐIỂM
+    // =========================================================================
     function openStudentLoginModal() {
       if (!currentExamData) { alert("Vui lòng tạo đề trước khi vào thi online!"); return; }
       const m = document.getElementById('studentLoginModal');
@@ -1051,33 +1225,6 @@
       document.getElementById('onlineBar').classList.add('hidden');
       document.getElementById('btnStudentLogin').classList.remove('hidden');
       document.querySelectorAll('[id^="sol_"]').forEach(el => el.classList.remove('hidden'));
-    }
-
-    async function copyExamForWord() {
-      if (!currentExamData) { alert('Vui lòng tạo đề trước!'); return; }
-      const examEl = document.getElementById('examContainer');
-      try {
-        const blobHtml = new Blob([examEl.innerHTML], { type: "text/html" });
-        const blobText = new Blob([examEl.innerText], { type: "text/plain" });
-        await navigator.clipboard.write([new ClipboardItem({ "text/html": blobHtml, "text/plain": blobText })]);
-        alert('Đã sao chép đề thi! Mở Word và bấm Ctrl+V để dán.');
-      } catch (err) { alert('Lỗi sao chép: ' + err.message); }
-    }
-
-    async function downloadWordDocxPython() {
-      if (!currentExamData) { alert("Vui lòng tạo đề trước khi xuất file!"); return; }
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base_exam: currentExamData })
-        });
-        const blob = await res.blob();
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `De_Thi_${currentLevel.toUpperCase()}_Lop_${currentExamData.grade || 7}.docx`;
-        a.click();
-      } catch (e) { alert("Lỗi xuất file: " + e.message); }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
