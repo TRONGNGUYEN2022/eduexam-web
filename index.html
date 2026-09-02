@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam Pro - Hệ Thống Khảo Thí GDPT 2018</title>
   
-  <!-- CDN Tailwind CSS BẮT BUỘC ĐỂ GIỮ NGUYÊN GIAO DIỆN CHUẨN -->
+  <!-- CDN Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
@@ -422,6 +422,23 @@
       }
     }
 
+    // =========================================================================
+    // HÀM LẤY ẢNH TIKZ CÓ TÍCH HỢP FALLBACK CLIENT TRỰC TIẾP
+    // =========================================================================
+    function getRenderedImageUrl(q) {
+      if (q.image_url && q.image_url.length > 20) return q.image_url;
+      // Fallback: nếu backend chưa kịp render base64 nhưng có mã TikZ, dùng link trực tiếp của Kroki
+      if (q.tikz_code && q.tikz_code.trim().length > 10) {
+        let clean = q.tikz_code.trim().replace(/^```(latex|tikz)?/i, '').replace(/```$/, '').trim();
+        if (!clean.startsWith('\\begin{tikzpicture}')) {
+          clean = `\\begin{tikzpicture}\n${clean}\n\\end{tikzpicture}`;
+        }
+        const fullDoc = `\\documentclass[tikz,border=3mm]{standalone}\n\\usepackage{amsmath,amssymb,pgfplots,tkz-tab,tkz-euclide}\n\\begin{document}\n${clean}\n\\end{document}`;
+        return `https://kroki.io/tikz/svg/${btoa(unescape(encodeURIComponent(fullDoc)))}`;
+      }
+      return null;
+    }
+
     function formatTikzHtml(url) {
       if (!url || typeof url !== 'string' || url.length < 10) return '';
       return `
@@ -590,7 +607,7 @@
       "Toán học_10": ["Mệnh đề và Tập hợp", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác"],
       "Toán học_9": ["Căn bậc hai & Căn bậc ba", "Hệ hai phương trình bậc nhất hai ẩn", "Đường tròn"],
       "Toán học_8": ["Đa thức và Hằng đẳng thức", "Tứ giác", "Định lý Thalès"],
-      "Toán học_7": ["Số hữu tỉ", "Hình học trực quan (Góc, Tam giác, Lăng trụ)", "Biểu thức đại số"],
+      "Toán học_7": ["Hình lăng trụ đứng", "Số hữu tỉ", "Hình học trực quan (Góc, Tam giác)", "Biểu thức đại số"],
       "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân"],
       "Toán học_5": ["Số thập phân & Các phép tính", "Hình tam giác, hình thang, hình tròn"]
     };
@@ -807,7 +824,7 @@
 
       const subject = getVal('subject', 'Toán học');
       const grade = parseInt(getVal('grade', '7')) || 7;
-      const topic = getVal('topicSelect', 'Kiến thức trọng tâm');
+      const topic = getVal('topicSelect', 'Hình lăng trụ đứng');
       const selectedModel = getVal('geminiModelSelect', 'gemini-3.6-flash');
 
       try {
@@ -894,6 +911,7 @@
           const qText = q.content || q.question || q.prompt || q.text || '';
           const opts = parseOptionsList(q.options || q.choices || q.answers);
           const qSol = q.solution || q.explanation || q.explain || ('Đáp án đúng: ' + (q.answer || 'A'));
+          const imgUrl = getRenderedImageUrl(q);
 
           return `
             <div class="p-3 bg-slate-50/70 rounded border border-slate-200">
@@ -903,7 +921,7 @@
                   Giải chi tiết
                 </button>
               </div>
-              ${formatTikzHtml(q.image_url)}
+              ${formatTikzHtml(imgUrl)}
               <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2">
                 ${opts.map(o => `
                   <label class="flex items-center gap-1.5 cursor-pointer">
@@ -932,6 +950,7 @@
           const qPrompt = q.prompt || q.content || q.question || '';
           const st = q.statements || q.options || {};
           const qExplain = q.explanation || q.solution || '';
+          const imgUrl = getRenderedImageUrl(q);
 
           return `
             <div class="p-3 bg-slate-50/70 rounded border border-slate-200 space-y-2">
@@ -941,7 +960,7 @@
                   Giải chi tiết
                 </button>
               </div>
-              ${formatTikzHtml(q.image_url)}
+              ${formatTikzHtml(imgUrl)}
               <div class="pl-2 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => st[k] ? `
                   <div class="flex items-center justify-between p-1.5 bg-white rounded border border-slate-200 text-xs">
@@ -1000,6 +1019,7 @@
           const pts = q.points || q.score || 1.5;
           const qSol = q.solution || q.explanation || '';
           const guide = q.scoring_guide || q.barem || [];
+          const imgUrl = getRenderedImageUrl(q);
 
           return `
             <div class="p-3.5 bg-slate-50/70 rounded border border-slate-300 space-y-2">
@@ -1009,7 +1029,7 @@
                   Barem & Lời giải
                 </button>
               </div>
-              ${formatTikzHtml(q.image_url)}
+              ${formatTikzHtml(imgUrl)}
               <div class="pt-1">
                 <label class="block text-xs font-bold text-indigo-900 mb-1"><i class="fa-solid fa-calculator"></i> Nhập biểu thức / đáp số tự luận:</label>
                 <math-field id="mathMf_${idx}" placeholder="Học sinh nhập kết quả..."></math-field>
