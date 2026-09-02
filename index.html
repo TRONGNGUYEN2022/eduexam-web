@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EduExam Pro - Hệ Thống Khảo Thí &amp; Sinh Đề Thi GDPT 2018</title>
+  <title>EduExam Pro - Hệ Thống Khảo Thí &amp; Thi Online GDPT 2018</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,6 @@
     .sidebar-scroll { max-height: calc(100vh - 170px); overflow-y: auto; }
     @media (max-width: 768px) { .sidebar-scroll { max-height: none; } }
 
-    /* Khung nhập MathLive thu nhỏ gọn cho tự luận */
     math-field {
       display: block;
       width: 100%;
@@ -66,6 +65,11 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+      <!-- Nút Đăng nhập thi online -->
+      <button id="btnStudentLogin" onclick="openStudentLoginModal()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-user-graduate"></i> <span id="btnLoginText">HS Đăng Nhập Thi Online</span>
+      </button>
+
       <button id="btnToggleToolbar" onclick="toggleMathWidget()" class="bg-indigo-800 hover:bg-indigo-900 text-white font-bold text-xs px-3 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-indigo-400">
         <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán Di Động</span>
       </button>
@@ -145,42 +149,6 @@
               <option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
             </optgroup>
           </select>
-        </div>
-
-        <!-- Khối Trường / Đơn vị -->
-        <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
-          <div>
-            <label class="block font-semibold mb-0.5 text-slate-600">Trường học / Đơn vị</label>
-            <select id="schoolSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Tổ chuyên môn</label>
-              <select id="deptSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium"></select>
-            </div>
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Kỳ kiểm tra</label>
-              <select id="examTitleSelect" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-                <option value="ĐỀ KIỂM TRA ĐỊNH KỲ" selected>ĐỀ KIỂM TRA ĐỊNH KỲ</option>
-                <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 1">ĐỀ KIỂM TRA GIỮA HỌC KỲ 1</option>
-                <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 1">ĐỀ KIỂM TRA CUỐI HỌC KỲ 1</option>
-                <option value="ĐỀ KIỂM TRA GIỮA HỌC KỲ 2">ĐỀ KIỂM TRA GIỮA HỌC KỲ 2</option>
-                <option value="ĐỀ KIỂM TRA CUỐI HỌC KỲ 2">ĐỀ KIỂM TRA CUỐI HỌC KỲ 2</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Năm học</label>
-              <input type="text" id="schoolYear" value="2025 - 2026" oninput="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-            </div>
-            <div>
-              <label class="block font-semibold mb-0.5 text-slate-600">Mã đề hiển thị</label>
-              <input type="text" id="examCode" value="101" oninput="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-medium">
-            </div>
-          </div>
         </div>
 
         <!-- Môn & Lớp -->
@@ -272,6 +240,25 @@
     <!-- Main View -->
     <main class="flex-1 bg-slate-200/80 p-3 sm:p-6 md:overflow-y-auto flex flex-col items-center">
       
+      <!-- Thanh Điều Khiển Phòng Thi Online (Hiển thị khi học sinh đăng nhập thi) -->
+      <div id="onlineBar" class="hidden w-full max-w-4xl bg-indigo-900 text-white px-4 py-3 rounded-t shadow flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-400">
+        <div class="flex items-center gap-3">
+          <span class="bg-red-600 px-2.5 py-0.5 rounded text-xs font-bold animate-pulse tracking-wide">ĐANG THI TRỰC TUYẾN</span>
+          <span class="text-xs font-medium text-indigo-200" id="studentExamStatus">Thí sinh: Chưa đăng nhập</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-sm font-bold bg-indigo-950 px-3 py-1.5 rounded border border-indigo-400 text-amber-300 flex items-center gap-1.5 shadow-inner">
+            <i class="fa-solid fa-stopwatch text-amber-400"></i> <span id="timerCountdown">45:00</span>
+          </div>
+          <button onclick="submitExamOnline()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3.5 py-1.5 rounded shadow transition cursor-pointer">
+            <i class="fa-solid fa-paper-plane"></i> Nộp Bài &amp; Chấm Điểm
+          </button>
+          <button onclick="exitExamMode()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded shadow transition cursor-pointer">
+            Thoát Thi
+          </button>
+        </div>
+      </div>
+
       <!-- Tờ Giấy Thi / Đề Thi Preview -->
       <div id="examContainer" class="bg-white w-full max-w-4xl p-5 sm:p-10 shadow-lg rounded exam-paper text-[14px] md:text-[15px] leading-relaxed text-black border border-slate-300">
         
@@ -282,8 +269,8 @@
               <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;" id="previewDept">TỔ KHOA HỌC TỰ NHIÊN</p>
               <div style="text-align: left; font-size: 12px; line-height: 1.6; margin-top: 6px;">
-                <p style="margin: 0;">Họ và tên: <span class="font-bold text-indigo-900">......................................................</span></p>
-                <p style="margin: 0;">Số báo danh: <span class="font-bold text-indigo-900">....................</span> Lớp: <span class="font-bold text-indigo-900">................</span></p>
+                <p style="margin: 0;">Họ và tên: <span id="displayStudentName" class="font-bold text-indigo-900">......................................................</span></p>
+                <p style="margin: 0;">Số báo danh: <span id="displayStudentId" class="font-bold text-indigo-900">....................</span> Lớp: <span id="displayStudentClass" class="font-bold text-indigo-900">................</span></p>
               </div>
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
@@ -363,6 +350,83 @@
     </main>
   </div>
 
+  <!-- MODAL HỌC SINH ĐĂNG NHẬP THI ONLINE -->
+  <div id="studentLoginModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-gradient-to-r from-indigo-700 to-indigo-900 text-white p-5 text-center">
+        <h3 class="text-lg font-bold"><i class="fa-solid fa-user-graduate"></i> ĐĂNG NHẬP PHÒNG THI ONLINE</h3>
+        <p class="text-xs text-indigo-200 mt-1">Nhập thông tin thí sinh để bắt đầu làm bài kiểm tra</p>
+      </div>
+      <div class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold mb-1 text-slate-700">Họ và tên thí sinh (*)</label>
+          <input type="text" id="loginStudentName" placeholder="Ví dụ: Nguyễn Văn A" class="w-full border rounded p-2 bg-slate-50 font-medium text-sm">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Số báo danh / SBD</label>
+            <input type="text" id="loginStudentId" placeholder="Ví dụ: SBD0123" class="w-full border rounded p-2 bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Lớp học</label>
+            <input type="text" id="loginStudentClass" placeholder="Ví dụ: 9A1" class="w-full border rounded p-2 bg-slate-50">
+          </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="startOnlineExam()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded shadow cursor-pointer text-xs">
+            Vào Thi Ngay
+          </button>
+          <button onclick="closeStudentLoginModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-4 rounded cursor-pointer text-xs">
+            Hủy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL BÁO CÁO THỐNG KÊ KẾT QUẢ CHẤM ĐIỂM -->
+  <div id="scoreReportModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="bg-gradient-to-r from-indigo-700 to-indigo-900 text-white p-5 text-center">
+        <h3 class="text-lg font-bold">KẾT QUẢ BÀI THI TRỰC TUYẾN</h3>
+        <p class="text-xs text-indigo-200" id="reportStudentName">Thí sinh: NGUYỄN VĂN A</p>
+      </div>
+      <div class="p-6 space-y-4">
+        <div class="flex items-center justify-center gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+          <div>
+            <span class="text-xs text-slate-500 font-semibold block">ĐIỂM SỐ TỔNG KẾT</span>
+            <span id="finalScoreVal" class="text-3xl font-black text-indigo-600">8.5</span>
+            <span class="text-xs text-slate-400 font-bold">/ 10 điểm</span>
+          </div>
+          <div class="h-10 w-px bg-slate-200"></div>
+          <div>
+            <span class="text-xs text-slate-500 font-semibold block">XẾP LOẠI</span>
+            <span id="rankVal" class="text-base font-bold text-emerald-600">GIỎI</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between p-2 rounded bg-slate-100/70">
+            <span class="font-medium text-slate-600">Phần I (Trắc nghiệm 4 phương án):</span>
+            <span class="font-bold text-slate-900" id="p1ScoreText">0/0 câu đúng</span>
+          </div>
+          <div class="flex justify-between p-2 rounded bg-slate-100/70">
+            <span class="font-medium text-slate-600">Phần II (Trắc nghiệm Đúng/Sai):</span>
+            <span class="font-bold text-slate-900" id="p2ScoreText">0/0 ý đúng</span>
+          </div>
+          <div class="flex justify-between p-2 rounded bg-amber-50 border border-amber-200">
+            <span class="font-medium text-amber-900">Phần III (Tự luận / Trả lời ngắn):</span>
+            <span class="font-bold text-amber-900" id="p3ScoreText">Đã ghi nhận bài làm</span>
+          </div>
+        </div>
+
+        <button onclick="closeScoreModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition text-xs cursor-pointer shadow">
+          Đóng và xem giải chi tiết từng câu
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
@@ -371,6 +435,10 @@
     let currentExamData = null;
     let currentLevel = 'thcs';
     let activeTab = 'quick';
+    let isOnlineMode = false;
+    let timerInterval = null;
+    let timeRemaining = 45 * 60;
+    let studentInfo = { name: '', id: '', cls: '' };
 
     function cleanLatexMath(raw) {
       if (!raw) return '';
@@ -702,7 +770,178 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & PHỤC HỒI MATH-FIELD THU NHỎ CHO CÂU TỰ LUẬN
+    // XỬ LÝ PHÒNG THI ONLINE & ĐĂNG NHẬP THÍ SINH
+    // =========================================================================
+    function openStudentLoginModal() {
+      if (!currentExamData) {
+        alert('Vui lòng tạo đề kiểm tra trước khi vào phòng thi online!');
+        return;
+      }
+      document.getElementById('studentLoginModal').classList.remove('hidden');
+    }
+
+    function closeStudentLoginModal() {
+      document.getElementById('studentLoginModal').classList.add('hidden');
+    }
+
+    function startOnlineExam() {
+      const name = document.getElementById('loginStudentName').value.trim();
+      const sbd = document.getElementById('loginStudentId').value.trim() || 'SBD01';
+      const cls = document.getElementById('loginStudentClass').value.trim() || '9A';
+
+      if (!name) {
+        alert('Vui lòng nhập họ và tên thí sinh!');
+        return;
+      }
+
+      studentInfo = { name: name.toUpperCase(), id: sbd, cls: cls };
+      document.getElementById('displayStudentName').innerText = studentInfo.name;
+      document.getElementById('displayStudentId').innerText = studentInfo.id;
+      document.getElementById('displayStudentClass').innerText = studentInfo.cls;
+      document.getElementById('reportStudentName').innerText = `Thí sinh: ${studentInfo.name} - Lớp: ${studentInfo.cls} (SBD: ${studentInfo.id})`;
+
+      closeStudentLoginModal();
+      isOnlineMode = true;
+
+      document.getElementById('configSidebar').classList.add('hidden');
+      document.getElementById('onlineBar').classList.remove('hidden');
+      document.getElementById('btnStudentLogin').classList.add('hidden');
+      document.getElementById('studentExamStatus').innerText = `Thí sinh: ${studentInfo.name}`;
+
+      startExamTimer(parseInt(document.getElementById('duration').value) || 45);
+      renderExamToView(currentExamData.base_exam, currentExamData.answer_matrix);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function exitExamMode() {
+      if (confirm('Bạn có chắc chắn muốn thoát khỏi phòng thi? Bài làm hiện tại sẽ không được lưu.')) {
+        isOnlineMode = false;
+        clearInterval(timerInterval);
+        document.getElementById('configSidebar').classList.remove('hidden');
+        document.getElementById('onlineBar').classList.add('hidden');
+        document.getElementById('btnStudentLogin').classList.remove('hidden');
+        renderExamToView(currentExamData.base_exam, currentExamData.answer_matrix);
+      }
+    }
+
+    function startExamTimer(minutes) {
+      clearInterval(timerInterval);
+      timeRemaining = minutes * 60;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert('Hết giờ làm bài! Hệ thống tự động nộp bài.');
+          submitExamOnline();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timeRemaining / 60);
+      const s = timeRemaining % 60;
+      document.getElementById('timerCountdown').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // =========================================================================
+    // CHẤM ĐIỂM & BẢNG THỐNG KÊ KẾT QUẢ
+    // =========================================================================
+    function submitExamOnline() {
+      if (!currentExamData || !currentExamData.base_exam) return;
+      clearInterval(timerInterval);
+
+      const exam = currentExamData.base_exam;
+      let earnedPoints = 0;
+
+      // 1. Chấm Phần I (Trắc nghiệm)
+      const p1List = exam.part_1_mcq || [];
+      let p1Correct = 0;
+      const p1Weight = currentLevel === 'thpt' ? 3.0 : 4.0;
+      const p1PerQuestion = p1List.length > 0 ? (p1Weight / p1List.length) : 0;
+
+      p1List.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="student_p1_q${idx}"]:checked`);
+        if (selected && selected.value.toUpperCase() === (q.answer || '').toUpperCase()) {
+          p1Correct++;
+          earnedPoints += p1PerQuestion;
+        }
+      });
+
+      // 2. Chấm Phần II (Đúng/Sai)
+      const p2List = exam.part_2_tf || [];
+      let p2CorrectSub = 0;
+      let p2TotalSub = 0;
+      const p2Weight = currentLevel === 'thpt' ? 4.0 : 3.0;
+
+      p2List.forEach((q, idx) => {
+        const answers = q.answers || {};
+        ['a', 'b', 'c', 'd'].forEach(k => {
+          if (q.statements && (q.statements[k] || q.statements[k.toUpperCase()])) {
+            p2TotalSub++;
+            const selected = document.querySelector(`input[name="student_p2_q${idx}_${k}"]:checked`);
+            const correctBool = answers[k] !== undefined ? answers[k] : answers[k.toUpperCase()];
+            const expectedStr = correctBool ? 'Đ' : 'S';
+            if (selected && selected.value === expectedStr) {
+              p2CorrectSub++;
+            }
+          }
+        });
+      });
+
+      if (p2TotalSub > 0) {
+        earnedPoints += (p2CorrectSub / p2TotalSub) * p2Weight;
+      }
+
+      const finalScore = Math.min(10, Math.round(earnedPoints * 10) / 10);
+      
+      let rank = "CHƯA ĐẠT";
+      let rankColor = "text-rose-600";
+      if (finalScore >= 8.0) { rank = "GIỎI"; rankColor = "text-emerald-600"; }
+      else if (finalScore >= 6.5) { rank = "KHÁ"; rankColor = "text-indigo-600"; }
+      else if (finalScore >= 5.0) { rank = "TRUNG BÌNH"; rankColor = "text-amber-600"; }
+
+      document.getElementById('finalScoreVal').innerText = finalScore.toFixed(1);
+      const rankEl = document.getElementById('rankVal');
+      rankEl.innerText = rank;
+      rankEl.className = `text-base font-bold ${rankColor}`;
+
+      document.getElementById('p1ScoreText').innerText = `${p1Correct}/${p1List.length} câu đúng (+${(p1Correct * p1PerQuestion).toFixed(2)}đ)`;
+      document.getElementById('p2ScoreText').innerText = `${p2CorrectSub}/${p2TotalSub} ý đúng (+${p2TotalSub > 0 ? ((p2CorrectSub / p2TotalSub) * p2Weight).toFixed(2) : 0}đ)`;
+      document.getElementById('scoreReportModal').classList.remove('hidden');
+    }
+
+    function closeScoreModal() {
+      document.getElementById('scoreReportModal').classList.add('hidden');
+      isOnlineMode = false;
+      document.getElementById('configSidebar').classList.remove('hidden');
+      document.getElementById('onlineBar').classList.add('hidden');
+      document.getElementById('btnStudentLogin').classList.remove('hidden');
+      
+      // Bật hiển thị toàn bộ nút giải chi tiết ở các câu
+      document.querySelectorAll('.detail-solution-box').forEach(box => box.classList.remove('hidden'));
+      document.querySelectorAll('.toggle-solution-btn').forEach(btn => btn.innerText = "Ẩn giải chi tiết");
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleQuestionSolution(idx) {
+      const box = document.getElementById(`solutionBox_${idx}`);
+      const btn = document.getElementById(`solutionBtn_${idx}`);
+      if (box && btn) {
+        if (box.classList.contains('hidden')) {
+          box.classList.remove('hidden');
+          btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Ẩn giải chi tiết`;
+        } else {
+          box.classList.add('hidden');
+          btn.innerHTML = `<i class="fa-solid fa-book-open"></i> Xem giải chi tiết`;
+        }
+      }
+    }
+
+    // =========================================================================
+    // RENDER ĐỀ THI & TÍCH HỢP NÚT GIẢI CHI TIẾT TỪNG CÂU
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -720,10 +959,21 @@
               optsDict[label] = cleanLatexMath(typeof o === 'object' ? (o.text || o.content) : String(o));
             });
           }
+
+          const solText = cleanLatexMath(q.solution || `Đáp án đúng là: <strong>${q.answer || 'A'}</strong>. Học sinh chiếu theo bảng đáp án để đối chiếu.`);
+          const solImg = formatTikzHtml(q.image_url || q.tikz_code);
+
           return `
-            <div class="space-y-1.5 p-2 rounded bg-slate-50/50">
-              <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-              ${formatTikzHtml(q.image_url || q.tikz_code)}
+            <div class="space-y-1.5 p-3 rounded bg-slate-50/60 border border-slate-200">
+              <div class="flex items-start justify-between gap-2">
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${qText}</p>
+                <button type="button" id="solutionBtn_p1_${idx}" onclick="toggleQuestionSolution('p1_${idx}')" class="toggle-solution-btn text-[11px] bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold px-2 py-1 rounded transition shrink-0 cursor-pointer">
+                  <i class="fa-solid fa-book-open"></i> Xem giải chi tiết
+                </button>
+              </div>
+
+              ${formatTikzHtml(q.image_url)}
+
               <table style="width: 100%; border-collapse: collapse; border: none; margin-top: 4px;">
                 <tr>
                   <td style="width: 25%; border: none;"><label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="student_p1_q${idx}" value="A" class="accent-indigo-600"><span><strong>A.</strong> ${optsDict['A']}</span></label></td>
@@ -732,6 +982,13 @@
                   <td style="width: 25%; border: none;"><label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="student_p1_q${idx}" value="D" class="accent-indigo-600"><span><strong>D.</strong> ${optsDict['D']}</span></label></td>
                 </tr>
               </table>
+
+              <!-- Khung giải chi tiết ẩn/hiện cho từng câu trắc nghiệm -->
+              <div id="solutionBox_p1_${idx}" class="detail-solution-box hidden mt-3 p-3 bg-emerald-50/80 rounded border border-emerald-300 text-xs space-y-2">
+                <p class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check"></i> Lời giải chi tiết Câu ${idx + 1}:</p>
+                ${solImg}
+                <p class="text-slate-800 leading-relaxed">${solText}</p>
+              </div>
             </div>
           `;
         }).join('');
@@ -744,10 +1001,19 @@
         part2Container.innerHTML = p2List.map((q, idx) => {
           const prompt = cleanLatexMath(q.prompt || '');
           const st = q.statements || {};
+          const explanation = cleanLatexMath(q.explanation || 'Học sinh kiểm tra tính đúng/sai của từng ý theo định lý và giả thiết.');
+
           return `
-            <div class="space-y-2 p-2 rounded bg-slate-50/50">
-              <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
-              ${formatTikzHtml(q.image_url || q.tikz_code)}
+            <div class="space-y-2 p-3 rounded bg-slate-50/60 border border-slate-200">
+              <div class="flex items-start justify-between gap-2">
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
+                <button type="button" id="solutionBtn_p2_${idx}" onclick="toggleQuestionSolution('p2_${idx}')" class="toggle-solution-btn text-[11px] bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold px-2 py-1 rounded transition shrink-0 cursor-pointer">
+                  <i class="fa-solid fa-book-open"></i> Xem giải chi tiết
+                </button>
+              </div>
+
+              ${formatTikzHtml(q.image_url)}
+
               <div class="pl-2 space-y-1.5">
                 ${['a', 'b', 'c', 'd'].map(k => {
                   const val = cleanLatexMath(st[k] || '');
@@ -763,27 +1029,49 @@
                   `;
                 }).join('')}
               </div>
+
+              <div id="solutionBox_p2_${idx}" class="detail-solution-box hidden mt-3 p-3 bg-emerald-50/80 rounded border border-emerald-300 text-xs space-y-2">
+                <p class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check"></i> Hướng dẫn giải Câu ${idx + 1}:</p>
+                <p class="text-slate-800 leading-relaxed">${explanation}</p>
+              </div>
             </div>
           `;
         }).join('');
       }
 
-      // 3. Phần III: Tự luận (Phục hồi Math-Field nhỏ gọn để nhập đáp số / biểu thức)
+      // 3. Phần III: Tự luận
       const p3List = exam.part_3_essay || exam.part_3_short_ans || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container) {
         part3Container.innerHTML = p3List.map((q, idx) => {
           const qText = cleanLatexMath(q.content || '');
           const pts = q.points || 1.5;
+          const solText = cleanLatexMath(q.solution || '');
+          const solImg = formatTikzHtml(q.solution_image_url || q.solution_tikz);
+          const graphImg = formatTikzHtml(q.solution_graph_image_url || q.solution_graph_tikz);
+
           return `
             <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
-              <p class="font-bold text-indigo-950 text-sm">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
-              ${formatTikzHtml(q.image_url || q.tikz_code)}
+              <div class="flex items-start justify-between gap-2">
+                <p class="font-bold text-indigo-950 text-sm flex-1">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
+                <button type="button" id="solutionBtn_p3_${idx}" onclick="toggleQuestionSolution('p3_${idx}')" class="toggle-solution-btn text-[11px] bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-semibold px-2 py-1 rounded transition shrink-0 cursor-pointer">
+                  <i class="fa-solid fa-book-open"></i> Xem giải chi tiết
+                </button>
+              </div>
+
+              ${formatTikzHtml(q.image_url)}
               
-              <!-- Khung MathLive cũ được thu nhỏ lại để nhập đáp số / kết quả tự luận -->
               <div class="space-y-1 pt-1">
-                <label class="block text-xs font-bold text-indigo-900"><i class="fa-solid fa-calculator"></i> Nhập đáp số / biểu thức toán học:</label>
-                <math-field id="mathMf_${idx}" placeholder="Nhập công thức toán học..."></math-field>
+                <label class="block text-xs font-bold text-indigo-900"><i class="fa-solid fa-calculator"></i> Nhập đáp số / biểu thức tự luận:</label>
+                <math-field id="mathMf_${idx}" placeholder="Nhập kết quả..."></math-field>
+              </div>
+
+              <!-- Khung giải chi tiết tự luận ẩn/hiện -->
+              <div id="solutionBox_p3_${idx}" class="detail-solution-box hidden mt-3 p-3 bg-emerald-50/80 rounded border border-emerald-300 text-xs space-y-2">
+                <p class="font-bold text-emerald-900"><i class="fa-solid fa-circle-check"></i> Lời giải chi tiết Bài ${idx + 1}:</p>
+                ${solImg}
+                ${graphImg}
+                <div class="text-slate-800 leading-relaxed font-medium">${solText}</div>
               </div>
             </div>
           `;
