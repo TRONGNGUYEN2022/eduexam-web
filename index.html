@@ -850,20 +850,53 @@
       }
     }
 
+    // =========================================================================
+    // HÀM CHUẨN HÓA DỮ LIỆU ĐÁP ÁN VÀ CÂU HỎI TRÁNH LỖI UNDEFINED
+    // =========================================================================
+    function normalizeQuestionOptions(rawOpts) {
+      if (!rawOpts) return [];
+      if (Array.isArray(rawOpts)) {
+        return rawOpts.map((o, idx) => {
+          const defaultLabel = String.fromCharCode(65 + idx);
+          if (typeof o === 'string') {
+            const m = o.match(/^([A-D])[\.\:\)\s]+(.*)/s);
+            if (m) return { id: m[1].toUpperCase(), text: m[2].trim() };
+            return { id: defaultLabel, text: o.trim() };
+          } else if (typeof o === 'object' && o !== null) {
+            return {
+              id: (o.id || o.label || o.key || defaultLabel).toString().toUpperCase(),
+              text: (o.text || o.content || o.value || '').toString()
+            };
+          }
+          return { id: defaultLabel, text: String(o) };
+        });
+      } else if (typeof rawOpts === 'object' && rawOpts !== null) {
+        return Object.keys(rawOpts).map(k => ({
+          id: k.toUpperCase(),
+          text: String(rawOpts[k])
+        }));
+      }
+      return [];
+    }
+
     function renderExamToView(base) {
       if (!base) return;
 
-      const p1List = base.part_1_mcq || [];
+      // 1. Phần I: MCQ
+      const p1List = base.part_1_mcq || base.mcq || [];
       const p1Wrapper = document.getElementById('part1Wrapper');
       const p1Container = document.getElementById('part1Container');
       if (p1List.length > 0 && p1Wrapper && p1Container) {
         p1Wrapper.classList.remove('hidden');
         p1Container.innerHTML = p1List.map((q, idx) => {
-          const opts = q.options || [];
+          const qContent = q.content || q.question || q.prompt || q.text || '';
+          const opts = normalizeQuestionOptions(q.options || q.choices);
+          const qSolution = q.solution || q.explanation || q.answer_detail || ('Đáp án đúng là: ' + (q.answer || ''));
+
           return `
             <div class="p-3 bg-slate-50/70 rounded border border-slate-200">
               <div class="flex items-start justify-between gap-2">
-                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(q.content)}</p>
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qContent)}</p>
                 <button type="button" onclick="toggleSolution('p1_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
                   Giải chi tiết
                 </button>
@@ -879,100 +912,118 @@
               </div>
               <div id="sol_p1_${idx}" class="hidden mt-2.5 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800 leading-relaxed">
                 <p><strong class="text-emerald-900">Lời giải chi tiết:</strong></p>
-                <p>${cleanLatexMath(q.solution || 'Đáp án đúng là: ' + q.answer)}</p>
+                <p>${cleanLatexMath(qSolution)}</p>
               </div>
             </div>
           `;
         }).join('');
       }
 
+      // 2. Phần II: Đúng / Sai (THPT)
       const p2List = base.part_2_tf || [];
       const p2Wrapper = document.getElementById('part2Wrapper');
       const p2Container = document.getElementById('part2Container');
       if (currentLevel === 'thpt' && p2List.length > 0 && p2Wrapper && p2Container) {
         p2Wrapper.classList.remove('hidden');
-        p2Container.innerHTML = p2List.map((q, idx) => `
-          <div class="p-3 bg-slate-50/70 rounded border border-slate-200 space-y-2">
-            <div class="flex items-start justify-between gap-2">
-              <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(q.prompt)}</p>
-              <button type="button" onclick="toggleSolution('p2_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
-                Giải chi tiết
-              </button>
-            </div>
-            ${formatTikzHtml(q.image_url)}
-            <div class="pl-2 space-y-1.5">
-              ${['a', 'b', 'c', 'd'].map(k => q.statements && q.statements[k] ? `
-                <div class="flex items-center justify-between p-1.5 bg-white rounded border border-slate-200 text-xs">
-                  <span><strong>${k})</strong> ${cleanLatexMath(q.statements[k])}</span>
-                  <div class="flex items-center gap-3">
-                    <label class="cursor-pointer"><input type="radio" name="student_p2_q${idx}_${k}" value="Đ"> Đúng</label>
-                    <label class="cursor-pointer"><input type="radio" name="student_p2_q${idx}_${k}" value="S"> Sai</label>
+        p2Container.innerHTML = p2List.map((q, idx) => {
+          const qPrompt = q.prompt || q.content || q.question || '';
+          const st = q.statements || q.options || {};
+          const qExplain = q.explanation || q.solution || '';
+
+          return `
+            <div class="p-3 bg-slate-50/70 rounded border border-slate-200 space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qPrompt)}</p>
+                <button type="button" onclick="toggleSolution('p2_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
+                  Giải chi tiết
+                </button>
+              </div>
+              ${formatTikzHtml(q.image_url)}
+              <div class="pl-2 space-y-1.5">
+                ${['a', 'b', 'c', 'd'].map(k => st[k] ? `
+                  <div class="flex items-center justify-between p-1.5 bg-white rounded border border-slate-200 text-xs">
+                    <span><strong>${k})</strong> ${cleanLatexMath(st[k])}</span>
+                    <div class="flex items-center gap-3">
+                      <label class="cursor-pointer"><input type="radio" name="student_p2_q${idx}_${k}" value="Đ"> Đúng</label>
+                      <label class="cursor-pointer"><input type="radio" name="student_p2_q${idx}_${k}" value="S"> Sai</label>
+                    </div>
                   </div>
-                </div>
-              ` : '').join('')}
+                ` : '').join('')}
+              </div>
+              <div id="sol_p2_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800">
+                <p><strong class="text-emerald-900">Giải thích chi tiết:</strong></p>
+                <p>${cleanLatexMath(qExplain)}</p>
+              </div>
             </div>
-            <div id="sol_p2_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800">
-              <p><strong class="text-emerald-900">Giải thích chi tiết:</strong></p>
-              <p>${cleanLatexMath(q.explanation || '')}</p>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } else if (p2Wrapper) {
         p2Wrapper.classList.add('hidden');
       }
 
+      // 3. Phần III: Trả lời ngắn HOẶC Tự luận
       const p3Short = base.part_3_short_ans || [];
-      const p3Essay = base.part_3_essay || [];
+      const p3Essay = base.part_3_essay || base.essay || [];
       const p3Wrapper = document.getElementById('part3Wrapper');
       const p3Container = document.getElementById('part3Container');
 
       if (currentLevel === 'thpt' && p3Short.length > 0 && p3Wrapper && p3Container) {
         p3Wrapper.classList.remove('hidden');
         setTxt('p3Heading', "PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm) - 6 CÂU");
-        p3Container.innerHTML = p3Short.map((q, idx) => `
-          <div class="p-3 bg-slate-50/70 rounded border border-slate-200 space-y-2">
-            <div class="flex items-start justify-between gap-2">
-              <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(q.content)}</p>
-              <button type="button" onclick="toggleSolution('p3s_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
-                Giải chi tiết
-              </button>
+        p3Container.innerHTML = p3Short.map((q, idx) => {
+          const qContent = q.content || q.question || q.problem || '';
+          return `
+            <div class="p-3 bg-slate-50/70 rounded border border-slate-200 space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qContent)}</p>
+                <button type="button" onclick="toggleSolution('p3s_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
+                  Giải chi tiết
+                </button>
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <span class="text-xs font-bold text-indigo-900">Điền đáp số:</span>
+                <math-field id="shortAns_${idx}" placeholder="Điền số..."></math-field>
+              </div>
+              <div id="sol_p3s_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800">
+                <p><strong class="text-emerald-900">Lời giải & Đáp số:</strong> ${cleanLatexMath(q.solution || q.answer)}</p>
+              </div>
             </div>
-            <div class="flex items-center gap-2 pt-1">
-              <span class="text-xs font-bold text-indigo-900">Điền đáp số:</span>
-              <math-field id="shortAns_${idx}" placeholder="Điền số..."></math-field>
-            </div>
-            <div id="sol_p3s_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800">
-              <p><strong class="text-emerald-900">Lời giải & Đáp số:</strong> ${cleanLatexMath(q.solution || q.answer)}</p>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } else if (p3Essay.length > 0 && p3Wrapper && p3Container) {
         p3Wrapper.classList.remove('hidden');
-        p3Container.innerHTML = p3Essay.map((q, idx) => `
-          <div class="p-3.5 bg-slate-50/70 rounded border border-slate-300 space-y-2">
-            <div class="flex items-start justify-between gap-2">
-              <p class="font-bold text-indigo-950 text-sm flex-1">Bài ${idx + 1} (${q.points || 1.5} điểm): <span class="font-normal text-black">${cleanLatexMath(q.content)}</span></p>
-              <button type="button" onclick="toggleSolution('p3e_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
-                Barem & Lời giải
-              </button>
+        p3Container.innerHTML = p3Essay.map((q, idx) => {
+          const qContent = q.content || q.question || q.problem || '';
+          const pts = q.points || q.score || 1.5;
+          const qSolution = q.solution || q.explanation || '';
+          const guide = q.scoring_guide || q.barem || [];
+
+          return `
+            <div class="p-3.5 bg-slate-50/70 rounded border border-slate-300 space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <p class="font-bold text-indigo-950 text-sm flex-1">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${cleanLatexMath(qContent)}</span></p>
+                <button type="button" onclick="toggleSolution('p3e_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
+                  Barem & Lời giải
+                </button>
+              </div>
+              ${formatTikzHtml(q.image_url)}
+              <div class="pt-1">
+                <label class="block text-xs font-bold text-indigo-900 mb-1"><i class="fa-solid fa-calculator"></i> Nhập biểu thức / đáp số tự luận:</label>
+                <math-field id="mathMf_${idx}" placeholder="Học sinh nhập kết quả..."></math-field>
+              </div>
+              <div id="sol_p3e_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800 space-y-1.5">
+                ${formatTikzHtml(q.solution_image_url)}
+                <p><strong class="text-emerald-900">Lời giải chi tiết:</strong> ${cleanLatexMath(qSolution)}</p>
+                ${guide.length > 0 ? `
+                  <div class="pt-1 border-t border-emerald-200">
+                    <p class="font-bold text-emerald-950">Barem thang điểm:</p>
+                    ${guide.map(g => `<p class="text-slate-700">- ${cleanLatexMath(g.step || g.content || g)}: <strong class="text-emerald-700">${g.points || g.score || ''}</strong></p>`).join('')}
+                  </div>
+                ` : ''}
+              </div>
             </div>
-            ${formatTikzHtml(q.image_url)}
-            <div class="pt-1">
-              <label class="block text-xs font-bold text-indigo-900 mb-1"><i class="fa-solid fa-calculator"></i> Nhập biểu thức / đáp số tự luận:</label>
-              <math-field id="mathMf_${idx}" placeholder="Học sinh nhập kết quả..."></math-field>
-            </div>
-            <div id="sol_p3e_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800 space-y-1.5">
-              ${formatTikzHtml(q.solution_image_url)}
-              <p><strong class="text-emerald-900">Lời giải chi tiết:</strong> ${cleanLatexMath(q.solution || '')}</p>
-              ${q.scoring_guide ? `
-                <div class="pt-1 border-t border-emerald-200">
-                  <p class="font-bold text-emerald-950">Barem thang điểm:</p>
-                  ${q.scoring_guide.map(g => `<p class="text-slate-700">- ${cleanLatexMath(g.step)}: <strong class="text-emerald-700">${g.points}</strong></p>`).join('')}
-                </div>
-              ` : ''}
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } else if (p3Wrapper) {
         p3Wrapper.classList.add('hidden');
       }
