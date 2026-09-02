@@ -5,15 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam Pro - Hệ Thống Khảo Thí GDPT 2018</title>
   
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-  <link rel="stylesheet" href="[https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css](https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css)">
-  <script src="[https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js](https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js)"></script>
-  <script defer src="[https://unpkg.com/mathlive](https://unpkg.com/mathlive)"></script>
-  <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+  <!-- CDN Tailwind CSS BẮT BUỘC ĐỂ GIỮ NGUYÊN GIAO DIỆN CHUẨN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://unpkg.com/mathlive"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
-    @import url('[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap)');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #1e293b; }
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
@@ -49,7 +51,7 @@
       
       <!-- CỤM LƯU FILE LÊN GOOGLE DRIVE -->
       <div class="relative inline-block text-left">
-        <button onclick="toggleDriveDropdown()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-emerald-400">
+        <button onclick="toggleDriveDropdown(event)" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-2 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-emerald-400">
           <i class="fa-brands fa-google-drive text-amber-300"></i> <span>Lưu lên Drive</span> <i class="fa-solid fa-caret-down text-[10px]"></i>
         </button>
         <div id="driveSaveDropdown" class="hidden absolute right-0 mt-1 w-44 bg-white rounded-md shadow-lg py-1 z-50 border border-slate-200 text-xs font-semibold text-slate-800">
@@ -386,7 +388,7 @@
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
-      : '[https://eduexam-backend.onrender.com](https://eduexam-backend.onrender.com)';
+      : 'https://eduexam-backend.onrender.com';
 
     let currentExamData = null;
     let currentLevel = 'thcs';
@@ -429,17 +431,15 @@
       `;
     }
 
-    function toggleDriveDropdown() {
+    function toggleDriveDropdown(e) {
+      if (e) e.stopPropagation();
       const dd = document.getElementById('driveSaveDropdown');
       if (dd) dd.classList.toggle('hidden');
     }
 
-    window.addEventListener('click', (e) => {
-      const btn = e.target.closest('button[onclick="toggleDriveDropdown()"]');
+    window.addEventListener('click', () => {
       const dd = document.getElementById('driveSaveDropdown');
-      if (!btn && dd && !dd.contains(e.target)) {
-        dd.classList.add('hidden');
-      }
+      if (dd) dd.classList.add('hidden');
     });
 
     async function saveCurrentExamToDrive(format) {
@@ -447,9 +447,6 @@
         alert("Chưa có dữ liệu đề thi để lưu lên Google Drive! Hãy tạo hoặc nạp đề trước.");
         return;
       }
-
-      const dd = document.getElementById('driveSaveDropdown');
-      if (dd) dd.classList.add('hidden');
 
       const subject = getVal('subject', 'Toán học');
       const grade = parseInt(getVal('grade', '7')) || 7;
@@ -855,7 +852,7 @@
     }
 
     // =========================================================================
-    // HÀM CHUẨN HÓA DỮ LIỆU ĐÁP ÁN VÀ CÂU HỎI TRÁNH LỖI UNDEFINED
+    // CHUẨN HÓA DỮ LIỆU ĐÁP ÁN TRÁNH LỖI UNDEFINED
     // =========================================================================
     function parseOptionsList(rawOpts) {
       if (!rawOpts) return [];
@@ -1040,9 +1037,6 @@
       if (el) el.classList.toggle('hidden');
     }
 
-    // =========================================================================
-    // NẠP ĐỀ TỪ FILE JSON HOẶC MARKDOWN ĐÃ LƯU
-    // =========================================================================
     function loadExamFromFile(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1118,9 +1112,6 @@
       return exam;
     }
 
-    // =========================================================================
-    // TẢI FILE VỀ MÁY TÍNH (JSON, MARKDOWN, DOCX)
-    // =========================================================================
     function downloadExamJson() {
       if (!currentExamData) {
         alert("Chưa có dữ liệu đề thi! Vui lòng tạo đề trước khi tải.");
@@ -1217,9 +1208,6 @@
       } catch (e) { alert("Lỗi xuất file: " + e.message); }
     }
 
-    // =========================================================================
-    // THI ONLINE & CHẤM ĐIỂM
-    // =========================================================================
     function openStudentLoginModal() {
       if (!currentExamData) { alert("Vui lòng tạo đề trước khi vào thi online!"); return; }
       const m = document.getElementById('studentLoginModal');
