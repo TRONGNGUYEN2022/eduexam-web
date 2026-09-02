@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>EduExam Pro - Hệ Thống Khảo Thí GDPT 2018</title>
   
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://unpkg.com/mathlive"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <link rel="stylesheet" href="[https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css](https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css)">
+  <script src="[https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js](https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js)"></script>
+  <script defer src="[https://unpkg.com/mathlive](https://unpkg.com/mathlive)"></script>
+  <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap)');
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #f1f5f9; color: #1e293b; }
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
@@ -167,7 +167,7 @@
           <p class="text-[10px] text-indigo-800 italic mt-1" id="levelSpecDesc">Chuẩn THCS: 12 MCQ (3đ) + Tự luận toán thực tế & hình học (7đ)</p>
         </div>
 
-        <!-- BỘ CHỌN MODEL GEMINI THẾ HỆ MỚI (CHỐNG LỖI 404) -->
+        <!-- BỘ CHỌN MODEL GEMINI THẾ HỆ MỚI -->
         <div id="modelSelectWrapper" class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <div class="flex items-center justify-between">
             <label class="block font-bold text-slate-800 flex items-center gap-1">
@@ -386,7 +386,7 @@
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
-      : 'https://eduexam-backend.onrender.com';
+      : '[https://eduexam-backend.onrender.com](https://eduexam-backend.onrender.com)';
 
     let currentExamData = null;
     let currentLevel = 'thcs';
@@ -422,7 +422,11 @@
 
     function formatTikzHtml(url) {
       if (!url || typeof url !== 'string' || url.length < 10) return '';
-      return `<div class="my-2.5 text-center"><img src="${url}" class="max-h-52 inline-block bg-white p-1 rounded border shadow-sm"/></div>`;
+      return `
+        <div class="my-3 text-center">
+          <img src="${url}" alt="Hình minh họa bài toán" class="max-h-56 max-w-full inline-block bg-white p-2 rounded-lg border border-slate-300 shadow-sm object-contain"/>
+        </div>
+      `;
     }
 
     function toggleDriveDropdown() {
@@ -853,7 +857,7 @@
     // =========================================================================
     // HÀM CHUẨN HÓA DỮ LIỆU ĐÁP ÁN VÀ CÂU HỎI TRÁNH LỖI UNDEFINED
     // =========================================================================
-    function normalizeQuestionOptions(rawOpts) {
+    function parseOptionsList(rawOpts) {
       if (!rawOpts) return [];
       if (Array.isArray(rawOpts)) {
         return rawOpts.map((o, idx) => {
@@ -882,21 +886,22 @@
     function renderExamToView(base) {
       if (!base) return;
 
-      // 1. Phần I: MCQ
-      const p1List = base.part_1_mcq || base.mcq || [];
+      // 1. PHẦN I: TRẮC NGHIỆM MCQ
+      const p1List = base.part_1_mcq || base.mcq || base.questions || [];
       const p1Wrapper = document.getElementById('part1Wrapper');
       const p1Container = document.getElementById('part1Container');
+
       if (p1List.length > 0 && p1Wrapper && p1Container) {
         p1Wrapper.classList.remove('hidden');
         p1Container.innerHTML = p1List.map((q, idx) => {
-          const qContent = q.content || q.question || q.prompt || q.text || '';
-          const opts = normalizeQuestionOptions(q.options || q.choices);
-          const qSolution = q.solution || q.explanation || q.answer_detail || ('Đáp án đúng là: ' + (q.answer || ''));
+          const qText = q.content || q.question || q.prompt || q.text || '';
+          const opts = parseOptionsList(q.options || q.choices || q.answers);
+          const qSol = q.solution || q.explanation || q.explain || ('Đáp án đúng: ' + (q.answer || 'A'));
 
           return `
             <div class="p-3 bg-slate-50/70 rounded border border-slate-200">
               <div class="flex items-start justify-between gap-2">
-                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qContent)}</p>
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qText)}</p>
                 <button type="button" onclick="toggleSolution('p1_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
                   Giải chi tiết
                 </button>
@@ -912,17 +917,18 @@
               </div>
               <div id="sol_p1_${idx}" class="hidden mt-2.5 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800 leading-relaxed">
                 <p><strong class="text-emerald-900">Lời giải chi tiết:</strong></p>
-                <p>${cleanLatexMath(qSolution)}</p>
+                <p>${cleanLatexMath(qSol)}</p>
               </div>
             </div>
           `;
         }).join('');
       }
 
-      // 2. Phần II: Đúng / Sai (THPT)
+      // 2. PHẦN II: ĐÚNG / SAI (THPT)
       const p2List = base.part_2_tf || [];
       const p2Wrapper = document.getElementById('part2Wrapper');
       const p2Container = document.getElementById('part2Container');
+
       if (currentLevel === 'thpt' && p2List.length > 0 && p2Wrapper && p2Container) {
         p2Wrapper.classList.remove('hidden');
         p2Container.innerHTML = p2List.map((q, idx) => {
@@ -961,7 +967,7 @@
         p2Wrapper.classList.add('hidden');
       }
 
-      // 3. Phần III: Trả lời ngắn HOẶC Tự luận
+      // 3. PHẦN III: TRẢ LỜI NGẮN HOẶC TỰ LUẬN
       const p3Short = base.part_3_short_ans || [];
       const p3Essay = base.part_3_essay || base.essay || [];
       const p3Wrapper = document.getElementById('part3Wrapper');
@@ -971,11 +977,11 @@
         p3Wrapper.classList.remove('hidden');
         setTxt('p3Heading', "PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm) - 6 CÂU");
         p3Container.innerHTML = p3Short.map((q, idx) => {
-          const qContent = q.content || q.question || q.problem || '';
+          const qText = q.content || q.question || q.problem || '';
           return `
             <div class="p-3 bg-slate-50/70 rounded border border-slate-200 space-y-2">
               <div class="flex items-start justify-between gap-2">
-                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qContent)}</p>
+                <p class="flex-1"><strong>Câu ${idx + 1}:</strong> ${cleanLatexMath(qText)}</p>
                 <button type="button" onclick="toggleSolution('p3s_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
                   Giải chi tiết
                 </button>
@@ -993,15 +999,15 @@
       } else if (p3Essay.length > 0 && p3Wrapper && p3Container) {
         p3Wrapper.classList.remove('hidden');
         p3Container.innerHTML = p3Essay.map((q, idx) => {
-          const qContent = q.content || q.question || q.problem || '';
+          const qText = q.content || q.question || q.problem || '';
           const pts = q.points || q.score || 1.5;
-          const qSolution = q.solution || q.explanation || '';
+          const qSol = q.solution || q.explanation || '';
           const guide = q.scoring_guide || q.barem || [];
 
           return `
             <div class="p-3.5 bg-slate-50/70 rounded border border-slate-300 space-y-2">
               <div class="flex items-start justify-between gap-2">
-                <p class="font-bold text-indigo-950 text-sm flex-1">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${cleanLatexMath(qContent)}</span></p>
+                <p class="font-bold text-indigo-950 text-sm flex-1">Bài ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${cleanLatexMath(qText)}</span></p>
                 <button type="button" onclick="toggleSolution('p3e_${idx}')" class="text-[11px] bg-indigo-100 text-indigo-800 font-semibold px-2 py-0.5 rounded shrink-0 cursor-pointer">
                   Barem & Lời giải
                 </button>
@@ -1013,7 +1019,7 @@
               </div>
               <div id="sol_p3e_${idx}" class="hidden mt-2 p-2.5 bg-emerald-50 rounded border border-emerald-300 text-xs text-slate-800 space-y-1.5">
                 ${formatTikzHtml(q.solution_image_url)}
-                <p><strong class="text-emerald-900">Lời giải chi tiết:</strong> ${cleanLatexMath(qSolution)}</p>
+                <p><strong class="text-emerald-900">Lời giải chi tiết:</strong> ${cleanLatexMath(qSol)}</p>
                 ${guide.length > 0 ? `
                   <div class="pt-1 border-t border-emerald-200">
                     <p class="font-bold text-emerald-950">Barem thang điểm:</p>
