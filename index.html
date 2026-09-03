@@ -36,7 +36,7 @@
       .sidebar-scroll { max-height: none; }
     }
 
-    /* Khung nhập MathLive trong phần tự luận */
+    /* Khung nhập MathLive trong phần tự luận: Hỗ trợ gõ khoảng trắng */
     math-field {
       display: block;
       width: 100%;
@@ -60,7 +60,7 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- Header -->
-  <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 md:py-3 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-50">
+  <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 md:py-3 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-40">
     <div class="flex items-center gap-2.5">
       <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-base leading-none shadow-sm">
         <i class="fa-solid fa-graduation-cap"></i>
@@ -72,6 +72,11 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+      <!-- Nút Mở Kho SQLite Ngoại Tuyến -->
+      <button onclick="openBankViewerModal()" class="bg-indigo-950 hover:bg-black text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-amber-400/50">
+        <i class="fa-solid fa-database text-amber-400"></i> <span>Xem Kho Dữ Liệu (<span id="bankCountBadge">0</span>)</span>
+      </button>
+
       <button id="btnSwitchMode" onclick="toggleExamMode()" class="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-laptop-code"></i> <span id="btnModeText">Bật Phòng Thi Online</span>
       </button>
@@ -96,7 +101,7 @@
     <!-- Sidebar Cấu hình & Nạp dữ liệu -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 md:p-5 flex flex-col gap-3 shrink-0 shadow-sm">
       
-      <!-- KHỐI QUẢN LÝ GEMINI API KEY ĐỘNG (BỔ SUNG) -->
+      <!-- KHỐI QUẢN LÝ GEMINI API KEY ĐỘNG -->
       <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-2">
         <div class="flex items-center justify-between">
           <label class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
@@ -118,13 +123,13 @@
           <button type="button" onclick="saveUserApiKey()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-2 rounded text-[11px] shadow transition flex items-center justify-center gap-1 cursor-pointer">
             <i class="fa-solid fa-floppy-disk"></i> <span>Lưu Key</span>
           </button>
-          <button type="button" onclick="clearUserApiKey()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-1 px-2 rounded text-[11px] border border-rose-300 transition flex items-center justify-center gap-1 cursor-pointer" title="Xóa Key đã lưu để đổi key khác">
+          <button type="button" onclick="clearUserApiKey()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold py-1 px-2 rounded text-[11px] border border-rose-300 transition flex items-center justify-center gap-1 cursor-pointer" title="Xóa Key đã lưu">
             <i class="fa-solid fa-rotate-left"></i> <span>Đổi Key</span>
           </button>
         </div>
       </div>
 
-      <!-- Thanh Chuyển Tab 4 Chế Độ (Bổ sung Tab Nạp File) -->
+      <!-- Thanh Chuyển Tab 4 Chế Độ -->
       <div class="flex border-b border-slate-200 text-xs font-semibold">
         <button id="tabBtnQuick" onclick="switchTab('quick')" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center justify-center gap-1 cursor-pointer">
           <i class="fa-solid fa-bolt"></i> Tạo nhanh
@@ -142,7 +147,7 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- BỘ CHỌN CẤP HỌC ĐA NĂNG (GIỮ NGUYÊN DANH MỤC GỐC) -->
+        <!-- BỘ CHỌN CẤP HỌC ĐA NĂNG -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-950 flex items-center justify-between">
             <span><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu</span>
@@ -184,7 +189,7 @@
           </div>
         </div>
 
-        <!-- Khối Trường / Đơn vị (Giữ nguyên toàn bộ dropdown & chức năng thêm trường mới) -->
+        <!-- Khối Trường / Đơn vị -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-600">Trường học / Đơn vị</label>
@@ -313,7 +318,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: BÓC TÁCH FILE WORD/PDF/ẢNH VÀO KHO SQLITE (BỔ SUNG) -->
+        <!-- TAB 4: BÓC TÁCH FILE WORD/PDF/ẢNH VÀO KHO SQLITE -->
         <div id="panelUpload" class="hidden space-y-2.5 bg-blue-50/70 p-3 rounded-lg border border-blue-200">
           <div class="space-y-1 bg-white p-2 rounded border border-blue-200">
             <label class="block text-[11px] font-bold text-blue-950">Chọn tài liệu đề thi (.docx, .pdf, ảnh):</label>
@@ -474,6 +479,45 @@
     </main>
   </div>
 
+  <!-- MODAL XEM & DUYỆT TỪNG RECORD TRONG KHO SQLITE (BỔ SUNG) -->
+  <div id="bankViewerModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-700">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-database text-amber-400 text-lg"></i>
+          <h3 class="font-bold text-base">Kho Ngân Hàng Câu Hỏi Ngoại Tuyến (SQLite)</h3>
+        </div>
+        <button onclick="closeBankViewerModal()" class="text-slate-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+      </div>
+
+      <!-- Bộ lọc nhanh trong kho -->
+      <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+        <select id="bvGrade" onchange="loadBankQuestions()" class="border p-2 rounded bg-white">
+          <option value="">-- Tất cả khối lớp --</option>
+          <option value="1">Lớp 1</option><option value="2">Lớp 2</option><option value="3">Lớp 3</option>
+          <option value="4">Lớp 4</option><option value="5">Lớp 5</option><option value="6">Lớp 6</option>
+          <option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option>
+          <option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option>
+        </select>
+        <select id="bvType" onchange="loadBankQuestions()" class="border p-2 rounded bg-white">
+          <option value="">-- Dạng câu hỏi --</option>
+          <option value="single_choice">Trắc nghiệm 4 lựa chọn</option>
+          <option value="true_false">Đúng / Sai</option>
+          <option value="essay">Tự luận</option>
+        </select>
+        <input type="text" id="bvKeyword" placeholder="Tìm theo từ khóa..." oninput="loadBankQuestions()" class="border p-2 rounded bg-white sm:col-span-2">
+      </div>
+
+      <!-- Danh sách từng Record -->
+      <div id="bankRecordsContainer" class="flex-1 overflow-y-auto p-6 space-y-4 text-sm leading-relaxed">
+        <p class="text-center text-slate-400 italic">Đang tải dữ liệu từ database...</p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- BẢNG TOÁN NỔI DỰ PHÒNG -->
   <div id="fallbackMathToolbar" class="hidden fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur shadow-2xl border border-indigo-200 rounded-xl p-3 w-80 sm:w-96">
     <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
@@ -500,9 +544,10 @@
 
   <!-- JavaScript Xử lý Toàn diện -->
   <script>
+    // Trỏ thẳng link Render Backend tránh lỗi 404 Vercel
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
-      : '';
+      : 'https://eduexam-backend.onrender.com';
 
     let currentExamData = null;
     let currentLevel = 'thcs';
@@ -512,14 +557,27 @@
     let timeRemaining = 45 * 60;
     let lastActiveMathField = null;
 
+    // Mảng lưu danh sách câu hỏi hiện tại trên màn hình phục vụ Lưu kho SQLite
+    window.currentRenderedQuestions = [];
+
     document.addEventListener('focusin', (e) => {
       if (e.target && e.target.tagName.toLowerCase() === 'math-field') {
         lastActiveMathField = e.target;
       }
     });
 
+    // Cho phép gõ phím cách (Space) tự nhiên trong MathLive như soạn văn bản
+    document.addEventListener('keydown', (e) => {
+      if (e.target && e.target.tagName.toLowerCase() === 'math-field') {
+        if (e.key === ' ' || e.code === 'Space') {
+          e.target.executeCommand(['insert', '\\text{ }']);
+          e.preventDefault();
+        }
+      }
+    });
+
     // =========================================================================
-    // QUẢN LÝ GEMINI API KEY ĐỘNG (BỔ SUNG)
+    // QUẢN LÝ GEMINI API KEY ĐỘNG
     // =========================================================================
     function toggleKeyVisibility() {
       const input = document.getElementById('userApiKeyInput');
@@ -617,12 +675,12 @@
       return str;
     }
 
-    // Render TikZ Vector: Ưu tiên ảnh PNG Base64 đã render sẵn, dự phòng TikZJax
+    // Render TikZ: Ưu tiên ảnh PNG Base64 đã render sẵn, dự phòng TikZJax
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         return `
           <div class="my-3 text-center">
-            <img src="${imageUrl}" class="max-h-60 mx-auto rounded shadow-sm bg-white p-2 border border-slate-200" alt="Hình vẽ vector TikZ" />
+            <img src="${imageUrl.startsWith('data:') ? imageUrl : 'data:image/png;base64,' + imageUrl}" class="max-h-60 mx-auto rounded shadow-sm bg-white p-2 border border-slate-200" alt="Hình vẽ vector TikZ" />
           </div>
         `;
       }
@@ -1016,7 +1074,7 @@
     }
 
     // =========================================================================
-    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO (BỔ SUNG)
+    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO
     // =========================================================================
     async function uploadAndParseFile() {
       const fileInput = document.getElementById('universalFileInput');
@@ -1254,10 +1312,14 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (KÈM NÚT LƯU KHO HOẠT ĐỘNG 100%)
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
+
+      // Xóa và tái tạo mảng câu hỏi toàn cục để tránh lỗi escape chuỗi
+      window.currentRenderedQuestions = [];
+      let globalIndexCounter = 0;
 
       // 1. Phần I: Trắc nghiệm 4 lựa chọn
       const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part_1 || exam.part1 || [];
@@ -1265,6 +1327,9 @@
       if (part1Container) {
         if (p1List.length > 0) {
           part1Container.innerHTML = p1List.map((q, idx) => {
+            const currentIdx = globalIndexCounter++;
+            window.currentRenderedQuestions.push(q);
+
             const qText = cleanLatexMath(q.content || q.question_text || q.question || '');
             let optsDict = { 'A': '', 'B': '', 'C': '', 'D': '' };
             
@@ -1289,8 +1354,10 @@
               <div class="space-y-1.5 p-2 rounded bg-slate-50/50">
                 <div class="flex justify-between items-start">
                   <p><strong>Câu ${idx + 1}:</strong> ${qText}</p>
-                  <button onclick="saveSingleQuestionToDb(this, ${encodeURIComponent(JSON.stringify(q))})" class="text-[11px] text-indigo-600 hover:text-emerald-700 bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm shrink-0 ml-2" title="Lưu câu này vào ngân hàng ngoại tuyến">
-                    <i class="fa-solid fa-bookmark"></i> Lưu kho
+                  <button onclick="saveQuestionByIndex(this, ${currentIdx})" 
+                          class="text-xs text-indigo-700 hover:text-emerald-700 bg-white hover:bg-emerald-50 border border-slate-300 px-2.5 py-1 rounded shadow-sm transition flex items-center gap-1 font-semibold cursor-pointer shrink-0 ml-2" 
+                          title="Lưu câu này vào kho SQLite ngoại tuyến">
+                    <i class="fa-solid fa-bookmark text-amber-500"></i> Lưu kho
                   </button>
                 </div>
                 ${formatTikzHtml(q.tikz_code, imgUrl)}
@@ -1336,6 +1403,9 @@
       if (part2Container) {
         if (p2List.length > 0) {
           part2Container.innerHTML = p2List.map((q, idx) => {
+            const currentIdx = globalIndexCounter++;
+            window.currentRenderedQuestions.push(q);
+
             const prompt = cleanLatexMath(q.prompt || q.content || q.question_text || '');
             const st = q.statements || {};
             const imgUrl = q.image_base64 || q.image_url;
@@ -1344,8 +1414,10 @@
               <div class="space-y-2 p-2 rounded bg-slate-50/50">
                 <div class="flex justify-between items-start">
                   <p><strong>Câu ${idx + 1}:</strong> ${prompt}</p>
-                  <button onclick="saveSingleQuestionToDb(this, ${encodeURIComponent(JSON.stringify(q))})" class="text-[11px] text-indigo-600 hover:text-emerald-700 bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm shrink-0 ml-2" title="Lưu câu này vào ngân hàng ngoại tuyến">
-                    <i class="fa-solid fa-bookmark"></i> Lưu kho
+                  <button onclick="saveQuestionByIndex(this, ${currentIdx})" 
+                          class="text-xs text-indigo-700 hover:text-emerald-700 bg-white hover:bg-emerald-50 border border-slate-300 px-2.5 py-1 rounded shadow-sm transition flex items-center gap-1 font-semibold cursor-pointer shrink-0 ml-2" 
+                          title="Lưu câu này vào kho SQLite ngoại tuyến">
+                    <i class="fa-solid fa-bookmark text-amber-500"></i> Lưu kho
                   </button>
                 </div>
                 ${formatTikzHtml(q.tikz_code, imgUrl)}
@@ -1385,6 +1457,9 @@
         if (p3List.length > 0) {
           const isShortAns = currentLevel === 'thpt';
           part3Container.innerHTML = p3List.map((q, idx) => {
+            const currentIdx = globalIndexCounter++;
+            window.currentRenderedQuestions.push(q);
+
             const qText = cleanLatexMath(q.content || q.question_text || '');
             const pts = q.points || (isShortAns ? 0.5 : 1.5);
             const imgUrl = q.solution_image_base64 || q.solution_image_url || q.image_base64 || q.image_url;
@@ -1393,12 +1468,14 @@
               <div class="space-y-2 bg-slate-50/80 p-3.5 rounded-lg border border-slate-300">
                 <div class="flex justify-between items-start">
                   <p class="font-bold text-indigo-950 text-sm">${isShortAns ? 'Câu' : 'Bài'} ${idx + 1} (${pts} điểm): <span class="font-normal text-black">${qText}</span></p>
-                  <button onclick="saveSingleQuestionToDb(this, ${encodeURIComponent(JSON.stringify(q))})" class="text-[11px] text-indigo-600 hover:text-emerald-700 bg-white border border-slate-200 px-2 py-0.5 rounded shadow-sm shrink-0 ml-2" title="Lưu câu này vào ngân hàng ngoại tuyến">
-                    <i class="fa-solid fa-bookmark"></i> Lưu kho
+                  <button onclick="saveQuestionByIndex(this, ${currentIdx})" 
+                          class="text-xs text-indigo-700 hover:text-emerald-700 bg-white hover:bg-emerald-50 border border-slate-300 px-2.5 py-1 rounded shadow-sm transition flex items-center gap-1 font-semibold cursor-pointer shrink-0 ml-2" 
+                          title="Lưu câu này vào kho SQLite ngoại tuyến">
+                    <i class="fa-solid fa-bookmark text-amber-500"></i> Lưu kho
                   </button>
                 </div>
                 ${formatTikzHtml(q.solution_tikz || q.tikz_code, imgUrl)}
-                ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
+                ${isShortAns ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}" math-mode-space="\\:" style="--smart-fence: true;"></math-field>`}
               </div>
             `;
           }).join('');
@@ -1470,16 +1547,24 @@
       }, 50);
     }
 
-    // Lưu từng câu vào SQLite cục bộ (Bookmark)
-    async function saveSingleQuestionToDb(btn, encodedQ) {
-      const q = JSON.parse(decodeURIComponent(encodedQ));
+    // =========================================================================
+    // HÀM LƯU TỪNG CÂU VÀO KHO SQLITE QUA INDEX (HOẠT ĐỘNG 100%)
+    // =========================================================================
+    async function saveQuestionByIndex(btn, idx) {
+      const q = window.currentRenderedQuestions[idx];
+      if (!q) {
+        alert("Không tìm thấy dữ liệu của câu hỏi này!");
+        return;
+      }
+
+      const originalContent = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Lưu...`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...`;
 
       const payload = {
         level_stage: currentLevel,
-        grade: parseInt(document.getElementById('grade').value),
-        subject: document.getElementById('subject').value,
+        grade: parseInt(document.getElementById('grade').value) || 7,
+        subject: document.getElementById('subject').value || "Toán học",
         topic: document.getElementById('topicSelect')?.value || "Tổng hợp",
         level: "Thông hiểu",
         q_type: q.options ? "single_choice" : (q.statements ? "true_false" : "essay"),
@@ -1498,14 +1583,104 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+
         if (!res.ok) throw new Error(await res.text());
-        btn.className = "text-[11px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded shadow-sm shrink-0 ml-2 font-bold";
-        btn.innerHTML = `<i class="fa-solid fa-check"></i> Đã lưu`;
+        
+        btn.className = "text-xs text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded shadow-sm font-bold flex items-center gap-1";
+        btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> Đã vào kho`;
+        updateBankCounterBadge();
       } catch (err) {
-        alert("Lỗi lưu câu: " + err.message);
+        alert("Lỗi lưu vào kho SQLite: " + err.message);
         btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> Thử lại`;
+        btn.innerHTML = originalContent;
       }
+    }
+
+    // =========================================================================
+    // MODAL XEM & DUYỆT TỪNG RECORD TRONG KHO SQLITE
+    // =========================================================================
+    function openBankViewerModal() {
+      document.getElementById('bankViewerModal').classList.remove('hidden');
+      loadBankQuestions();
+    }
+
+    function closeBankViewerModal() {
+      document.getElementById('bankViewerModal').classList.add('hidden');
+    }
+
+    async function loadBankQuestions() {
+      const container = document.getElementById('bankRecordsContainer');
+      const grade = document.getElementById('bvGrade').value;
+      const qType = document.getElementById('bvType').value;
+      const keyword = document.getElementById('bvKeyword').value.trim();
+
+      const params = new URLSearchParams();
+      if (grade) params.append('grade', grade);
+      if (qType) params.append('q_type', qType);
+      if (keyword) params.append('keyword', keyword);
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/questions/filter?${params.toString()}`);
+        const data = await res.json();
+        
+        const countBadge = document.getElementById('bankCountBadge');
+        if (countBadge) countBadge.innerText = data.total || 0;
+
+        if (!data.questions || data.questions.length === 0) {
+          container.innerHTML = `<p class="text-center text-slate-400 italic py-10">Chưa có câu hỏi nào khớp với điều kiện lọc trong kho.</p>`;
+          return;
+        }
+
+        container.innerHTML = data.questions.map((r, i) => `
+          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-2 relative">
+            <div class="flex items-center justify-between text-xs text-slate-500 border-b pb-2">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">#Record ${r.id}</span>
+                <span class="bg-slate-100 px-2 py-0.5 rounded">Lớp ${r.grade}</span>
+                <span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded">${r.topic}</span>
+                <span class="bg-amber-50 text-amber-800 px-2 py-0.5 rounded">${r.q_type}</span>
+              </div>
+              <span class="text-[11px] text-slate-400">${r.created_at || ''}</span>
+            </div>
+
+            <div class="font-medium text-slate-900 pt-1">
+              <strong>Câu ${i + 1}:</strong> ${cleanLatexMath(r.content)}
+            </div>
+
+            ${r.has_image && r.image_base64 ? `
+              <div class="my-2 text-center">
+                <img src="${r.image_base64.startsWith('data:') ? r.image_base64 : 'data:image/svg+xml;base64,' + r.image_base64}" class="max-h-48 mx-auto rounded border bg-white p-1" />
+              </div>
+            ` : ''}
+
+            ${r.options && r.options.length > 0 ? `
+              <div class="grid grid-cols-2 gap-2 text-xs text-slate-700 pt-1">
+                ${r.options.map((opt, optIdx) => `
+                  <div><strong>${['A','B','C','D'][optIdx] || ''}.</strong> ${cleanLatexMath(opt)}</div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${r.correct_answer ? `
+              <div class="text-xs font-semibold text-emerald-700 bg-emerald-50/70 p-2 rounded border border-emerald-200">
+                Đáp án: ${r.correct_answer}
+              </div>
+            ` : ''}
+          </div>
+        `).join('');
+
+      } catch (err) {
+        container.innerHTML = `<p class="text-rose-500 text-center py-6">Lỗi tải dữ liệu kho: ${err.message}</p>`;
+      }
+    }
+
+    async function updateBankCounterBadge() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/questions/filter`);
+        const data = await res.json();
+        const countBadge = document.getElementById('bankCountBadge');
+        if (countBadge) countBadge.innerText = data.total || 0;
+      } catch (e) {}
     }
 
     // =========================================================================
@@ -1685,6 +1860,9 @@ strong { font-weight: bold; }
       }
     }
 
+    // =========================================================================
+    // KHỞI TẠO ỨNG DỤNG KHI TẢI TRANG
+    // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
       
@@ -1702,6 +1880,9 @@ strong { font-weight: bold; }
         if (input) input.value = savedKey;
         updateKeyBadge(true);
       }
+
+      // Cập nhật số lượng record trong kho
+      updateBankCounterBadge();
     });
   </script>
 </body>
