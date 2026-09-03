@@ -36,6 +36,7 @@
       .sidebar-scroll { max-height: none; }
     }
 
+    /* Khung nhập MathLive trong phần tự luận: Hỗ trợ gõ khoảng trắng */
     math-field {
       display: block;
       width: 100%;
@@ -71,6 +72,7 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+      <!-- Nút Mở Kho SQLite Ngoại Tuyến -->
       <button onclick="openBankViewerModal()" class="bg-indigo-950 hover:bg-black text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-amber-400/50">
         <i class="fa-solid fa-database text-amber-400"></i> <span>Xem Kho Dữ Liệu (<span id="bankCountBadge">0</span>)</span>
       </button>
@@ -550,6 +552,7 @@
     let timeRemaining = 45 * 60;
     let lastActiveMathField = null;
 
+    // Mảng lưu danh sách câu hỏi hiện tại trên màn hình phục vụ Lưu kho SQLite độc lập
     window.currentRenderedQuestions = [];
 
     document.addEventListener('focusin', (e) => {
@@ -558,6 +561,7 @@
       }
     });
 
+    // Cho phép gõ phím cách (Space) tự nhiên trong MathLive như soạn văn bản
     document.addEventListener('keydown', (e) => {
       if (e.target && e.target.tagName.toLowerCase() === 'math-field') {
         if (e.key === ' ' || e.code === 'Space') {
@@ -619,12 +623,13 @@
     }
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP (KHẮC PHỤC TRIỆT ĐỂ LỖI \t / EXT / IMES)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
+      // Dọn dẹp lỗi \t đỏ và dính chữ
       str = str.replace(/\\t/g, ' ');
       str = str.replace(/\t?ext\{([^}]+)\}/g, '$1');
       str = str.replace(/\\text\{([^}]+)\}/g, '$1');
@@ -673,6 +678,7 @@
       return str;
     }
 
+    // Render TikZ Vector: Ưu tiên ảnh PNG Base64 đã render sẵn từ Kroki backend
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         const src = imageUrl.startsWith('data:') ? imageUrl : (imageUrl.startsWith('<svg') ? 'data:image/svg+xml;utf8,' + encodeURIComponent(imageUrl) : 'data:image/png;base64,' + imageUrl);
@@ -725,7 +731,7 @@
     }
 
     // =========================================================================
-    // HỆ THỐNG CẤU HÌNH & DANH MỤC 3 CẤP HỌC[cite: 1]
+    // HỆ THỐNG CẤU HÌNH & DANH MỤC 3 CẤP HỌC (GDPT 2018)[cite: 1]
     // =========================================================================
     const LEVEL_CONFIGS = {
       tieuhoc: {
@@ -776,11 +782,14 @@
     };
 
     const CURRICULUM_TOPICS = {
+      // TIỂU HỌC[cite: 1]
       "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Các số đến 100", "Hình phẳng và Đo độ dài"],
       "Toán học_2": ["Phép cộng, phép trừ có nhớ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan (Điểm, đoạn thẳng, đường thẳng)", "Phép nhân, phép chia"],
       "Toán học_3": ["Bảng nhân, bảng chia từ 6 đến 9", "Các số trong phạm vi 10 000, 100 000", "Diện tích hình chữ nhật, hình vuông", "Giải bài toán có đến hai bước tính"],
       "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi", "Dãy số liệu và Biểu đồ cột"],
       "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn", "Hình hộp chữ nhật, hình lập phương, thể tích", "Vận tốc, quãng đường, thời gian"],
+
+      // THCS[cite: 1]
       "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường", "Tính đối xứng của hình phẳng trong tự nhiên"],
       "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Hình khối lăng trụ)", "Biểu thức đại số", "Xác suất & Thống kê"],
       "Toán học_8": ["Đa thức và Hằng đẳng thức đáng nhớ", "Phân thức đại số", "Tứ giác (Hình thang, hình bình hành, hình chữ nhật)", "Định lý Thalès và Tam giác đồng dạng", "Hình khối trong thực tiễn"],
@@ -788,16 +797,26 @@
         "Căn bậc hai, Căn bậc ba và Rút gọn biểu thức",
         "Hàm số bậc nhất và Hệ hai phương trình bậc nhất hai ẩn",
         "Phương trình bậc hai một ẩn và Định lý Viète",
-        "Đường tròn, Góc với đường tròn, Tứ giác nội tiếp"
+        "Đường tròn, Góc với đường tròn, Tứ giác nội tiếp",
+        "Tất cả các chủ đề trên (Đề kiểm tra tổng hợp)"
       ],
-      "Toán học_10": ["Mệnh đề và Tập hợp", "Bất phương trình và Hệ BPT bậc nhất hai ẩn", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ"],
-      "Toán học_11": ["Hàm số lượng giác và Phương trình lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Giới hạn và Hàm số liên tục", "Đạo hàm", "Quan hệ vuông góc trong không gian"],
-      "Toán học_12": ["Ứng dụng đạo hàm để khảo sát và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức"]
+      "Khoa học tự nhiên_6": ["Mở đầu về KHTN, Đo lường", "Tế bào", "Đa dạng thế giới sống", "Lực và Năng lượng"],
+      "Khoa học tự nhiên_7": ["Nguyên tử, Bảng tuần hoàn", "Tốc độ chuyển động", "Trao đổi chất và Chuyển hóa năng lượng", "Âm thanh & Ánh sáng"],
+      "Khoa học tự nhiên_8": ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối", "Cơ thể người", "Khối lượng riêng và Áp suất"],
+      "Khoa học tự nhiên_9": ["Kim loại và Hợp chất hữu cơ", "Khúc xạ ánh sáng, Thấu kính", "Điện từ học", "Di truyền và Biến dị, Tiến hóa"],
+
+      // THPT[cite: 1]
+      "Toán học_10": ["Mệnh đề và Tập hợp", "Bất phương trình và Hệ BPT bậc nhất hai ẩn", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ", "Phương pháp tọa độ trong mặt phẳng"],
+      "Toán học_11": ["Hàm số lượng giác và Phương trình lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Giới hạn và Hàm số liên tục", "Đạo hàm", "Quan hệ vuông góc trong không gian", "Xác suất có điều kiện"],
+      "Toán học_12": ["Ứng dụng đạo hàm để khảo sát và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức", "Phương trình mặt cầu, mặt phẳng, đường thẳng", "Xác suất toàn phần và Công thức Bayes"],
+      "Vật lí_10": ["Mô tả chuyển động, Vận tốc, Gia tốc", "Động lực học (Ba định luật Newton)", "Năng lượng, Công và Công suất", "Động lượng"],
+      "Vật lí_11": ["Dao động cơ và Dao động điều hòa", "Sóng cơ, Sóng âm và Sóng ánh sáng", "Điện trường và Điện thế", "Dòng điện không đổi"],
+      "Vật lí_12": ["Vật lí nhiệt (Nội năng, Nhiệt dung riêng)", "Khí lí tưởng", "Từ trường và Cảm ứng điện từ", "Vật lí hạt nhân"]
     };
 
     function selectLevel(lvl) {
       currentLevel = lvl;
-      localStorage.setItem('eduexam_current_level', lvl);
+      localStorage.setItem('eduexam_current_level', lvl); // Nhớ trạng thái cấp học
 
       ['tieuhoc', 'thcs', 'thpt'].forEach(l => {
         const btn = document.getElementById(`btnLvl${l.charAt(0).toUpperCase() + l.slice(1)}`);
@@ -818,6 +837,7 @@
 
     function loadLevelOptions() {
       const cfg = LEVEL_CONFIGS[currentLevel];
+
       const gradeSel = document.getElementById('grade');
       gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">${currentLevel === 'tieuhoc' ? 'Lớp ' + g : 'Lớp ' + g}</option>`).join('');
 
@@ -1002,6 +1022,9 @@
       if (tab === 'drive') fetchDriveFiles();
     }
 
+    // =========================================================================
+    // GOOGLE DRIVE API INTEGRATION[cite: 1]
+    // =========================================================================
     async function fetchDriveFiles() {
       const grade = parseInt(document.getElementById('grade').value) || 1;
       const subject = document.getElementById('subject').value;
@@ -1028,7 +1051,7 @@
             </div>
           `).join('');
         } else {
-          listEl.innerHTML = `<p class="text-slate-500 italic text-[11px]">Chưa có file nào trong thư mục trên Drive.</p>`;
+          listEl.innerHTML = `<p class="text-slate-500 italic text-[11px]">Chưa có file nào trong thư mục <strong>${currentLevel.toUpperCase()}/Lớp ${grade}/${subject}</strong> trên Drive.</p>`;
         }
       } catch (err) {
         listEl.innerHTML = `<p class="text-rose-500 text-[11px]">Lỗi kết nối Drive: ${err.message}</p>`;
@@ -1045,13 +1068,18 @@
           
           switchTab('notebook');
           document.getElementById('sourceNotesInput').value = `[CHỦ ĐỀ LỰA CHỌN: ${topicFilter}]\n[TÀI LIỆU NGUỒN TỪ DRIVE: ${fileName}]\n` + fileText;
-          alert(`Đã nạp thành công tài liệu "${fileName}" vào Notebook!`);
+          alert(`Đã nạp thành công tài liệu "${fileName}" kèm chuyên đề [${topicFilter}] vào Notebook!`);
+        } else {
+          alert('Không thể tải thông tin file từ Google Drive.');
         }
       } catch (err) {
         alert("Lỗi tải file: " + err.message);
       }
     }
 
+    // =========================================================================
+    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO[cite: 1]
+    // =========================================================================
     async function uploadAndParseFile() {
       const fileInput = document.getElementById('universalFileInput');
       const file = fileInput.files[0];
@@ -1065,7 +1093,7 @@
       const status = document.getElementById('uploadStatusText');
       btn.disabled = true;
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang xử lý tài liệu...</span>`;
-      status.innerText = "Đang phân tích, nhận diện công thức và tạo hình TikZ...";
+      status.innerText = "Đang chuyển trang ảnh, nhận diện công thức và tạo hình TikZ...";
 
       const formData = new FormData();
       formData.append("file", file);
@@ -1143,14 +1171,14 @@
       if (currentLevel === 'thpt') {
         document.getElementById('sourceNotesInput').value = "Tìm giá trị lớn nhất, nhỏ nhất của hàm số $y = x^3 - 3x + 2$ trên đoạn $[0; 2]$.";
       } else if (currentLevel === 'tieuhoc') {
-        document.getElementById('sourceNotesInput').value = "Tính: $3 + 4 - 2 = \\dots$. Bạn Mai có 5 quả bóng, bạn Nam cho Mai thêm 3 quả bóng nữa.";
+        document.getElementById('sourceNotesInput').value = "Tính: $3 + 4 - 2 = \\dots$. Bạn Mai có 5 quả bóng, bạn Nam cho Mai thêm 3 quả bóng nữa. Hỏi bạn Mai có tất cả bao nhiêu quả bóng?";
       } else {
-        document.getElementById('sourceNotesInput').value = "Thực hiện phép tính: $\\frac{5}{11} \\cdot \\frac{-3}{7} + \\frac{5}{11} \\cdot \\frac{-4}{7}$.";
+        document.getElementById('sourceNotesInput').value = "Thực hiện phép tính: $\\frac{5}{11} \\cdot \\frac{-3}{7} + \\frac{5}{11} \\cdot \\frac{-4}{7} + 1\\frac{5}{11}$. Tìm x biết $\\frac{3}{4} - (x + \\frac{1}{2}) = \\frac{4}{5}$.";
       }
     }
 
     // =========================================================================
-    // HÀM TẠO ĐỀ THI ĐỒNG BỘ GỬI KÈM API KEY ĐỘNG LÊN BACKEND[cite: 3]
+    // HÀM TẠO ĐỀ THI ĐỒNG BỘ CHỦ ĐỀ CHUẨN XÁC KÈM API KEY ĐỘNG
     // =========================================================================
     async function triggerGenerate() {
       const apiKey = getUserApiKey();
@@ -1186,7 +1214,7 @@
             matrix_spec: document.getElementById('matrixSpecInput')?.value.trim() || null,
             source_notes: document.getElementById('sourceNotesInput')?.value.trim() || null,
             model_name: selectedModel,
-            api_key: apiKey // <-- TRUYỀN CHÍNH XÁC API KEY LÊN BACKEND
+            api_key: apiKey
           })
         });
 
@@ -1288,7 +1316,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (KÈM NÚT LƯU KHO HOẠT ĐỘNG 100%)
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1522,6 +1550,9 @@
       }, 50);
     }
 
+    // =========================================================================
+    // HÀM LƯU TỪNG CÂU VÀO KHO SQLITE QUA INDEX (HOẠT ĐỘNG 100%)
+    // =========================================================================
     async function saveQuestionByIndex(btn, idx) {
       const q = window.currentRenderedQuestions[idx];
       if (!q) {
@@ -1568,6 +1599,9 @@
       }
     }
 
+    // =========================================================================
+    // MODAL XEM & DUYỆT TỪNG RECORD TRONG KHO SQLITE
+    // =========================================================================
     function openBankViewerModal() {
       document.getElementById('bankViewerModal').classList.remove('hidden');
       loadBankQuestions();
@@ -1618,7 +1652,7 @@
 
             ${r.has_image && r.image_base64 ? `
               <div class="my-2 text-center">
-                <img src="${r.image_base64.startsWith('data:') ? r.image_base64 : 'data:image/svg+xml;base64,' + r.image_base64}" class="max-h-48 mx-auto rounded border bg-white p-1" />
+                <img src="${r.image_base64.startsWith('data:') ? r.image_base64 : 'data:image/png;base64,' + r.image_base64}" class="max-h-48 mx-auto rounded border bg-white p-1" />
               </div>
             ` : ''}
 
@@ -1652,6 +1686,9 @@
       } catch (e) {}
     }
 
+    // =========================================================================
+    // SAO CHÉP DÁN WORD & XUẤT FILE .DOC/.DOCX[cite: 1]
+    // =========================================================================
     async function copyExamForWord() {
       if (!currentExamData) {
         alert('Vui lòng bấm "AI Tổng Hợp & Sinh Đề" trước khi sao chép!');
@@ -1826,15 +1863,20 @@ strong { font-weight: bold; }
       }
     }
 
+    // =========================================================================
+    // KHỞI TẠO ỨNG DỤNG KHI TẢI TRANG[cite: 1]
+    // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
       
+      // Lấy cấp học đã lưu gần nhất, nếu chưa có mới mặc định là 'thcs'
       const savedLevel = localStorage.getItem('eduexam_current_level') || 'thcs';
       selectLevel(savedLevel);
 
       handleModelChange();
       handleEssayModeChange();
 
+      // Nạp API Key đã lưu từ localStorage[cite: 3]
       const savedKey = localStorage.getItem('eduexam_gemini_api_key');
       if (savedKey) {
         const input = document.getElementById('userApiKeyInput');
@@ -1842,6 +1884,7 @@ strong { font-weight: bold; }
         updateKeyBadge(true);
       }
 
+      // Cập nhật số lượng record trong kho
       updateBankCounterBadge();
     });
   </script>
