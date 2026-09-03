@@ -479,7 +479,7 @@
     </main>
   </div>
 
-  <!-- MODAL XEM & DUYỆT TỪNG RECORD TRONG KHO SQLITE (BỔ SUNG) -->
+  <!-- MODAL XEM & DUYỆT TỪNG RECORD TRONG KHO SQLITE -->
   <div id="bankViewerModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300">
       
@@ -544,7 +544,7 @@
 
   <!-- JavaScript Xử lý Toàn diện -->
   <script>
-    // Trỏ thẳng link Render Backend tránh lỗi 404 Vercel
+    // Điền chính xác đường dẫn dịch vụ backend của bạn trên Render
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
       : 'https://eduexam-backend.onrender.com';
@@ -557,7 +557,7 @@
     let timeRemaining = 45 * 60;
     let lastActiveMathField = null;
 
-    // Mảng lưu danh sách câu hỏi hiện tại trên màn hình phục vụ Lưu kho SQLite
+    // Mảng lưu danh sách câu hỏi hiện tại trên màn hình phục vụ Lưu kho SQLite độc lập
     window.currentRenderedQuestions = [];
 
     document.addEventListener('focusin', (e) => {
@@ -628,11 +628,17 @@
     }
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP ĐẦY ĐỦ
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP (KHẮC PHỤC LỖI EXT / IMES)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
+
+      // 1. Dọn sạch lỗi nuốt ký tự \text và \times
+      str = str.replace(/\t?ext\{([^}]+)\}/g, '$1');
+      str = str.replace(/\\text\{([^}]+)\}/g, '$1');
+      str = str.replace(/\t?ext([a-zA-Z0-9]+)/g, ' $1');
+      str = str.replace(/\t?imes/g, ' × ');
 
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
@@ -675,12 +681,13 @@
       return str;
     }
 
-    // Render TikZ: Ưu tiên ảnh PNG Base64 đã render sẵn, dự phòng TikZJax
+    // Render TikZ: Ưu tiên ảnh Base64 đã render sẵn, dự phòng TikZJax
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
+        const src = imageUrl.startsWith('data:') ? imageUrl : (imageUrl.startsWith('<svg') ? 'data:image/svg+xml;utf8,' + encodeURIComponent(imageUrl) : 'data:image/png;base64,' + imageUrl);
         return `
           <div class="my-3 text-center">
-            <img src="${imageUrl.startsWith('data:') ? imageUrl : 'data:image/png;base64,' + imageUrl}" class="max-h-60 mx-auto rounded shadow-sm bg-white p-2 border border-slate-200" alt="Hình vẽ vector TikZ" />
+            <img src="${src}" class="max-h-60 mx-auto rounded shadow-sm bg-white p-2 border border-slate-200" alt="Hình vẽ vector TikZ" />
           </div>
         `;
       }
@@ -1312,7 +1319,7 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (KÈM NÚT LƯU KHO HOẠT ĐỘNG 100%)
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
@@ -1649,7 +1656,7 @@
 
             ${r.has_image && r.image_base64 ? `
               <div class="my-2 text-center">
-                <img src="${r.image_base64.startsWith('data:') ? r.image_base64 : 'data:image/svg+xml;base64,' + r.image_base64}" class="max-h-48 mx-auto rounded border bg-white p-1" />
+                <img src="${r.image_base64.startsWith('data:') ? r.image_base64 : 'data:image/png;base64,' + r.image_base64}" class="max-h-48 mx-auto rounded border bg-white p-1" />
               </div>
             ` : ''}
 
