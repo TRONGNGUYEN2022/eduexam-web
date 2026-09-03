@@ -15,14 +15,14 @@
   <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZJax Engine -->
+  <!-- TikZJax Engine: Biên dịch mọi khối mã TikZ sang Vector SVG ngay tại trình duyệt -->
   <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
   <script src="https://tikzjax.com/v1/tikzjax.js"></script>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Nhúng Bảng Toán iMathEQ Widget Độc Lập[cite: 1] -->
+  <!-- Nhúng Bảng Toán iMathEQ Widget Độc Lập -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -59,7 +59,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
-  <!-- Header[cite: 1] -->
+  <!-- Header -->
   <header class="bg-indigo-700 text-white px-4 py-3 md:px-6 md:py-3 flex flex-wrap items-center justify-between shadow-md gap-3 sticky top-0 z-40">
     <div class="flex items-center gap-2.5">
       <div class="bg-white text-indigo-700 p-2 rounded-lg font-bold text-base leading-none shadow-sm">
@@ -95,13 +95,13 @@
     </div>
   </header>
 
-  <!-- Main Layout[cite: 1] -->
+  <!-- Main Layout -->
   <div class="flex flex-col md:flex-row flex-1 overflow-x-hidden">
     
-    <!-- Sidebar Cấu hình & Nạp dữ liệu[cite: 1] -->
+    <!-- Sidebar Cấu hình & Nạp dữ liệu -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 md:p-5 flex flex-col gap-3 shrink-0 shadow-sm">
       
-      <!-- KHỐI QUẢN LÝ GEMINI API KEY ĐỘNG[cite: 3] -->
+      <!-- KHỐI QUẢN LÝ GEMINI API KEY ĐỘNG -->
       <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-2">
         <div class="flex items-center justify-between">
           <label class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
@@ -129,7 +129,7 @@
         </div>
       </div>
 
-      <!-- Thanh Chuyển Tab 4 Chế Độ[cite: 1] -->
+      <!-- Thanh Chuyển Tab 4 Chế Độ -->
       <div class="flex border-b border-slate-200 text-xs font-semibold">
         <button id="tabBtnQuick" onclick="switchTab('quick')" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center justify-center gap-1 cursor-pointer">
           <i class="fa-solid fa-bolt"></i> Tạo nhanh
@@ -147,7 +147,7 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- BỘ CHỌN CẤP HỌC ĐA NĂNG[cite: 1] -->
+        <!-- BỘ CHỌN CẤP HỌC ĐA NĂNG -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-950 flex items-center justify-between">
             <span><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu</span>
@@ -160,7 +160,7 @@
           </div>
         </div>
 
-        <!-- Chọn Model Gemini[cite: 1] -->
+        <!-- Chọn Model Gemini -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <label class="block font-bold text-slate-800 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
@@ -189,7 +189,7 @@
           </div>
         </div>
 
-        <!-- Khối Trường / Đơn vị[cite: 1] -->
+        <!-- Khối Trường / Đơn vị -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-600">Trường học / Đơn vị</label>
@@ -232,7 +232,7 @@
           </div>
         </div>
 
-        <!-- Môn & Lớp[cite: 1] -->
+        <!-- Môn & Lớp -->
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-0.5 text-slate-700">Môn học</label>
@@ -256,7 +256,7 @@
           </select>
         </div>
 
-        <!-- TAB 1: TẠO NHANH SGK[cite: 1] -->
+        <!-- TAB 1: TẠO NHANH SGK -->
         <div id="panelQuick" class="space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK</label>
@@ -268,7 +268,7 @@
           </div>
         </div>
 
-        <!-- TAB 2: NOTEBOOK MA TRẬN[cite: 1] -->
+        <!-- TAB 2: NOTEBOOK MA TRẬN -->
         <div id="panelNotebook" class="hidden space-y-2.5 bg-amber-50/70 p-3 rounded-lg border border-amber-200">
           <div>
             <label class="block font-bold text-amber-900 mb-1 flex items-center justify-between">
@@ -287,7 +287,7 @@
           </div>
         </div>
 
-        <!-- TAB 3: KHO GOOGLE DRIVE GIÁO VIÊN[cite: 1] -->
+        <!-- TAB 3: KHO GOOGLE DRIVE GIÁO VIÊN -->
         <div id="panelDrive" class="hidden space-y-2.5 bg-emerald-50/70 p-3 rounded-lg border border-emerald-300">
           <div class="space-y-1.5 bg-white p-2 rounded border border-emerald-200">
             <label class="block text-[11px] font-bold text-emerald-950">Chủ đề SGK mục tiêu:</label>
@@ -312,9 +312,13 @@
           <div id="driveFilesList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
             <p class="text-slate-500 italic text-[11px]">Đang kết nối thư mục Google Drive...</p>
           </div>
+
+          <div class="pt-1 border-t border-emerald-200 text-[11px] text-slate-600">
+            <p>💡 <em>Nhấp vào nút <strong>Nạp vào đề</strong> để AI tự động trích xuất nội dung file và tạo đề kiểm tra mới.</em></p>
+          </div>
         </div>
 
-        <!-- TAB 4: BÓC TÁCH FILE WORD/PDF/ẢNH VÀO KHO SQLITE[cite: 1] -->
+        <!-- TAB 4: BÓC TÁCH FILE WORD/PDF/ẢNH VÀO KHO SQLITE -->
         <div id="panelUpload" class="hidden space-y-2.5 bg-blue-50/70 p-3 rounded-lg border border-blue-200">
           <div class="space-y-1 bg-white p-2 rounded border border-blue-200">
             <label class="block text-[11px] font-bold text-blue-950">Chọn tài liệu đề thi (.docx, .pdf, ảnh):</label>
@@ -326,7 +330,7 @@
           <div id="uploadStatusText" class="text-[11px] text-slate-500 italic text-center"></div>
         </div>
 
-        <!-- Khối Tùy Chọn Đáp Án Tự Luận[cite: 1] -->
+        <!-- Khối Tùy Chọn Đáp Án Tự Luận -->
         <div class="bg-emerald-50/80 p-3 rounded-lg border border-emerald-300 space-y-2">
           <label class="block font-bold text-emerald-950 flex items-center justify-between">
             <span><i class="fa-solid fa-pen-to-square text-emerald-700"></i> Đáp án &amp; Lời giải Tự luận</span>
@@ -360,10 +364,10 @@
       </div>
     </aside>
 
-    <!-- Main View[cite: 1] -->
+    <!-- Main View -->
     <main class="flex-1 bg-slate-200/80 p-3 sm:p-6 md:overflow-y-auto flex flex-col items-center">
       
-      <!-- Thanh Điều Khiển Phòng Thi Online[cite: 1] -->
+      <!-- Thanh Điều Khiển Phòng Thi Online -->
       <div id="onlineBar" class="hidden w-full max-w-4xl bg-indigo-900 text-white px-4 py-3 rounded-t shadow flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-400">
         <div class="flex items-center gap-3">
           <span class="bg-red-600 px-2.5 py-0.5 rounded text-xs font-bold animate-pulse tracking-wide">ĐANG THI TRỰC TUYẾN</span>
@@ -379,10 +383,10 @@
         </div>
       </div>
 
-      <!-- Tờ Giấy Thi / Đề Thi Preview[cite: 1] -->
+      <!-- Tờ Giấy Thi / Đề Thi Preview -->
       <div id="examContainer" class="bg-white w-full max-w-4xl p-5 sm:p-10 shadow-lg rounded-b exam-paper text-[14px] md:text-[15px] leading-relaxed text-black border border-slate-300">
         
-        <!-- Header đề thi 2 cột[cite: 1] -->
+        <!-- Header đề thi 2 cột -->
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
           <tr>
             <td style="width: 45%; vertical-align: top; text-align: center; border: none; padding: 0;">
@@ -404,10 +408,10 @@
           </tr>
         </table>
 
-        <!-- Nội dung đề thi[cite: 1] -->
+        <!-- Nội dung đề thi -->
         <div id="examBody" class="space-y-6">
           
-          <!-- Phần I: Trắc nghiệm 4 lựa chọn[cite: 1] -->
+          <!-- Phần I: Trắc nghiệm 4 lựa chọn -->
           <div>
             <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (4,0 điểm)
@@ -418,7 +422,7 @@
             </div>
           </div>
 
-          <!-- Phần II: Đúng / Sai[cite: 1] -->
+          <!-- Phần II: Đúng / Sai -->
           <div>
             <div id="p2Heading" class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (3,0 điểm)
@@ -429,7 +433,7 @@
             </div>
           </div>
 
-          <!-- Phần III: Tự luận hoặc Điền số ngắn[cite: 1] -->
+          <!-- Phần III: Tự luận hoặc Điền số ngắn -->
           <div>
             <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">
               PHẦN III. TỰ LUẬN (3,0 điểm)
@@ -444,7 +448,7 @@
           --- HẾT ĐỀ THI ---
         </div>
 
-        <!-- Bảng Đáp Án & Barem Giáo Viên[cite: 1] -->
+        <!-- Bảng Đáp Án & Barem Giáo Viên -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
           <h3 class="text-center font-bold text-xs sm:text-sm mb-3 uppercase">BẢNG ĐÁP ÁN &amp; MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU</h3>
           
@@ -465,7 +469,7 @@
             </table>
           </div>
 
-          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết[cite: 1] -->
+          <!-- Mục Hướng Dẫn Chấm & Đáp Án Chi Tiết -->
           <div id="answerKeySection" class="mt-8 pt-6 border-t-2 border-indigo-200 space-y-4">
             <p class="text-slate-400 italic text-center text-xs">Hướng dẫn giải và barem điểm chi tiết sẽ hiển thị tại đây sau khi sinh đề.</p>
           </div>
@@ -514,7 +518,7 @@
     </div>
   </div>
 
-  <!-- BẢNG TOÁN NỔI DỰ PHÒNG[cite: 1] -->
+  <!-- BẢNG TOÁN NỔI DỰ PHÒNG -->
   <div id="fallbackMathToolbar" class="hidden fixed bottom-6 right-6 z-50 bg-white/95 backdrop-blur shadow-2xl border border-indigo-200 rounded-xl p-3 w-80 sm:w-96">
     <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
       <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
@@ -540,6 +544,7 @@
 
   <!-- JavaScript Xử lý Toàn diện -->
   <script>
+    // Điền chính xác đường dẫn dịch vụ backend của bạn trên Render
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
       : 'https://eduexam-backend.onrender.com';
@@ -572,7 +577,7 @@
     });
 
     // =========================================================================
-    // QUẢN LÝ GEMINI API KEY ĐỘNG[cite: 3]
+    // QUẢN LÝ GEMINI API KEY ĐỘNG
     // =========================================================================
     function toggleKeyVisibility() {
       const input = document.getElementById('userApiKeyInput');
@@ -623,19 +628,17 @@
     }
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP (KHẮC PHỤC TRIỆT ĐỂ LỖI \t / EXT / IMES)
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP (KHẮC PHỤC LỖI EXT / IMES)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
-      // Dọn dẹp lỗi \t đỏ và dính chữ
-      str = str.replace(/\\t/g, ' ');
+      // 1. Dọn sạch lỗi nuốt ký tự \text và \times
       str = str.replace(/\t?ext\{([^}]+)\}/g, '$1');
       str = str.replace(/\\text\{([^}]+)\}/g, '$1');
       str = str.replace(/\t?ext([a-zA-Z0-9]+)/g, ' $1');
       str = str.replace(/\t?imes/g, ' × ');
-      str = str.replace(/\\times/g, '×');
 
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
       str = str.replace(/\\frac\s*([0-9a-zA-Z])\s*\\/g, '\\frac{$1}{\\');
@@ -678,7 +681,7 @@
       return str;
     }
 
-    // Render TikZ Vector: Ưu tiên ảnh PNG Base64 đã render sẵn từ Kroki backend
+    // Render TikZ: Ưu tiên ảnh Base64 đã render sẵn, dự phòng TikZJax
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         const src = imageUrl.startsWith('data:') ? imageUrl : (imageUrl.startsWith('<svg') ? 'data:image/svg+xml;utf8,' + encodeURIComponent(imageUrl) : 'data:image/png;base64,' + imageUrl);
@@ -731,7 +734,7 @@
     }
 
     // =========================================================================
-    // HỆ THỐNG CẤU HÌNH & DANH MỤC 3 CẤP HỌC (GDPT 2018)[cite: 1]
+    // HỆ THỐNG CẤU HÌNH & DANH MỤC 3 CẤP HỌC (GDPT 2018)
     // =========================================================================
     const LEVEL_CONFIGS = {
       tieuhoc: {
@@ -782,14 +785,14 @@
     };
 
     const CURRICULUM_TOPICS = {
-      // TIỂU HỌC[cite: 1]
+      // TIỂU HỌC
       "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Các số đến 100", "Hình phẳng và Đo độ dài"],
       "Toán học_2": ["Phép cộng, phép trừ có nhớ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan (Điểm, đoạn thẳng, đường thẳng)", "Phép nhân, phép chia"],
       "Toán học_3": ["Bảng nhân, bảng chia từ 6 đến 9", "Các số trong phạm vi 10 000, 100 000", "Diện tích hình chữ nhật, hình vuông", "Giải bài toán có đến hai bước tính"],
       "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi", "Dãy số liệu và Biểu đồ cột"],
       "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn", "Hình hộp chữ nhật, hình lập phương, thể tích", "Vận tốc, quãng đường, thời gian"],
 
-      // THCS[cite: 1]
+      // THCS
       "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường", "Tính đối xứng của hình phẳng trong tự nhiên"],
       "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Góc, Tam giác, Hình khối lăng trụ)", "Biểu thức đại số", "Xác suất & Thống kê"],
       "Toán học_8": ["Đa thức và Hằng đẳng thức đáng nhớ", "Phân thức đại số", "Tứ giác (Hình thang, hình bình hành, hình chữ nhật)", "Định lý Thalès và Tam giác đồng dạng", "Hình khối trong thực tiễn"],
@@ -805,7 +808,7 @@
       "Khoa học tự nhiên_8": ["Phản ứng hóa học, Mol", "Acid, Base, Oxide, Muối", "Cơ thể người", "Khối lượng riêng và Áp suất"],
       "Khoa học tự nhiên_9": ["Kim loại và Hợp chất hữu cơ", "Khúc xạ ánh sáng, Thấu kính", "Điện từ học", "Di truyền và Biến dị, Tiến hóa"],
 
-      // THPT[cite: 1]
+      // THPT
       "Toán học_10": ["Mệnh đề và Tập hợp", "Bất phương trình và Hệ BPT bậc nhất hai ẩn", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ", "Phương pháp tọa độ trong mặt phẳng"],
       "Toán học_11": ["Hàm số lượng giác và Phương trình lượng giác", "Dãy số, Cấp số cộng và Cấp số nhân", "Giới hạn và Hàm số liên tục", "Đạo hàm", "Quan hệ vuông góc trong không gian", "Xác suất có điều kiện"],
       "Toán học_12": ["Ứng dụng đạo hàm để khảo sát và vẽ đồ thị hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Số phức", "Phương trình mặt cầu, mặt phẳng, đường thẳng", "Xác suất toàn phần và Công thức Bayes"],
@@ -1023,7 +1026,7 @@
     }
 
     // =========================================================================
-    // GOOGLE DRIVE API INTEGRATION[cite: 1]
+    // GOOGLE DRIVE API INTEGRATION
     // =========================================================================
     async function fetchDriveFiles() {
       const grade = parseInt(document.getElementById('grade').value) || 1;
@@ -1078,7 +1081,7 @@
     }
 
     // =========================================================================
-    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO[cite: 1]
+    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO
     // =========================================================================
     async function uploadAndParseFile() {
       const fileInput = document.getElementById('universalFileInput');
@@ -1316,15 +1319,16 @@
     }
 
     // =========================================================================
-    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP (KÈM NÚT LƯU KHO HOẠT ĐỘNG 100%)
+    // RENDER ĐỀ THI & BIÊN DỊCH TRỰC TIẾP
     // =========================================================================
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
+      // Xóa và tái tạo mảng câu hỏi toàn cục để tránh lỗi escape chuỗi
       window.currentRenderedQuestions = [];
       let globalIndexCounter = 0;
 
-      // 1. Phần I: Trắc nghiệm 4 lựa chọn[cite: 1]
+      // 1. Phần I: Trắc nghiệm 4 lựa chọn
       const p1List = exam.part_1_mcq || exam.part1_multiple_choice || exam.part_1 || exam.part1 || [];
       const part1Container = document.getElementById('part1Container');
       if (part1Container) {
@@ -1400,7 +1404,7 @@
         }
       }
 
-      // 2. Phần II: Đúng / Sai[cite: 1]
+      // 2. Phần II: Đúng / Sai
       const p2List = exam.part_2_tf || exam.part2_true_false || exam.part_2 || exam.part2 || [];
       const part2Container = document.getElementById('part2Container');
       if (part2Container) {
@@ -1453,7 +1457,7 @@
         }
       }
 
-      // 3. Phần III: Tự luận hoặc Điền số ngắn[cite: 1]
+      // 3. Phần III: Tự luận hoặc Điền số ngắn
       const p3List = exam.part_3_essay || exam.part_3_short_ans || exam.part_3 || exam.part3 || [];
       const part3Container = document.getElementById('part3Container');
       if (part3Container) {
@@ -1487,7 +1491,7 @@
         }
       }
 
-      // 4. Ma trận 4 mã đề[cite: 1]
+      // 4. Ma trận 4 mã đề
       if (matrix && Object.keys(matrix).length > 0) {
         const tbody = document.getElementById('matrixTableBody');
         if (tbody) {
@@ -1509,7 +1513,7 @@
         }
       }
 
-      // 5. Hướng dẫn chấm & Lời giải[cite: 1]
+      // 5. Hướng dẫn chấm & Lời giải
       const answerKeyContainer = document.getElementById('answerKeySection');
       if (answerKeyContainer && p3List.length > 0) {
         const essaySolutionsHtml = p3List.map((q, idx) => {
@@ -1687,7 +1691,7 @@
     }
 
     // =========================================================================
-    // SAO CHÉP DÁN WORD & XUẤT FILE .DOC/.DOCX[cite: 1]
+    // SAO CHÉP DÁN WORD & XUẤT FILE .DOC/.DOCX
     // =========================================================================
     async function copyExamForWord() {
       if (!currentExamData) {
@@ -1864,7 +1868,7 @@ strong { font-weight: bold; }
     }
 
     // =========================================================================
-    // KHỞI TẠO ỨNG DỤNG KHI TẢI TRANG[cite: 1]
+    // KHỞI TẠO ỨNG DỤNG KHI TẢI TRANG
     // =========================================================================
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
@@ -1876,7 +1880,7 @@ strong { font-weight: bold; }
       handleModelChange();
       handleEssayModeChange();
 
-      // Nạp API Key đã lưu từ localStorage[cite: 3]
+      // Nạp API Key đã lưu từ localStorage
       const savedKey = localStorage.getItem('eduexam_gemini_api_key');
       if (savedKey) {
         const input = document.getElementById('userApiKeyInput');
