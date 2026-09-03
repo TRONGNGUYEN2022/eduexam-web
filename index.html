@@ -96,7 +96,7 @@
     <!-- Sidebar Cấu hình & Nạp dữ liệu -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 md:p-5 flex flex-col gap-3 shrink-0 shadow-sm">
       
-      <!-- KHỐI QUẢN LÝ GEMINI API KEY ĐỘNG (TÍCH HỢP TỪ NEW.HTML) -->
+      <!-- KHỐI QUẢN LÝ GEMINI API KEY ĐỘNG (BỔ SUNG) -->
       <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-2">
         <div class="flex items-center justify-between">
           <label class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
@@ -124,7 +124,7 @@
         </div>
       </div>
 
-      <!-- Thanh Chuyển Tab 4 Chế Độ -->
+      <!-- Thanh Chuyển Tab 4 Chế Độ (Bổ sung Tab Nạp File) -->
       <div class="flex border-b border-slate-200 text-xs font-semibold">
         <button id="tabBtnQuick" onclick="switchTab('quick')" class="flex-1 pb-2 border-b-2 border-indigo-600 text-indigo-600 font-bold flex items-center justify-center gap-1 cursor-pointer">
           <i class="fa-solid fa-bolt"></i> Tạo nhanh
@@ -142,7 +142,7 @@
 
       <div class="space-y-2.5 text-xs sidebar-scroll pr-1">
         
-        <!-- BỘ CHỌN CẤP HỌC ĐA NĂNG -->
+        <!-- BỘ CHỌN CẤP HỌC ĐA NĂNG (GIỮ NGUYÊN DANH MỤC GỐC) -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-950 flex items-center justify-between">
             <span><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu</span>
@@ -184,7 +184,7 @@
           </div>
         </div>
 
-        <!-- Khối Trường / Đơn vị -->
+        <!-- Khối Trường / Đơn vị (Giữ nguyên toàn bộ dropdown & chức năng thêm trường mới) -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
           <div>
             <label class="block font-semibold mb-0.5 text-slate-600">Trường học / Đơn vị</label>
@@ -313,7 +313,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: BÓC TÁCH FILE WORD/PDF/ẢNH VÀO KHO SQLITE -->
+        <!-- TAB 4: BÓC TÁCH FILE WORD/PDF/ẢNH VÀO KHO SQLITE (BỔ SUNG) -->
         <div id="panelUpload" class="hidden space-y-2.5 bg-blue-50/70 p-3 rounded-lg border border-blue-200">
           <div class="space-y-1 bg-white p-2 rounded border border-blue-200">
             <label class="block text-[11px] font-bold text-blue-950">Chọn tài liệu đề thi (.docx, .pdf, ảnh):</label>
@@ -502,7 +502,7 @@
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
-      : 'https://eduexam-backend.onrender.com';
+      : '';
 
     let currentExamData = null;
     let currentLevel = 'thcs';
@@ -519,7 +519,7 @@
     });
 
     // =========================================================================
-    // QUẢN LÝ GEMINI API KEY ĐỘNG
+    // QUẢN LÝ GEMINI API KEY ĐỘNG (BỔ SUNG)
     // =========================================================================
     function toggleKeyVisibility() {
       const input = document.getElementById('userApiKeyInput');
@@ -617,7 +617,7 @@
       return str;
     }
 
-    // Tối ưu hóa render TikZ: Ưu tiên ảnh PNG Base64 đã render sẵn từ Kroki backend
+    // Render TikZ Vector: Ưu tiên ảnh PNG Base64 đã render sẵn, dự phòng TikZJax
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         return `
@@ -754,12 +754,16 @@
 
     function selectLevel(lvl) {
       currentLevel = lvl;
+      localStorage.setItem('eduexam_current_level', lvl); // Nhớ trạng thái cấp học
+
       ['tieuhoc', 'thcs', 'thpt'].forEach(l => {
         const btn = document.getElementById(`btnLvl${l.charAt(0).toUpperCase() + l.slice(1)}`);
-        if (l === lvl) {
-          btn.className = "py-1.5 px-2 rounded border border-indigo-600 bg-indigo-600 text-white shadow transition cursor-pointer";
-        } else {
-          btn.className = "py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-indigo-100 text-slate-700 transition cursor-pointer";
+        if (btn) {
+          if (l === lvl) {
+            btn.className = "py-1.5 px-2 rounded border border-indigo-600 bg-indigo-600 text-white shadow transition cursor-pointer font-bold";
+          } else {
+            btn.className = "py-1.5 px-2 rounded border border-slate-300 bg-white hover:bg-indigo-100 text-slate-700 transition cursor-pointer font-bold";
+          }
         }
       });
 
@@ -848,8 +852,10 @@
     }
 
     function syncHeaderPreview() {
-      document.getElementById('previewSchool').innerText = getSelectedText('school');
-      document.getElementById('previewDept').innerText = getSelectedText('dept');
+      const cfg = LEVEL_CONFIGS[currentLevel];
+      const schoolVal = getSelectedText('school');
+      document.getElementById('previewSchool').innerText = schoolVal || cfg.schools[0];
+      document.getElementById('previewDept').innerText = getSelectedText('dept') || cfg.depts[0];
       document.getElementById('previewTitle').innerText = getSelectedText('examTitle');
       document.getElementById('previewYear').innerText = `NĂM HỌC ${document.getElementById('schoolYear').value || '2025 - 2026'}`;
       document.getElementById('previewCode').innerText = `MÃ ĐỀ: ${document.getElementById('examCode').value || '101'}`;
@@ -863,6 +869,10 @@
         document.getElementById('p1Heading').innerText = "PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (3,0 điểm)";
         document.getElementById('p2Heading').innerText = "PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (4,0 điểm)";
         document.getElementById('p3Heading').innerText = "PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm)";
+      } else if (currentLevel === 'tieuhoc') {
+        document.getElementById('p1Heading').innerText = "PHẦN I. CÂU HỎI TRẮC NGHIỆM (4,0 điểm)";
+        document.getElementById('p2Heading').innerText = "PHẦN II. ĐÚNG / SAI HOẶC NỐI CỘT (2,0 điểm)";
+        document.getElementById('p3Heading').innerText = "PHẦN III. BÀI TOÁN TỰ LUẬN (4,0 điểm)";
       } else {
         document.getElementById('p1Heading').innerText = "PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (4,0 điểm)";
         document.getElementById('p2Heading').innerText = "PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (3,0 điểm)";
@@ -1006,7 +1016,7 @@
     }
 
     // =========================================================================
-    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO
+    // OCR & BÓC TÁCH TÀI LIỆU UNIVERSAL VÀO KHO (BỔ SUNG)
     // =========================================================================
     async function uploadAndParseFile() {
       const fileInput = document.getElementById('universalFileInput');
@@ -1453,7 +1463,6 @@
         `;
       }
 
-      // Kích hoạt TikZJax nếu có script thẻ tikz dự phòng
       setTimeout(() => {
         if (window.tikzjax && typeof window.tikzjax.process === 'function') {
           window.tikzjax.process();
@@ -1461,7 +1470,7 @@
       }, 50);
     }
 
-    // Lưu từng câu vào SQLite cục bộ
+    // Lưu từng câu vào SQLite cục bộ (Bookmark)
     async function saveSingleQuestionToDb(btn, encodedQ) {
       const q = JSON.parse(decodeURIComponent(encodedQ));
       btn.disabled = true;
@@ -1678,7 +1687,11 @@ strong { font-weight: bold; }
 
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
-      selectLevel('thcs');
+      
+      // Lấy cấp học đã lưu gần nhất, nếu chưa có mới mặc định là 'thcs'
+      const savedLevel = localStorage.getItem('eduexam_current_level') || 'thcs';
+      selectLevel(savedLevel);
+
       handleModelChange();
       handleEssayModeChange();
 
