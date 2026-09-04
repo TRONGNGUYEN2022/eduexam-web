@@ -160,31 +160,32 @@
           </div>
         </div>
 
-        <!-- Chọn Model Gemini Chuẩn Xác -->
+        <!-- Chọn Model Gemini -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <label class="block font-bold text-slate-800 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
-            <span id="modelBadge" class="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">3.8 Flash</span>
+            <span id="modelBadge" class="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">2.5 Flash</span>
           </label>
           <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-semibold text-slate-900 focus:ring-1 focus:ring-indigo-500">
-            <optgroup label="🚀 Dòng Thế Hệ Mới (Khuyên dùng)">
-              <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Tốc độ &amp; Khảo thí tối ưu)</option>
-              <option value="gemini-3.1-pro">Gemini 3.1 Pro (Suy luận sâu &amp; Barem ma trận)</option>
-              <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-            </optgroup>
-            <optgroup label="⚡ Dòng Tiêu Chuẩn Ổn Định">
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+            <optgroup label="⚡ Dòng Tiêu Chuẩn Ổn Định (Khuyên dùng)">
+              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh &amp; Ổn định nhất)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu &amp; Barem chi tiết)</option>
+              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Siêu nhanh - Tiết kiệm)</option>
               <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            </optgroup>
+            <optgroup label="🚀 Dòng Thế Hệ Mới (Gemini 3.x)">
+              <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite</option>
+              <option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
             </optgroup>
             <optgroup label="⚙️ Tùy biến">
               <option value="__custom__">Nhập mã Model tùy chỉnh khác...</option>
             </optgroup>
           </select>
           <div id="customModelBox" class="hidden">
-            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-3.8-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs mt-1">
+            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs mt-1">
           </div>
         </div>
 
@@ -258,7 +259,7 @@
         <!-- TAB 1: TẠO NHANH SGK -->
         <div id="panelQuick" class="space-y-2">
           <div>
-            <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK (GDPT 2018)</label>
+            <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK</label>
             <select id="topicSelect" onchange="handleTopicSelectChange()" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs">
             </select>
           </div>
@@ -267,14 +268,14 @@
           </div>
         </div>
 
-        <!-- TAB 2: NOTEBOOK MA TRẬN & ĐẶC TẢ CHUẨN GDPT 2018 -->
+        <!-- TAB 2: NOTEBOOK MA TRẬN -->
         <div id="panelNotebook" class="hidden space-y-2.5 bg-amber-50/70 p-3 rounded-lg border border-amber-200">
           <div>
             <label class="block font-bold text-amber-900 mb-1 flex items-center justify-between">
-              <span>1. Khung Ma Trận &amp; Bản Đặc Tả (M1 - M4)</span>
-              <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu chuẩn</button>
+              <span>1. Khung Ma Trận Đặc Tả</span>
+              <button onclick="fillSampleMatrix()" class="text-[10px] text-indigo-600 underline font-normal cursor-pointer">Dán mẫu</button>
             </label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Tỷ lệ nhận thức 70% (M1+M2) / 30% (M3+M4). Trắc nghiệm chọn 1, Đúng/Sai, Trả lời ngắn..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Phần 1 (4 câu trắc nghiệm); Phần 2 (1 câu Đúng/Sai); Phần 3 (2 câu tự luận)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
 
           <div>
@@ -413,7 +414,7 @@
           <!-- Phần I: Trắc nghiệm 4 lựa chọn -->
           <div>
             <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">
-              PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (3,0 điểm)
+              PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (4,0 điểm)
             </div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh trả lời từ câu hỏi dưới đây. Mỗi câu hỏi chỉ chọn một phương án chính xác nhất.</p>
             <div class="space-y-4 text-xs sm:text-sm" id="part1Container">
@@ -424,7 +425,7 @@
           <!-- Phần II: Đúng / Sai -->
           <div>
             <div id="p2Heading" class="font-bold text-sm sm:text-[15px] mb-1">
-              PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (4,0 điểm)
+              PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (3,0 điểm)
             </div>
             <p class="italic text-xs mb-3 text-slate-600">Thí sinh chọn Đúng (Đ) hoặc Sai (S) cho mỗi ý a), b), c), d).</p>
             <div class="text-xs sm:text-sm space-y-3" id="part2Container">
@@ -435,7 +436,7 @@
           <!-- Phần III: Tự luận hoặc Điền số ngắn -->
           <div>
             <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">
-              PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm)
+              PHẦN III. TỰ LUẬN (3,0 điểm)
             </div>
             <div class="space-y-4 text-xs sm:text-sm" id="part3Container">
               <p class="text-slate-400 italic">Nhấn "AI Tổng Hợp &amp; Sinh Đề" để tạo câu hỏi...</p>
@@ -543,6 +544,7 @@
 
   <!-- JavaScript Xử lý Toàn diện -->
   <script>
+    // Điền chính xác đường dẫn dịch vụ backend của bạn trên Render
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
       : 'https://eduexam-backend.onrender.com';
@@ -555,6 +557,7 @@
     let timeRemaining = 45 * 60;
     let lastActiveMathField = null;
 
+    // Mảng lưu danh sách câu hỏi hiện tại trên màn hình phục vụ Lưu kho SQLite độc lập
     window.currentRenderedQuestions = [];
 
     document.addEventListener('focusin', (e) => {
@@ -563,6 +566,7 @@
       }
     });
 
+    // Cho phép gõ phím cách (Space) tự nhiên trong MathLive như soạn văn bản
     document.addEventListener('keydown', (e) => {
       if (e.target && e.target.tagName.toLowerCase() === 'math-field') {
         if (e.key === ' ' || e.code === 'Space') {
@@ -624,12 +628,13 @@
     }
 
     // =========================================================================
-    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP
+    // BỘ BIÊN DỊCH KATEX & TIKZ TRỰC TIẾP (KHẮC PHỤC LỖI EXT / IMES)
     // =========================================================================
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
 
+      // 1. Dọn sạch lỗi nuốt ký tự \text và \times
       str = str.replace(/\t?ext\{([^}]+)\}/g, '$1');
       str = str.replace(/\\text\{([^}]+)\}/g, '$1');
       str = str.replace(/\t?ext([a-zA-Z0-9]+)/g, ' $1');
@@ -676,6 +681,7 @@
       return str;
     }
 
+    // Render TikZ: Ưu tiên ảnh Base64 đã render sẵn, dự phòng TikZJax
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         const src = imageUrl.startsWith('data:') ? imageUrl : (imageUrl.startsWith('<svg') ? 'data:image/svg+xml;utf8,' + encodeURIComponent(imageUrl) : 'data:image/png;base64,' + imageUrl);
@@ -813,7 +819,7 @@
 
     function selectLevel(lvl) {
       currentLevel = lvl;
-      localStorage.setItem('eduexam_current_level', lvl);
+      localStorage.setItem('eduexam_current_level', lvl); // Nhớ trạng thái cấp học
 
       ['tieuhoc', 'thcs', 'thpt'].forEach(l => {
         const btn = document.getElementById(`btnLvl${l.charAt(0).toUpperCase() + l.slice(1)}`);
@@ -980,11 +986,8 @@
         badge.className = "text-[10px] bg-purple-200 text-purple-800 font-semibold px-1.5 py-0.5 rounded";
       } else {
         customBox.classList.add('hidden');
-        if (val.includes('3.8')) {
-          badge.innerText = "3.8 Flash";
-          badge.className = "text-[10px] bg-emerald-300 text-emerald-950 font-bold px-1.5 py-0.5 rounded shadow-sm";
-        } else if (val.includes('3.7')) {
-          badge.innerText = "3.7 Flash";
+        if (val.includes('3.7')) {
+          badge.innerText = "3.7 Ultra";
           badge.className = "text-[10px] bg-amber-300 text-amber-950 font-bold px-1.5 py-0.5 rounded shadow-sm";
         } else if (val.includes('pro')) {
           badge.innerText = "Pro Logic";
@@ -999,7 +1002,7 @@
     function getSelectedModel() {
       const select = document.getElementById('geminiModelSelect');
       if (select.value === '__custom__') {
-        return document.getElementById('customModelInput').value.trim() || 'gemini-3.8-flash';
+        return document.getElementById('customModelInput').value.trim() || 'gemini-2.5-flash';
       }
       return select.value;
     }
@@ -1159,11 +1162,11 @@
 
     function fillSampleMatrix() {
       if (currentLevel === 'thpt') {
-        document.getElementById('matrixSpecInput').value = "- Ma trận GDPT 2018 THPT: Tỷ lệ nhận thức 40% M1 (Nhận biết) - 30% M2 (Thông hiểu) - 20% M3 (Vận dụng) - 10% M4 (Vận dụng cao) (Tỷ lệ 70/30).\n- Phần I (12 câu trắc nghiệm 4 lựa chọn): M1, M2.\n- Phần II (4 câu Đúng/Sai, mỗi câu 4 ý tính điểm lũy tiến): M2, M3.\n- Phần III (6 câu trắc nghiệm trả lời ngắn): M3, M4.";
+        document.getElementById('matrixSpecInput').value = "- Phần I (12 câu trắc nghiệm 4 lựa chọn): Nhận biết và thông hiểu.\n- Phần II (4 câu Đúng/Sai): Vận dụng các bài toán thực tế.\n- Phần III (6 câu trả lời ngắn): Điền đáp số số học/đại số.";
       } else if (currentLevel === 'tieuhoc') {
-        document.getElementById('matrixSpecInput').value = "- Ma trận GDPT 2018 Tiểu học (Thông tư 27): Tỷ lệ nhận thức khoảng 40% M1 - 30% M2 - 20% M3 - 10% M4 (Tỷ lệ 70/30).\n- Phần I (4 câu trắc nghiệm): M1 & M2 nhận biết cơ bản.\n- Phần II (1 câu Đúng/Sai 4 ý): M2 thông hiểu.\n- Phần III (2 bài toán tự luận): M3 vận dụng quen thuộc, M4 vận dụng thực tế.";
+        document.getElementById('matrixSpecInput').value = "- Phần I (4 câu trắc nghiệm): Nhận biết số học, hình phẳng.\n- Phần II (1 câu Đúng/Sai): Phép tính nhân chia cộng trừ.\n- Phần III (2 bài tự luận): Giải toán có lời văn 2 bước tính.";
       } else {
-        document.getElementById('matrixSpecInput').value = "- Ma trận GDPT 2018 THCS (Thông tư 22): Tỷ lệ nhận thức 70% (M1+M2) / 30% (M3+M4).\n- Phần I (4 câu trắc nghiệm 4 lựa chọn): Nhận biết M1, Thông hiểu M2.\n- Phần II (1 câu Đúng/Sai 4 ý a, b, c, d): Lập luận logic M2, M3.\n- Phần III (2 bài tự luận): Bài 1 giải quyết tình huống quen thuộc M3, Bài 2 bài toán tích hợp thực tiễn M4.";
+        document.getElementById('matrixSpecInput').value = "- Phần I (4 câu trắc nghiệm 4 lựa chọn): Đại số & Hình học.\n- Phần II (1 câu Đúng/Sai 4 ý): Hình học trực quan.\n- Phần III (2 bài tự luận): Bài 1 tính toán hợp lý; Bài 2 bài toán thực tế.";
       }
     }
 
@@ -1197,7 +1200,7 @@
           : topicEl.value;
       }
 
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn chuẩn GDPT 2018...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang biên soạn [${currentLevel.toUpperCase()} - Lớp ${grade}]...</span>`;
       btn.disabled = true;
 
       try {
@@ -1321,6 +1324,7 @@
     function renderExamToView(exam, matrix) {
       if (!exam) return;
 
+      // Xóa và tái tạo mảng câu hỏi toàn cục để tránh lỗi escape chuỗi
       window.currentRenderedQuestions = [];
       let globalIndexCounter = 0;
 
@@ -1869,12 +1873,14 @@ strong { font-weight: bold; }
     window.addEventListener('DOMContentLoaded', () => {
       fetch(`${API_BASE_URL}/`).catch(() => {});
       
+      // Lấy cấp học đã lưu gần nhất, nếu chưa có mới mặc định là 'thcs'
       const savedLevel = localStorage.getItem('eduexam_current_level') || 'thcs';
       selectLevel(savedLevel);
 
       handleModelChange();
       handleEssayModeChange();
 
+      // Nạp API Key đã lưu từ localStorage
       const savedKey = localStorage.getItem('eduexam_gemini_api_key');
       if (savedKey) {
         const input = document.getElementById('userApiKeyInput');
@@ -1882,6 +1888,7 @@ strong { font-weight: bold; }
         updateKeyBadge(true);
       }
 
+      // Cập nhật số lượng record trong kho
       updateBankCounterBadge();
     });
   </script>
