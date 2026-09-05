@@ -8,14 +8,14 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core (Hiển thị công thức đề thi & đáp án chuẩn xác) -->
+  <!-- KaTeX Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
-  <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG vector) -->
+  <!-- MathLive Engine -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZJax Engine: Biên dịch mọi khối mã TikZ sang Vector SVG ngay tại trình duyệt -->
+  <!-- TikZJax Engine -->
   <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
   <script src="https://tikzjax.com/v1/tikzjax.js"></script>
 
@@ -40,13 +40,11 @@
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
     .hidden { display: none !important; }
 
-    /* Thanh cuộn độc lập cho 2 cột */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Khung nhập MathLive trong phần tự luận: Hỗ trợ gõ khoảng trắng */
     math-field {
       display: block;
       width: 100%;
@@ -160,7 +158,7 @@
 
       <div class="space-y-2.5 text-xs pr-1">
         
-        <!-- CẤP HỌC -->
+        <!-- CẤP HỌC MỤC TIÊU -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-950 flex items-center justify-between">
             <span><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu</span>
@@ -186,21 +184,21 @@
           </select>
         </div>
 
-        <!-- MÔN & KHỐI -->
+        <!-- MÔN HỌC & KHỐI LỚP (ĐÃ KHÔI PHỤC ĐẦY ĐỦ DROPDOWN) -->
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-0.5 text-slate-700">Môn học</label>
-            <select id="subject" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
+            <select id="subject" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
           </div>
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Khối lớp</label>
-            <select id="grade" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
+            <select id="grade" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
           </div>
         </div>
 
         <div>
           <label class="block font-semibold mb-0.5 text-slate-700">Thời gian làm bài</label>
-          <select id="duration" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium">
+          <select id="duration" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium">
             <option value="35">35 phút (Tiểu học)</option>
             <option value="45">45 phút (Định kỳ)</option>
             <option value="60">60 phút</option>
@@ -303,18 +301,18 @@
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
           <tr>
             <td style="width: 45%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;">TỔ TOÁN HỌC</p>
+              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;" id="previewDept">TỔ TOÁN HỌC</p>
               <div style="text-align: left; font-size: 12px; line-height: 1.6; margin-top: 6px;">
                 <p style="margin: 0;">Họ và tên: <span id="displayStudentName" class="font-bold text-indigo-900">......................................................</span></p>
                 <p style="margin: 0;">Số báo danh: <span class="font-bold text-indigo-900">....................</span> Lớp: <span class="font-bold text-indigo-900">................</span></p>
               </div>
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;">NĂM HỌC 2025 - 2026</p>
+              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 12 - Thời gian: 90 phút</p>
-              <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;">MÃ ĐỀ: 101</div>
+              <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">MÃ ĐỀ: 101</div>
             </td>
           </tr>
         </table>
@@ -371,6 +369,7 @@
         </div>
       </div>
 
+      <!-- Bộ lọc nhanh trong kho -->
       <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
         <select id="bvGrade" onchange="loadBankQuestions()" class="border p-2 rounded bg-white font-medium">
           <option value="">-- Tất cả khối lớp --</option>
@@ -430,7 +429,6 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT XỬ LÝ TOÀN DIỆN -->
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
@@ -540,12 +538,49 @@
       });
       document.getElementById('levelBadge').innerText = LEVEL_CONFIGS[lvl].name;
       loadLevelOptions();
+      updateTopicList();
+      syncHeaderPreview();
     }
 
     function loadLevelOptions() {
       const cfg = LEVEL_CONFIGS[currentLevel];
       document.getElementById('grade').innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
       document.getElementById('subject').innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+      loadListOptions('school', 'schoolSelect');
+      loadListOptions('dept', 'deptSelect');
+    }
+
+    function loadListOptions(type, selectId) {
+      const cfg = LEVEL_CONFIGS[currentLevel];
+      const saved = localStorage.getItem(`eduexam_${currentLevel}_${type}`);
+      let list = saved ? JSON.parse(saved) : (type === 'school' ? cfg.schools : LEVEL_CONFIGS[currentLevel].depts || ["TỔ TOÁN HỌC"]);
+      const select = document.getElementById(selectId);
+      select.innerHTML = list.map(item => `<option value="${item}">${item}</option>`).join('');
+    }
+
+    function updateTopicList() {
+      const subject = document.getElementById('subject').value;
+      const grade = document.getElementById('grade').value;
+      const topicSelect = document.getElementById('topicSelect');
+      const key = `${subject}_${grade}`;
+      let topics = CURRICULUM_TOPICS[key] || [
+        `Kiến thức trọng tâm ${subject} Lớp ${grade}`,
+        `Chủ đề 1: Lý thuyết và Nhận biết`,
+        `Chủ đề 2: Vận dụng thực tiễn`
+      ];
+      topicSelect.innerHTML = topics.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    function syncHeaderPreview() {
+      const cfg = LEVEL_CONFIGS[currentLevel];
+      document.getElementById('previewSchool').innerText = document.getElementById('schoolSelect').value || cfg.schools[0];
+      document.getElementById('previewDept').innerText = document.getElementById('deptSelect').value || "TỔ TOÁN HỌC";
+      document.getElementById('previewYear').innerText = `NĂM HỌC ${document.getElementById('schoolYear').value || '2025 - 2026'}`;
+      document.getElementById('previewCode').innerText = `MÃ ĐỀ: ${document.getElementById('examCode').value || '101'}`;
+      const subj = document.getElementById('subject').value.toUpperCase();
+      const gr = document.getElementById('grade').value;
+      const dur = document.getElementById('duration').value;
+      document.getElementById('previewSubjectDuration').innerText = `Môn: ${subj} ${gr} - Thời gian: ${dur} phút`;
     }
 
     function switchTab(tab) {
@@ -567,7 +602,7 @@
       const subject = document.getElementById('subject').value;
       const grade = parseInt(document.getElementById('grade').value) || 12;
       const duration = parseInt(document.getElementById('duration').value) || 90;
-      const lessonName = document.getElementById('inputLessonName')?.value.trim() || "Chương trình chuẩn";
+      const lessonName = document.getElementById('inputLessonName')?.value.trim() || document.getElementById('topicSelect')?.value || "Chương trình chuẩn";
       const cognitiveLevel = document.getElementById('inputCognitiveLevel')?.value || "M2";
 
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang sinh đề GDPT 2018 (${duration}p)...</span>`;
@@ -598,7 +633,7 @@
         const result = await response.json();
         currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
         renderExamToView(result.base_exam, result.answer_matrix);
-        alert(`Đã biên soạn thành công bộ đề thi GDPT 2018!`);
+        alert(`Đã biên soạn thành công bộ đề thi chuẩn GDPT 2018!`);
       } catch (err) {
         alert('Lỗi sinh đề: ' + err.message);
       } finally {
@@ -682,7 +717,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            level_stage: currentLevel, grade: 12, subject: "Toán học", topic: lessonName, lesson: lessonName,
+            level_stage: currentLevel, grade: parseInt(document.getElementById('grade').value)||12, subject: document.getElementById('subject').value, topic: lessonName, lesson: lessonName,
             level: "Thông hiểu", cognitive_level: cog, q_type: q.options ? "single_choice" : (q.statements ? "true_false" : "essay"),
             content: q.content || q.prompt || "", options: q.options ? q.options.map(o => o.text || o) : [],
             correct_answer: q.answer || "", tikz_code: q.tikz_code || ""
@@ -720,7 +755,7 @@
       const ids = Array.from(cbs).map(cb => parseInt(cb.value));
       const res = await fetch(`${API_BASE_URL}/api/exams/generate-full`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ level: currentLevel, subject: "Toán học", grade: 12, selected_question_ids: ids })
+        body: JSON.stringify({ level: currentLevel, subject: document.getElementById('subject').value, grade: parseInt(document.getElementById('grade').value), selected_question_ids: ids })
       });
       const result = await res.json();
       currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
