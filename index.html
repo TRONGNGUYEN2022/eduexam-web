@@ -40,7 +40,7 @@
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
     .hidden { display: none !important; }
 
-    /* Thanh cuộn mảnh cho 2 cột độc lập */
+    /* Thanh cuộn độc lập cho 2 cột */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -68,7 +68,7 @@
 </head>
 <body class="flex flex-col antialiased">
 
-  <!-- HEADER DUY NHẤT: TẤT CẢ NÚT NẰM CÙNG HÀNG VỚI TIÊU ĐỀ EDUEXAM PRO -->
+  <!-- HEADER DUY NHẤT: TOÀN BỘ NÚT NẰM CÙNG HÀNG VỚI TIÊU ĐỀ EDUEXAM PRO -->
   <header class="bg-indigo-700 text-white px-3 py-2 md:px-5 flex flex-wrap items-center justify-between shadow-md gap-2 z-50 shrink-0 min-h-[56px]">
     <div class="flex items-center gap-2.5 shrink-0">
       <div class="bg-white text-indigo-700 p-1.5 rounded-lg font-bold text-base leading-none shadow-sm">
@@ -110,7 +110,7 @@
   <!-- BỐ CỤC CHÍNH: 2 CỘT SCROLL ĐỘC LẬP -->
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
-    <!-- CỘT TRÁI: SIDEBAR CẤU HÌNH CÓ THANH CUỘN RIÊNG -->
+    <!-- CỘT TRÁI: SIDEBAR CÓ THANH CUỘN RIÊNG -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 flex flex-col gap-3 shrink-0 h-full overflow-y-auto shadow-sm">
       
       <!-- KHỐI QUẢN LÝ GEMINI API KEY -->
@@ -172,20 +172,34 @@
           </div>
         </div>
 
-        <!-- AI MODEL -->
+        <!-- AI MODEL (HỖ TRỢ MỌI PHIÊN BẢN GEMINI) -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <label class="block font-bold text-slate-800 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model (Gemini Engine)</span>
             <span id="modelBadge" class="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">2.5 Flash</span>
           </label>
           <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-semibold text-slate-900 focus:ring-1 focus:ring-indigo-500">
-            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Khuyên dùng - Nhanh &amp; Ổn định nhất)</option>
-            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu &amp; Barem đặc tả)</option>
-            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            <optgroup label="⚡ Dòng Tiêu Chuẩn Ổn Định">
+              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Khuyên dùng - Nhanh &amp; Ổn định nhất)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu &amp; Barem)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+            </optgroup>
+            <optgroup label="🚀 Dòng Thế Hệ Mới (Gemini 3.x)">
+              <option value="gemini-3.8-flash">Gemini 3.8 Flash</option>
+              <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+              <option value="gemini-3.1-pro">Gemini 3.1 Pro</option>
+            </optgroup>
+            <optgroup label="⚙️ Tùy biến">
+              <option value="__custom__">Nhập mã Model tùy chỉnh...</option>
+            </optgroup>
           </select>
+          <div id="customModelBox" class="hidden">
+            <input type="text" id="customModelInput" placeholder="Ví dụ: gemini-2.5-flash..." class="w-full border border-indigo-300 rounded p-1 bg-white text-xs mt-1">
+          </div>
         </div>
 
-        <!-- MÔN HỌC & KHỐI LỚP -->
+        <!-- MÔN HỌC & KHỐI LỚP (ĐỒNG BỘ ĐỘNG 12 KHỐI LỚP) -->
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-0.5 text-slate-700">Môn học</label>
@@ -201,13 +215,13 @@
           <label class="block font-semibold mb-0.5 text-slate-700">Thời gian làm bài</label>
           <select id="duration" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium">
             <option value="35">35 phút (Tiểu học)</option>
-            <option value="45">45 phút (Định kỳ)</option>
+            <option value="45">45 phút (Định kỳ - Đủ 17 câu)</option>
             <option value="60">60 phút</option>
             <option value="90" selected>90 phút (Học kỳ / THPT - Đủ 22 câu)</option>
           </select>
         </div>
 
-        <!-- BÀI HỌC VÀ MỨC ĐỘ M1-M4 -->
+        <!-- BÀI HỌC VÀ MỨC ĐỘ M1 - M4 (GDPT 2018) -->
         <div class="bg-indigo-900/5 p-3 rounded-lg border border-indigo-200 space-y-2">
           <label class="block font-bold text-indigo-950 text-xs flex items-center justify-between">
             <span><i class="fa-solid fa-book-open text-indigo-600"></i> Định hướng Bài học &amp; Mức độ (M1-M4)</span>
@@ -220,18 +234,18 @@
           <div>
             <label class="block font-semibold text-slate-700 mb-0.5">Mức độ nhận thức trọng tâm:</label>
             <select id="inputCognitiveLevel" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-900">
-              <option value="M1">Nhận biết (M1)</option>
-              <option value="M2" selected>Thông hiểu (M2)</option>
-              <option value="M3">Vận dụng (M3)</option>
-              <option value="M4">Vận dụng cao (M4)</option>
+              <option value="M1">Nhận biết (M1) - Tái hiện định nghĩa, công thức</option>
+              <option value="M2" selected>Thông hiểu (M2) - Diễn giải, tính toán cơ bản</option>
+              <option value="M3">Vận dụng (M3) - Tình huống toán học quen thuộc</option>
+              <option value="M4">Vận dụng cao (M4) - Tích hợp thực tiễn, phân hóa</option>
             </select>
           </div>
         </div>
 
-        <!-- TAB 1: TẠO NHANH -->
+        <!-- TAB 1: TẠO NHANH SGK -->
         <div id="panelQuick" class="space-y-2">
           <div>
-            <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK</label>
+            <label class="block font-semibold mb-0.5 text-slate-700">Chủ đề chuẩn SGK (GDPT 2018)</label>
             <select id="topicSelect" onchange="handleTopicSelectChange()" class="w-full border border-slate-300 rounded p-2 bg-slate-50 text-xs font-medium"></select>
           </div>
           <div id="customTopicContainer" class="hidden">
@@ -239,22 +253,22 @@
           </div>
         </div>
 
-        <!-- TAB 2: NOTEBOOK -->
+        <!-- TAB 2: NOTEBOOK MA TRẬN & ĐẶC TẢ -->
         <div id="panelNotebook" class="hidden space-y-2.5 bg-amber-50/70 p-3 rounded-lg border border-amber-200">
           <div>
             <label class="block font-bold text-amber-900 mb-1">Khung Ma Trận &amp; Bản Đặc Tả</label>
-            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Tỷ lệ 70/30..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="matrixSpecInput" rows="3" placeholder="Ví dụ: Tỷ lệ 70/30 (M1-M4)..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
           <div>
             <label class="block font-bold text-amber-900 mb-1">Tài Liệu / Đề Gốc</label>
-            <textarea id="sourceNotesInput" rows="3" placeholder="Dán đề thô..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
+            <textarea id="sourceNotesInput" rows="3" placeholder="Dán đề thô hoặc tài liệu cần AI xử lý..." class="w-full border border-amber-300 rounded p-2 bg-white text-xs"></textarea>
           </div>
         </div>
 
-        <!-- TAB 3: KHO DRIVE -->
+        <!-- TAB 3: KHO GOOGLE DRIVE -->
         <div id="panelDrive" class="hidden space-y-2.5 bg-emerald-50/70 p-3 rounded-lg border border-emerald-300">
           <div class="flex items-center justify-between">
-            <label class="block font-bold text-emerald-950 text-xs"><i class="fa-brands fa-google-drive text-emerald-600"></i> Google Drive</label>
+            <label class="block font-bold text-emerald-950 text-xs"><i class="fa-brands fa-google-drive text-emerald-600"></i> Google Drive Giáo Viên</label>
             <button onclick="fetchDriveFiles()" class="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-0.5 rounded shadow cursor-pointer">Tải lại</button>
           </div>
           <div id="driveFilesList" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
@@ -262,7 +276,7 @@
           </div>
         </div>
 
-        <!-- TAB 4: NẠP FILE -->
+        <!-- TAB 4: NẠP FILE (DOCX / PDF / ẢNH) -->
         <div id="panelUpload" class="hidden space-y-2.5 bg-blue-50/70 p-3 rounded-lg border border-blue-200">
           <input type="file" id="universalFileInput" accept=".docx,.doc,.pdf,.png,.jpg,.jpeg" class="w-full text-xs text-slate-600 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-blue-600 file:text-white cursor-pointer">
           <button onclick="uploadAndParseFile()" id="btnStartUpload" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-xs shadow cursor-pointer">Bóc Tách &amp; Vẽ TikZ</button>
@@ -318,7 +332,7 @@
           </tr>
         </table>
 
-        <!-- Nội dung đề thi 3 phần -->
+        <!-- Nội dung đề thi 3 phần chuẩn GDPT 2018 -->
         <div id="examBody" class="space-y-6">
           <div>
             <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (3,0 điểm)</div>
@@ -330,7 +344,7 @@
 
           <div>
             <div id="p2Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN II. CÂU TRẮC NGHIỆM ĐÚNG / SAI (4,0 điểm)</div>
-            <p class="italic text-xs mb-3 text-slate-600">Thí sinh chọn Đúng (Đ) hoặc Sai (S) cho mỗi ý a), b), c), d).</p>
+            <p class="italic text-xs mb-3 text-slate-600">Thí sinh chọn Đúng (Đ) hoặc Sai (S) cho mỗi ý a), b), c), d). Điểm tính lũy tiến: đúng 1 ý được 0.1đ; 2 ý được 0.25đ; 3 ý được 0.5đ; 4 ý được 1.0đ.</p>
             <div class="text-xs sm:text-sm space-y-3" id="part2Container"></div>
           </div>
 
@@ -342,6 +356,7 @@
 
         <div class="text-center font-bold text-xs tracking-wider my-6">--- HẾT ĐỀ THI ---</div>
 
+        <!-- Bảng Đáp Án & Ma Trận 4 Mã Đề -->
         <div id="teacherSolutionsArea" class="mt-8 pt-6 border-t-2 border-dashed border-slate-300">
           <h3 class="text-center font-bold text-xs sm:text-sm mb-3 uppercase">BẢNG ĐÁP ÁN &amp; MA TRẬN 4 MÃ ĐỀ ĐỐI CHIẾU</h3>
           <div id="answerKeySection" class="mt-4 space-y-4"></div>
@@ -426,7 +441,6 @@
     </div>
   </div>
 
-  <!-- JAVASCRIPT XỬ LÝ TOÀN DIỆN -->
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
@@ -442,7 +456,7 @@
 
     window.currentRenderedQuestions = [];
 
-    // DANH MỤC CẤU HÌNH CẤP HỌC & ĐƠN VỊ
+    // DANH MỤC CẤP HỌC & TRƯỜNG LỚP
     const LEVEL_CONFIGS = {
       tieuhoc: {
         name: "Tiểu học",
@@ -467,7 +481,7 @@
       }
     };
 
-    // DANH MỤC CHỦ ĐỀ CHUẨN SGK GDPT 2018 (ĐỦ 12 KHỐI LỚP)
+    // DANH MỤC CHỦ ĐỀ CHUẨN SGK GDPT 2018 (ĐẦY ĐỦ 12 KHỐI LỚP)
     const CURRICULUM_TOPICS = {
       "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Các số đến 100", "Hình phẳng và Đo độ dài"],
       "Toán học_2": ["Phép cộng, phép trừ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan", "Phép nhân, phép chia"],
@@ -566,7 +580,6 @@
       return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 ml-1.5">[Vận dụng cao - M4]</span>`;
     }
 
-    // ĐIỀU KHIỂN CHỌN CẤP HỌC & ĐỒNG BỘ MÔN/LỚP ĐỘNG
     function selectLevel(lvl) {
       currentLevel = lvl;
       localStorage.setItem('eduexam_current_level', lvl);
@@ -633,8 +646,24 @@
     }
 
     function handleModelChange() {
-      const val = document.getElementById('geminiModelSelect').value;
-      document.getElementById('modelBadge').innerText = val.includes('pro') ? '2.5 Pro' : '2.5 Flash';
+      const sel = document.getElementById('geminiModelSelect');
+      const customBox = document.getElementById('customModelBox');
+      const badge = document.getElementById('modelBadge');
+      if (sel.value === '__custom__') {
+        customBox.classList.remove('hidden');
+        badge.innerText = "Custom";
+      } else {
+        customBox.classList.add('hidden');
+        badge.innerText = sel.value.replace('gemini-', '');
+      }
+    }
+
+    function getSelectedModel() {
+      const sel = document.getElementById('geminiModelSelect');
+      if (sel.value === '__custom__') {
+        return document.getElementById('customModelInput').value.trim() || 'gemini-2.5-flash';
+      }
+      return sel.value;
     }
 
     function handleTopicSelectChange() {
@@ -650,6 +679,7 @@
       const duration = parseInt(document.getElementById('duration').value) || 90;
       const lessonName = document.getElementById('inputLessonName')?.value.trim() || document.getElementById('topicSelect')?.value || "Chương trình chuẩn";
       const cognitiveLevel = document.getElementById('inputCognitiveLevel')?.value || "M2";
+      const selectedModel = getSelectedModel();
 
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang sinh đề GDPT 2018 (${duration}p)...</span>`;
       btn.disabled = true;
@@ -666,7 +696,7 @@
             lesson: lessonName,
             cognitive_level: cognitiveLevel,
             duration_minutes: duration,
-            model_name: document.getElementById('geminiModelSelect').value,
+            model_name: selectedModel,
             api_key: apiKey
           })
         });
@@ -679,7 +709,7 @@
         const result = await response.json();
         currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
         renderExamToView(result.base_exam, result.answer_matrix);
-        alert(`Đã biên soạn thành công bộ đề thi chuẩn GDPT 2018!`);
+        alert(`Đã biên soạn thành công bộ đề thi GDPT 2018!`);
       } catch (err) {
         alert('Lỗi sinh đề: ' + err.message);
       } finally {
@@ -693,6 +723,7 @@
       window.currentRenderedQuestions = [];
       let globalIndex = 0;
 
+      // 1. Phần I: Trắc nghiệm 4 lựa chọn
       const p1 = exam.part_1_mcq || [];
       document.getElementById('part1Container').innerHTML = p1.map((q, idx) => {
         const cIdx = globalIndex++; window.currentRenderedQuestions.push(q);
@@ -715,6 +746,7 @@
         `;
       }).join('');
 
+      // 2. Phần II: Đúng / Sai
       const p2 = exam.part_2_tf || [];
       document.getElementById('part2Container').innerHTML = p2.map((q, idx) => {
         const cIdx = globalIndex++; window.currentRenderedQuestions.push(q);
@@ -727,12 +759,20 @@
             </div>
             ${formatTikzHtml(q.tikz_code, q.image_base64)}
             <div class="space-y-1 pl-2">
-              ${['a','b','c','d'].map(k => `<div class="flex justify-between items-center p-1 bg-white rounded border text-xs"><span><strong>${k})</strong> ${cleanLatexMath(st[k]||'')}</span><div><label class="text-emerald-700 font-semibold mr-2"><input type="radio" name="p2_q${idx}_${k}" value="Đ"> Đúng</label><label class="text-rose-700 font-semibold"><input type="radio" name="p2_q${idx}_${k}" value="S"> Sai</label></div></div>`).join('')}
+              ${['a','b','c','d'].map(k => `
+                <div class="flex justify-between items-center p-1 bg-white rounded border text-xs">
+                  <span><strong>${k})</strong> ${cleanLatexMath(st[k]||'')}</span>
+                  <div>
+                    <label class="text-emerald-700 font-semibold mr-2"><input type="radio" name="p2_q${idx}_${k}" value="Đ"> Đúng</label>
+                    <label class="text-rose-700 font-semibold"><input type="radio" name="p2_q${idx}_${k}" value="S"> Sai</label>
+                  </div>
+                </div>`).join('')}
             </div>
           </div>
         `;
       }).join('');
 
+      // 3. Phần III: Tự luận hoặc Trả lời ngắn
       const p3 = exam.part_3_short_ans || exam.part_3_essay || [];
       document.getElementById('part3Container').innerHTML = p3.map((q, idx) => {
         const cIdx = globalIndex++; window.currentRenderedQuestions.push(q);
@@ -755,7 +795,7 @@
       const q = window.currentRenderedQuestions[idx];
       if (!q) return;
       btn.disabled = true; btn.innerHTML = `Đang lưu...`;
-      const lessonName = document.getElementById('inputLessonName')?.value.trim() || document.getElementById('topicSelect')?.value || "Chung";
+      const lessonName = document.getElementById('inputLessonName')?.value.trim() || "Chung";
       const cog = q.cognitive_level || "M2";
 
       try {
