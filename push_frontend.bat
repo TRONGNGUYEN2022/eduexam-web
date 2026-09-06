@@ -1,17 +1,29 @@
 @echo off
-chcp 65001 >nul
-title EduExam - Day Code Frontend Len GitHub Va Vercel Production
+title EduExam - Day Code Frontend Len GitHub va Vercel
 color 0B
 
 echo ======================================================
-echo    DANG DAY CODE FRONTEND LEN GITHUB VA VERCEL
+echo    DANG DONG GOI VA DAY CODE FRONTEND LEN PRODUCTION
 echo ======================================================
 cd /d "%~dp0"
 
-:: 1. Don dep file index.lock neu co
+:: 1. Kiem tra su ton tai cua file
+if not exist "index.html" (
+    echo [LOI] Khong tim thay file index.html!
+    pause
+    exit /b
+)
+
+if not exist "bank.html" (
+    echo [CANH BAO] Khong tim thay file bank.html trong thu muc!
+    pause
+    exit /b
+)
+
+:: 2. Don dep file index.lock neu bi ket
 if exist ".git\index.lock" del /f /q ".git\index.lock"
 
-:: 2. Khoi tao hoac ket noi lai remote
+:: 3. Khoi tao va ket noi remote Git
 echo [*] Dang kiem tra ket noi Git Repository...
 if not exist ".git" (
     git init
@@ -20,22 +32,24 @@ if not exist ".git" (
 git remote remove origin >nul 2>&1
 git remote add origin https://github.com/TRONGNGUYEN2022/eduexam-web.git
 
-:: 3. Ep Git them tat ca cac file thay doi
-echo [*] Dang dong goi code va tao commit moi...
+:: 4. Dong goi va tao commit moi
+echo [*] Dang dong goi index.html, bank.html va cac tai nguyen...
 git add -A
-git commit -m "Auto Update %date% %time% - Frontend Production Build" --allow-empty
+git commit -m "Update Frontend: Tich hop bank.html va index.html - %date% %time%" --allow-empty
 
-:: 4. Day thang len GitHub
+:: 5. Day code len GitHub
 echo [*] Dang day code len GitHub (origin main)...
 git push -u origin main --force
 
-:: 5. Trien khai truc tiep len ten mien Production co dinh cua Vercel
+:: 6. Trien khai len Vercel Production
 echo.
-echo [*] Dang deploy truc tiep len ten mien Production tren Vercel...
+echo [*] Dang deploy truc tiep len Vercel Production...
 call vercel --prod --yes
 
 echo.
 echo ======================================================
-echo    DA HOAN TAT! WEB DA DUOC CAP NHAT VAO TEN MIEN CHINH
+echo    HOAN TAT!
+echo    - Trang tao de:  https://eduexam-web.vercel.app/
+echo    - Trang nap kho: https://eduexam-web.vercel.app/bank.html
 echo ======================================================
 pause
