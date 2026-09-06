@@ -615,7 +615,7 @@
       document.getElementById('customTopicContainer').classList.toggle('hidden', sel.value !== 'custom');
     }
 
-    // NẠP VÀ BÓC TÁCH FILE WORD (.DOCX) LƯU KHO
+    // NẠP VÀ BÓC TÁCH FILE WORD (.DOCX)
     async function uploadAndParseDocxFile() {
       const fileInput = document.getElementById('universalFileInput');
       if (!fileInput.files || fileInput.files.length === 0) {
@@ -625,7 +625,7 @@
 
       const file = fileInput.files[0];
       if (!file.name.toLowerCase().endsWith('.docx')) {
-        alert("Vui lòng chọn file Word có định dạng .docx!");
+        alert("Vui lòng chọn đúng tệp có định dạng .docx!");
         return;
       }
 
@@ -642,6 +642,7 @@
       formData.append('subject', document.getElementById('subject').value);
       formData.append('topic', lessonName);
       formData.append('lesson', lessonName);
+      formData.append('model_name', getSelectedModel());
       formData.append('auto_save', autoSave);
       if (apiKey) formData.append('api_key', apiKey);
 
@@ -655,7 +656,10 @@
           body: formData
         });
 
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(errData.detail || "Lỗi xử lý");
+        }
 
         const data = await res.json();
         statusText.innerText = `Bóc tách thành công ${data.total_parsed} câu (Đã nạp ${data.saved_count} câu vào kho).`;
@@ -701,7 +705,10 @@
           })
         });
 
-        if (!response.ok) throw new Error(await response.text());
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({ detail: response.statusText }));
+          throw new Error(errData.detail || "Lỗi sinh đề");
+        }
 
         const result = await response.json();
         currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
@@ -816,6 +823,10 @@
     }
 
     async function openBankViewerModal() {
+      const currentGrade = document.getElementById('grade')?.value;
+      if (currentGrade && document.getElementById('bvGrade')) {
+        document.getElementById('bvGrade').value = currentGrade;
+      }
       document.getElementById('bankViewerModal').classList.remove('hidden');
       loadBankQuestions();
     }
