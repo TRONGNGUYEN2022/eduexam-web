@@ -8,21 +8,21 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core -->
+  <!-- KaTeX Core (Hiển thị công thức toán học) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   
-  <!-- MathLive Engine -->
+  <!-- MathLive Engine (Soạn thảo tự luận WYSIWYG) -->
   <script defer src="https://unpkg.com/mathlive"></script>
 
-  <!-- TikZJax Engine -->
+  <!-- TikZJax Engine: Biên dịch hình vẽ vector TikZ tại trình duyệt -->
   <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
   <script src="https://tikzjax.com/v1/tikzjax.js"></script>
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Nhúng Bảng Toán iMathEQ Widget Độc Lập -->
+  <!-- Bảng Toán Di Động Widget -->
   <script src="./eduexam-math-widget.js"></script>
 
   <style>
@@ -40,6 +40,7 @@
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
     .hidden { display: none !important; }
 
+    /* Thanh cuộn mảnh cho 2 cột độc lập */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -67,7 +68,7 @@
 </head>
 <body class="flex flex-col antialiased">
 
-  <!-- HEADER DUY NHẤT: TOÀN BỘ NÚT NẰM CÙNG HÀNG VỚI TIÊU ĐỀ EDUEXAM PRO -->
+  <!-- HEADER DUY NHẤT: TẤT CẢ NÚT NẰM CÙNG HÀNG VỚI TIÊU ĐỀ EDUEXAM PRO -->
   <header class="bg-indigo-700 text-white px-3 py-2 md:px-5 flex flex-wrap items-center justify-between shadow-md gap-2 z-50 shrink-0 min-h-[56px]">
     <div class="flex items-center gap-2.5 shrink-0">
       <div class="bg-white text-indigo-700 p-1.5 rounded-lg font-bold text-base leading-none shadow-sm">
@@ -109,7 +110,7 @@
   <!-- BỐ CỤC CHÍNH: 2 CỘT SCROLL ĐỘC LẬP -->
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
-    <!-- CỘT TRÁI: SIDEBAR CÓ THANH CUỘN RIÊNG -->
+    <!-- CỘT TRÁI: SIDEBAR CẤU HÌNH CÓ THANH CUỘN RIÊNG -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 flex flex-col gap-3 shrink-0 h-full overflow-y-auto shadow-sm">
       
       <!-- KHỐI QUẢN LÝ GEMINI API KEY -->
@@ -158,7 +159,7 @@
 
       <div class="space-y-2.5 text-xs pr-1">
         
-        <!-- CẤP HỌC -->
+        <!-- CẤP HỌC MỤC TIÊU -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-950 flex items-center justify-between">
             <span><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu</span>
@@ -178,27 +179,27 @@
             <span id="modelBadge" class="text-[10px] bg-indigo-100 text-indigo-900 font-bold px-1.5 py-0.5 rounded shadow-sm">2.5 Flash</span>
           </label>
           <select id="geminiModelSelect" onchange="handleModelChange()" class="w-full border border-slate-300 rounded p-1.5 bg-white text-xs font-semibold text-slate-900 focus:ring-1 focus:ring-indigo-500">
-            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Nhanh &amp; Ổn định nhất)</option>
-            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu &amp; Barem)</option>
+            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Khuyên dùng - Nhanh &amp; Ổn định nhất)</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Suy luận sâu &amp; Barem đặc tả)</option>
             <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
           </select>
         </div>
 
-        <!-- MÔN & KHỐI -->
+        <!-- MÔN HỌC & KHỐI LỚP -->
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-0.5 text-slate-700">Môn học</label>
-            <select id="subject" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
+            <select id="subject" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
           </div>
           <div>
             <label class="block font-semibold mb-0.5 text-slate-700">Khối lớp</label>
-            <select id="grade" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
+            <select id="grade" onchange="updateTopicList(); syncHeaderPreview();" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium"></select>
           </div>
         </div>
 
         <div>
           <label class="block font-semibold mb-0.5 text-slate-700">Thời gian làm bài</label>
-          <select id="duration" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium">
+          <select id="duration" onchange="syncHeaderPreview()" class="w-full border border-slate-300 rounded p-1.5 bg-slate-50 text-xs font-medium">
             <option value="35">35 phút (Tiểu học)</option>
             <option value="45">45 phút (Định kỳ)</option>
             <option value="60">60 phút</option>
@@ -301,22 +302,23 @@
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
           <tr>
             <td style="width: 45%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;">TỔ TOÁN HỌC</p>
+              <p style="font-weight: bold; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0 6px 0; text-transform: uppercase;" id="previewDept">TỔ TOÁN HỌC</p>
               <div style="text-align: left; font-size: 12px; line-height: 1.6; margin-top: 6px;">
                 <p style="margin: 0;">Họ và tên: <span id="displayStudentName" class="font-bold text-indigo-900">......................................................</span></p>
                 <p style="margin: 0;">Số báo danh: <span class="font-bold text-indigo-900">....................</span> Lớp: <span class="font-bold text-indigo-900">................</span></p>
               </div>
             </td>
             <td style="width: 55%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
-              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;">NĂM HỌC 2025 - 2026</p>
+              <p style="font-weight: bold; font-size: 13.5px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
+              <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
               <p style="font-weight: bold; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC 12 - Thời gian: 90 phút</p>
-              <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;">MÃ ĐỀ: 101</div>
+              <div style="margin-top: 4px; display: inline-block; border: 1px solid black; padding: 2px 10px; font-weight: bold; font-size: 12px;" id="previewCode">MÃ ĐỀ: 101</div>
             </td>
           </tr>
         </table>
 
+        <!-- Nội dung đề thi 3 phần -->
         <div id="examBody" class="space-y-6">
           <div>
             <div id="p1Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN I. CÂU TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN (3,0 điểm)</div>
@@ -371,7 +373,9 @@
       <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
         <select id="bvGrade" onchange="loadBankQuestions()" class="border p-2 rounded bg-white font-medium">
           <option value="">-- Tất cả khối lớp --</option>
-          <option value="6">Lớp 6</option><option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option>
+          <option value="1">Lớp 1</option><option value="2">Lớp 2</option><option value="3">Lớp 3</option>
+          <option value="4">Lớp 4</option><option value="5">Lớp 5</option><option value="6">Lớp 6</option>
+          <option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option>
           <option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12" selected>Lớp 12</option>
         </select>
         <select id="bvType" onchange="loadBankQuestions()" class="border p-2 rounded bg-white font-medium">
@@ -389,7 +393,7 @@
         </select>
         <input type="text" id="bvLesson" placeholder="Lọc theo bài học..." oninput="loadBankQuestions()" class="border p-2 rounded bg-white">
         
-        <button onclick="generateExamFromSelectedBank()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded shadow flex items-center justify-center gap-1.5 cursor-pointer">
+        <button onclick="generateExamFromSelectedBank()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded shadow flex items-center justify-center gap-1.5 transition cursor-pointer">
           <i class="fa-solid fa-check-to-slot"></i> <span>Tạo Đề Từ Câu Đã Chọn</span>
         </button>
       </div>
@@ -422,6 +426,7 @@
     </div>
   </div>
 
+  <!-- JAVASCRIPT XỬ LÝ TOÀN DIỆN -->
   <script>
     const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? 'http://localhost:8000'
@@ -436,6 +441,47 @@
     let lastActiveMathField = null;
 
     window.currentRenderedQuestions = [];
+
+    // DANH MỤC CẤU HÌNH CẤP HỌC & ĐƠN VỊ
+    const LEVEL_CONFIGS = {
+      tieuhoc: {
+        name: "Tiểu học",
+        grades: [1, 2, 3, 4, 5],
+        subjects: ["Toán học", "Tiếng Việt", "Tự nhiên và Xã hội", "Khoa học", "Lịch sử và Địa lí", "Tin học", "Tiếng Anh"],
+        schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT (QUẬN 3)", "TRƯỜNG TIỂU HỌC NGUYỄN BỈNH KHIÊM (QUẬN 1)", "TRƯỜNG TIỂU HỌC ĐINH TIÊN HOÀNG"],
+        depts: ["TỔ KHỐI 1", "TỔ KHỐI 2", "TỔ KHỐI 3", "TỔ KHỐI 4", "TỔ KHỐI 5"]
+      },
+      thcs: {
+        name: "THCS",
+        grades: [6, 7, 8, 9],
+        subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Lịch sử và Địa lí", "Tiếng Anh", "Tin học", "Giáo dục công dân"],
+        schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN (QUẬN 3)", "TRƯỜNG THCS NGUYỄN DU (QUẬN 1)", "TRƯỜNG THCS TRẦN ĐẠI NGHĨA"],
+        depts: ["TỔ TOÁN - TIN HỌC", "TỔ KHOA HỌC TỰ NHIÊN", "TỔ NGỮ VĂN", "TỔ NGOẠI NGỮ"]
+      },
+      thpt: {
+        name: "THPT",
+        grades: [10, 11, 12],
+        subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Lịch sử", "Địa lí", "Tin học", "Tiếng Anh"],
+        schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG", "TRƯỜNG THPT NGUYỄN THỊ MINH KHAI", "TRƯỜNG THPT BÙI THỊ XUÂN"],
+        depts: ["TỔ TOÁN HỌC", "TỔ VẬT LÍ", "TỔ HÓA HỌC", "TỔ SINH HỌC", "TỔ NGỮ VĂN", "TỔ TIẾNG ANH"]
+      }
+    };
+
+    // DANH MỤC CHỦ ĐỀ CHUẨN SGK GDPT 2018 (ĐỦ 12 KHỐI LỚP)
+    const CURRICULUM_TOPICS = {
+      "Toán học_1": ["Các số từ 0 đến 10", "Phép cộng, phép trừ trong phạm vi 10", "Các số đến 100", "Hình phẳng và Đo độ dài"],
+      "Toán học_2": ["Phép cộng, phép trừ trong phạm vi 100", "Bảng nhân 2, bảng nhân 5", "Hình học trực quan", "Phép nhân, phép chia"],
+      "Toán học_3": ["Bảng nhân, chia từ 6 đến 9", "Các số trong phạm vi 100 000", "Diện tích hình chữ nhật, hình vuông", "Giải toán có lời văn"],
+      "Toán học_4": ["Số có nhiều chữ số", "Phép tính với phân số", "Hình bình hành, hình thoi", "Dãy số liệu và Biểu đồ cột"],
+      "Toán học_5": ["Phân số thập phân và Số thập phân", "Các phép tính với số thập phân", "Hình tam giác, hình thang, hình tròn", "Hình hộp chữ nhật, thể tích", "Vận tốc, quãng đường, thời gian"],
+      "Toán học_6": ["Tập hợp số tự nhiên", "Số nguyên", "Phân số và số thập phân", "Hình học trực quan & Đo lường", "Tính đối xứng của hình phẳng"],
+      "Toán học_7": ["Số hữu tỉ", "Số thực và Căn bậc hai", "Hình học trực quan (Lăng trụ đứng tam giác, tứ giác)", "Biểu thức đại số", "Xác suất & Thống kê"],
+      "Toán học_8": ["Đa thức và Hằng đẳng thức", "Phân thức đại số", "Tứ giác (Hình chữ nhật, thoi, vuông)", "Định lý Thalès và Tam giác đồng dạng"],
+      "Toán học_9": ["Căn bậc hai và Căn thức", "Hàm số bậc nhất và Hệ phương trình", "Phương trình bậc hai một ẩn và Viète", "Đường tròn và Tứ giác nội tiếp"],
+      "Toán học_10": ["Mệnh đề và Tập hợp", "Bất phương trình bậc nhất hai ẩn", "Hàm số bậc hai và Đồ thị", "Hệ thức lượng trong tam giác", "Vectơ và Hệ tọa độ"],
+      "Toán học_11": ["Hàm số và Phương trình lượng giác", "Cấp số cộng và Cấp số nhân", "Giới hạn và Hàm số liên tục", "Đạo hàm", "Quan hệ vuông góc trong không gian"],
+      "Toán học_12": ["Ứng dụng đạo hàm khảo sát hàm số", "Tọa độ vectơ trong không gian Oxyz", "Nguyên hàm, Tích phân và Ứng dụng", "Phương trình mặt cầu, mặt phẳng", "Xác suất có điều kiện và Bayes"]
+    };
 
     document.addEventListener('focusin', (e) => {
       if (e.target && e.target.tagName.toLowerCase() === 'math-field') lastActiveMathField = e.target;
@@ -520,6 +566,7 @@
       return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 ml-1.5">[Vận dụng cao - M4]</span>`;
     }
 
+    // ĐIỀU KHIỂN CHỌN CẤP HỌC & ĐỒNG BỘ MÔN/LỚP ĐỘNG
     function selectLevel(lvl) {
       currentLevel = lvl;
       localStorage.setItem('eduexam_current_level', lvl);
@@ -531,12 +578,45 @@
       });
       document.getElementById('levelBadge').innerText = LEVEL_CONFIGS[lvl].name;
       loadLevelOptions();
+      updateTopicList();
+      syncHeaderPreview();
     }
 
     function loadLevelOptions() {
       const cfg = LEVEL_CONFIGS[currentLevel];
-      document.getElementById('grade').innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
-      document.getElementById('subject').innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+      const gradeSel = document.getElementById('grade');
+      gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">${currentLevel === 'tieuhoc' ? 'Lớp ' + g : 'Lớp ' + g}</option>`).join('');
+      if (currentLevel === 'thpt') gradeSel.value = "12";
+      else if (currentLevel === 'thcs') gradeSel.value = "7";
+      else gradeSel.value = "4";
+
+      const subjSel = document.getElementById('subject');
+      subjSel.innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+      
+      const durSel = document.getElementById('duration');
+      if (currentLevel === 'thpt') durSel.value = "90";
+      else if (currentLevel === 'tieuhoc') durSel.value = "35";
+      else durSel.value = "45";
+    }
+
+    function updateTopicList() {
+      const subject = document.getElementById('subject').value;
+      const grade = document.getElementById('grade').value;
+      const topicSelect = document.getElementById('topicSelect');
+      const key = `${subject}_${grade}`;
+      let topics = CURRICULUM_TOPICS[key] || [
+        `Kiến thức trọng tâm ${subject} Lớp ${grade}`,
+        `Chủ đề 1: Lý thuyết và Nhận biết`,
+        `Chủ đề 2: Vận dụng thực tiễn`
+      ];
+      topicSelect.innerHTML = topics.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    function syncHeaderPreview() {
+      const cfg = LEVEL_CONFIGS[currentLevel];
+      document.getElementById('previewSchool').innerText = cfg.schools[0];
+      document.getElementById('previewDept').innerText = cfg.depts[0] || "TỔ CHUYÊN MÔN";
+      document.getElementById('previewSubjectDuration').innerText = `Môn: ${document.getElementById('subject').value.toUpperCase()} ${document.getElementById('grade').value} - Thời gian: ${document.getElementById('duration').value} phút`;
     }
 
     function switchTab(tab) {
@@ -552,13 +632,23 @@
       if (tab === 'drive') fetchDriveFiles();
     }
 
+    function handleModelChange() {
+      const val = document.getElementById('geminiModelSelect').value;
+      document.getElementById('modelBadge').innerText = val.includes('pro') ? '2.5 Pro' : '2.5 Flash';
+    }
+
+    function handleTopicSelectChange() {
+      const sel = document.getElementById('topicSelect');
+      document.getElementById('customTopicContainer').classList.toggle('hidden', sel.value !== 'custom');
+    }
+
     async function triggerGenerate() {
       const apiKey = getUserApiKey();
       const btn = document.getElementById('btnGenerate');
       const subject = document.getElementById('subject').value;
       const grade = parseInt(document.getElementById('grade').value) || 12;
       const duration = parseInt(document.getElementById('duration').value) || 90;
-      const lessonName = document.getElementById('inputLessonName')?.value.trim() || "Chương trình chuẩn";
+      const lessonName = document.getElementById('inputLessonName')?.value.trim() || document.getElementById('topicSelect')?.value || "Chương trình chuẩn";
       const cognitiveLevel = document.getElementById('inputCognitiveLevel')?.value || "M2";
 
       btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang sinh đề GDPT 2018 (${duration}p)...</span>`;
@@ -589,7 +679,7 @@
         const result = await response.json();
         currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
         renderExamToView(result.base_exam, result.answer_matrix);
-        alert(`Đã biên soạn thành công bộ đề thi GDPT 2018!`);
+        alert(`Đã biên soạn thành công bộ đề thi chuẩn GDPT 2018!`);
       } catch (err) {
         alert('Lỗi sinh đề: ' + err.message);
       } finally {
@@ -649,11 +739,11 @@
         return `
           <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-300">
             <div class="flex justify-between items-start">
-              <p class="font-bold text-indigo-950 text-sm">Câu ${idx + 1}: ${getCognitiveBadge(q.cognitive_level)} ${cleanLatexMath(q.content || '')}</p>
+              <p class="font-bold text-indigo-950 text-sm">${currentLevel === 'thpt' ? 'Câu' : 'Bài'} ${idx + 1}: ${getCognitiveBadge(q.cognitive_level)} ${cleanLatexMath(q.content || '')}</p>
               <button onclick="saveQuestionByIndex(this, ${cIdx})" class="text-xs text-indigo-700 bg-white border px-2.5 py-1 rounded shadow-sm font-semibold cursor-pointer"><i class="fa-solid fa-bookmark text-amber-500"></i> Lưu kho</button>
             </div>
             ${formatTikzHtml(q.solution_tikz, q.solution_image_base64)}
-            <p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>
+            ${currentLevel === 'thpt' ? `<p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>` : `<math-field id="mathMf_${idx}"></math-field>`}
           </div>
         `;
       }).join('');
@@ -665,7 +755,7 @@
       const q = window.currentRenderedQuestions[idx];
       if (!q) return;
       btn.disabled = true; btn.innerHTML = `Đang lưu...`;
-      const lessonName = document.getElementById('inputLessonName')?.value.trim() || "Chung";
+      const lessonName = document.getElementById('inputLessonName')?.value.trim() || document.getElementById('topicSelect')?.value || "Chung";
       const cog = q.cognitive_level || "M2";
 
       try {
@@ -673,7 +763,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            level_stage: currentLevel, grade: 12, subject: "Toán học", topic: lessonName, lesson: lessonName,
+            level_stage: currentLevel, grade: parseInt(document.getElementById('grade').value)||12, subject: document.getElementById('subject').value, topic: lessonName, lesson: lessonName,
             level: "Thông hiểu", cognitive_level: cog, q_type: q.options ? "single_choice" : (q.statements ? "true_false" : "essay"),
             content: q.content || q.prompt || "", options: q.options ? q.options.map(o => o.text || o) : [],
             correct_answer: q.answer || "", tikz_code: q.tikz_code || ""
@@ -691,7 +781,18 @@
     function closeBankViewerModal() { document.getElementById('bankViewerModal').classList.add('hidden'); }
 
     async function loadBankQuestions() {
-      const res = await fetch(`${API_BASE_URL}/api/questions/filter`);
+      const grade = document.getElementById('bvGrade').value;
+      const qType = document.getElementById('bvType').value;
+      const cog = document.getElementById('bvCognitive').value;
+      const lesson = document.getElementById('bvLesson').value.trim();
+
+      const params = new URLSearchParams();
+      if (grade) params.append('grade', grade);
+      if (qType) params.append('q_type', qType);
+      if (cog) params.append('cognitive_level', cog);
+      if (lesson) params.append('lesson', lesson);
+
+      const res = await fetch(`${API_BASE_URL}/api/questions/filter?${params.toString()}`);
       const data = await res.json();
       document.getElementById('bankCountBadge').innerText = data.total || 0;
       document.getElementById('bankRecordsContainer').innerHTML = data.questions.map((r, i) => `
@@ -711,7 +812,7 @@
       const ids = Array.from(cbs).map(cb => parseInt(cb.value));
       const res = await fetch(`${API_BASE_URL}/api/exams/generate-full`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ level: currentLevel, subject: "Toán học", grade: 12, selected_question_ids: ids })
+        body: JSON.stringify({ level: currentLevel, subject: document.getElementById('subject').value, grade: parseInt(document.getElementById('grade').value), selected_question_ids: ids })
       });
       const result = await res.json();
       currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
