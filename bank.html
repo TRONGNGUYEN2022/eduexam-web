@@ -22,7 +22,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .katex-display { margin: 0.5em 0 !important; }
-    .table-math th, .table-math td { border: 1px solid #cbd5e1; padding: 4px 10px; text-align: center; }
+    .table-math th, .table-math td { border: 1px solid #cbd5e1; padding: 6px 10px; }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -365,7 +365,7 @@
 
     let currentInputMode = 'auto';
     let currentDraftQuestions = [];
-    let currentBankQuestions = []; // Biến toàn cục lưu danh sách câu hỏi trong kho
+    let currentBankQuestions = [];
     let currentEditingQuestion = null;
 
     const CURRICULUM_DATA = {
@@ -386,11 +386,12 @@
       11: ["Hàm số lượng giác", "Cấp số cộng và Cấp số nhân", "Đạo hàm"]
     };
 
+    // Parser Markdown Table với cấu trúc kẻ khung Barem chuẩn thi cử
     function parseMarkdownTables(text) {
       if (!text || !text.includes('|')) return text;
       const lines = text.split('\n');
       let inTable = false;
-      let tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math bg-white rounded shadow-sm text-xs">';
+      let tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math w-full border-collapse border border-slate-300 bg-white rounded shadow-sm text-xs">';
       let newLines = [];
 
       for (let line of lines) {
@@ -400,15 +401,20 @@
           const cells = trimmed.split('|').slice(1, -1);
           if (!inTable) {
             inTable = true;
-            tableHtml += '<thead><tr class="bg-slate-100 font-bold">' + cells.map(c => `<th>${c.trim()}</th>`).join('') + '</tr></thead><tbody>';
-          } else {
-            tableHtml += '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+            tableHtml += '<tbody>';
           }
+          tableHtml += '<tr class="border-b border-slate-200">' + cells.map((c, idx) => {
+            const isScore = idx === cells.length - 1 && /^[\d\s,.]+$/.test(c.trim());
+            const cellStyle = isScore
+              ? 'text-center w-16 font-bold text-indigo-700 bg-slate-50 border-l border-slate-200 p-2'
+              : 'text-left p-2 pl-3';
+            return `<td class="${cellStyle}">${c.trim()}</td>`;
+          }).join('') + '</tr>';
         } else {
           if (inTable) {
             tableHtml += '</tbody></table></div>';
             newLines.push(tableHtml);
-            tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math bg-white rounded shadow-sm text-xs">';
+            tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math w-full border-collapse border border-slate-300 bg-white rounded shadow-sm text-xs">';
             inTable = false;
           }
           newLines.push(line);
@@ -424,14 +430,23 @@
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
+      // Chuyển toàn bộ $$ thành $ để đảm bảo đồng nhất
+      str = str.replace(/\$\$/g, '$');
+      // Chuyển đổi bảng markdown thành bảng HTML trước khi render KaTeX
       str = parseMarkdownTables(str);
+      // Xóa các macro LaTeX \text rườm rà
       str = str.replace(/\\text\s*\{([^}]*)\}/g, '$1');
       str = str.replace(/\\text\s+/g, ' ');
       str = str.replace(/\\times/g, '×');
 
+      // Render KaTeX cho từng công thức toán: TUYỆT ĐỐI không chứa thẻ HTML < hoặc >
       if (str.includes('$')) {
-        str = str.replace(/\$([^$]+)\$/g, (match, formula) => {
-          try { return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false }); } catch (e) { return formula; }
+        str = str.replace(/\$([^$\r\n<>]+?)\$/g, (match, formula) => {
+          try {
+            return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false });
+          } catch (e) {
+            return formula;
+          }
         });
       }
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
@@ -644,9 +659,9 @@
               <img src="${q.image_base64}" class="max-h-60 rounded-lg border p-1.5 bg-white shadow-sm inline-block" alt="Hình minh họa">
             </div>` : ''}
 
-          <div class="text-xs bg-amber-50/70 p-3 rounded-lg border border-amber-200 text-amber-950 space-y-1.5 ml-6">
-            <div><strong>Đáp án:</strong> <span class="font-bold text-emerald-800">${cleanLatexMath(q.correct_answer || 'Chưa xác định')}</span></div>
-            ${q.explanation ? `<div><strong>Lời giải:</strong><br/>${cleanLatexMath(q.explanation)}</div>` : ''}
+          <div class="text-xs bg-amber-50/70 p-3 rounded-lg border border-amber-200 text-amber-950 space-y-2 ml-6">
+            <div><strong class="text-indigo-950">Đáp án:</strong> <span class="font-bold text-emerald-800">${cleanLatexMath(q.correct_answer || 'Xem lời giải chi tiết')}</span></div>
+            ${q.explanation ? `<div><strong class="text-indigo-950">Lời giải:</strong><br/>${cleanLatexMath(q.explanation)}</div>` : ''}
           </div>
         </div>
       `).join('');
@@ -661,14 +676,12 @@
       document.querySelectorAll('input[name="draftCheckbox"]').forEach(cb => cb.checked = checked);
     }
 
-    // MODAL SỬA ĐÃ KHẮC PHỤC LỖI TRẮNG Ô NHẬP LIỆU
     function openEditModal(draftIdx, dbId) {
       document.getElementById('editDbId').value = dbId || "";
       document.getElementById('editIndex').value = (draftIdx !== null && draftIdx !== undefined) ? draftIdx : "";
 
       let q = {};
       if (dbId) {
-        // Lấy chính xác dữ liệu từ mảng câu hỏi đã nạp trong kho SQLite
         q = currentBankQuestions.find(item => item.id == dbId) || {};
       } else if (draftIdx !== null && draftIdx !== undefined && draftIdx !== "") {
         q = currentDraftQuestions[draftIdx] || {};
