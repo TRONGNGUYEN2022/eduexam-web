@@ -8,7 +8,7 @@
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- KaTeX Core (Hiển thị công thức toán) -->
+  <!-- KaTeX Core -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
 
@@ -31,6 +31,8 @@
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .katex-display { margin: 0.5em 0 !important; }
+    .table-math th, .table-math td { border: 1px solid #cbd5e1; padding: 4px 10px; text-align: center; }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -319,7 +321,7 @@
     </main>
   </div>
 
-  <!-- MODAL CHỈNH SỬA BẢN NHÁP -->
+  <!-- MODAL CHỈNH SỬA -->
   <div id="editQuestionModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300 text-xs">
       <div class="bg-slate-900 text-white px-5 py-3 flex items-center justify-between border-b border-slate-700">
@@ -434,19 +436,56 @@
       return document.getElementById('userApiKeyInput')?.value.trim() || localStorage.getItem('eduexam_gemini_api_key') || '';
     }
 
+    // Parser Markdown Table thành bảng HTML kẻ khung chuẩn
+    function parseMarkdownTables(text) {
+      if (!text || !text.includes('|')) return text;
+      const lines = text.split('\n');
+      let inTable = false;
+      let tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math bg-white rounded shadow-sm text-xs">';
+      let newLines = [];
+
+      for (let line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+          if (trimmed.includes('---')) continue; // Bỏ qua divider
+          const cells = trimmed.split('|').slice(1, -1);
+          if (!inTable) {
+            inTable = true;
+            tableHtml += '<thead><tr class="bg-slate-100 font-bold">' + cells.map(c => `<th>${c.trim()}</th>`).join('') + '</tr></thead><tbody>';
+          } else {
+            tableHtml += '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+          }
+        } else {
+          if (inTable) {
+            tableHtml += '</tbody></table></div>';
+            newLines.push(tableHtml);
+            tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math bg-white rounded shadow-sm text-xs">';
+            inTable = false;
+          }
+          newLines.push(line);
+        }
+      }
+      if (inTable) {
+        tableHtml += '</tbody></table></div>';
+        newLines.push(tableHtml);
+      }
+      return newLines.join('\n');
+    }
+
     function cleanLatexMath(raw) {
       if (!raw) return '';
       let str = String(raw);
+      str = parseMarkdownTables(str);
       str = str.replace(/\\text\s*\{([^}]*)\}/g, '$1');
       str = str.replace(/\\text\s+/g, ' ');
       str = str.replace(/\\times/g, '×');
-      str = str.replace(/\r\n|\r|\n/g, '<br/>');
 
       if (str.includes('$')) {
         str = str.replace(/\$([^$]+)\$/g, (match, formula) => {
           try { return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false }); } catch (e) { return formula; }
         });
       }
+      str = str.replace(/\r\n|\r|\n/g, '<br/>');
       return str;
     }
 
@@ -473,7 +512,7 @@
       if (input.files && input.files[0]) {
         const name = input.files[0].name.toLowerCase();
         if (name.endsWith('.zip')) {
-          badge.innerText = "Tệp Mistral OCR ZIP (Tự động & Nhanh)";
+          badge.innerText = "Tệp Mistral OCR ZIP (Tự động & Rất nhanh)";
           badge.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200";
         } else if (name.endsWith('.docx')) {
           badge.innerText = "Tệp Word DOCX (Bóc tách qua Gemini)";
@@ -632,7 +671,7 @@
 
         const data = await res.json();
         currentDraftQuestions = data.questions || [];
-        statusText.innerText = `Bóc tách thành công ${currentDraftQuestions.length} câu. Bạn có thể bấm [Sửa] để bổ sung dữ kiện trước khi nạp kho!`;
+        statusText.innerText = `Bóc tách thành công ${currentDraftQuestions.length} câu. Toàn bộ hình vẽ và barem điểm đã sẵn sàng!`;
         renderDraftView();
         switchView('draft');
       } catch (err) {
@@ -674,18 +713,21 @@
               </div>
             </div>
 
+            <!-- Nội dung đề bài -->
             <div class="text-sm font-medium text-slate-800 leading-relaxed pl-6">
               ${cleanLatexMath(q.content || '')}
             </div>
 
-            ${q.image_base64 && !q.content.includes('<img') ? `
+            <!-- Khối hình ảnh chuẩn đẹp (nếu có) -->
+            ${q.image_base64 ? `
               <div class="pl-6 my-2 text-center">
-                <img src="${q.image_base64}" class="max-h-56 rounded border p-1 bg-white shadow-sm inline-block" alt="Hình minh họa">
+                <img src="${q.image_base64}" class="max-h-60 rounded-lg border border-slate-200 p-1.5 bg-white shadow-sm inline-block" alt="Hình vẽ minh họa bài toán">
               </div>` : ''}
 
-            <div class="text-xs bg-amber-50/70 p-2.5 rounded-lg border border-amber-200 text-amber-950 space-y-1 ml-6">
+            <!-- Đáp án & Barem điểm -->
+            <div class="text-xs bg-amber-50/70 p-3 rounded-lg border border-amber-200 text-amber-950 space-y-1.5 ml-6">
               <div><strong>Đáp án nhận diện:</strong> <span class="font-bold text-emerald-800">${cleanLatexMath(q.correct_answer || 'Chưa xác định')}</span></div>
-              ${q.explanation ? `<div><strong>Lời giải / Barem điểm:</strong> ${cleanLatexMath(q.explanation)}</div>` : ''}
+              ${q.explanation ? `<div><strong>Lời giải / Barem điểm:</strong><br/>${cleanLatexMath(q.explanation)}</div>` : ''}
             </div>
           </div>
         `;
@@ -741,6 +783,7 @@
       currentDraftQuestions[idx].correct_answer = document.getElementById('editAnswer').value.trim();
       currentDraftQuestions[idx].explanation = document.getElementById('editExplanation').value.trim();
       currentDraftQuestions[idx].image_base64 = document.getElementById('editImageBase64').value;
+      currentDraftQuestions[idx].has_image = currentDraftQuestions[idx].image_base64 ? 1 : 0;
 
       closeEditModal();
       renderDraftView();
@@ -837,9 +880,9 @@
             <div class="text-sm font-medium text-slate-900 leading-relaxed">
               <strong>Bài ${i + 1}:</strong> ${cleanLatexMath(r.content)}
             </div>
-            ${r.image_base64 && !r.content.includes('<img') ? `<div class="my-2 text-center"><img src="${r.image_base64}" class="max-h-52 rounded border p-1 bg-white inline-block"></div>` : ''}
+            ${r.image_base64 ? `<div class="my-2 text-center"><img src="${r.image_base64}" class="max-h-52 rounded border p-1 bg-white inline-block"></div>` : ''}
             ${r.correct_answer ? `<div class="text-emerald-800 font-semibold bg-emerald-50 p-2 rounded border border-emerald-200"><strong>Đáp án:</strong> ${cleanLatexMath(r.correct_answer)}</div>` : ''}
-            ${r.explanation ? `<div class="text-slate-700 bg-slate-50 p-2 rounded border text-[11px]"><strong>Barem lời giải:</strong> ${cleanLatexMath(r.explanation)}</div>` : ''}
+            ${r.explanation ? `<div class="text-slate-700 bg-slate-50 p-2.5 rounded border text-[11px] space-y-1"><strong>Barem lời giải:</strong><br/>${cleanLatexMath(r.explanation)}</div>` : ''}
           </div>
         `).join('');
       } catch (err) {
