@@ -35,7 +35,7 @@
 </head>
 <body class="flex flex-col antialiased">
 
-  <!-- HEADER ĐIỀU HƯỚNG -->
+  <!-- HEADER -->
   <header class="bg-slate-900 text-white px-4 py-2.5 flex flex-wrap items-center justify-between shadow-md gap-2 shrink-0 min-h-[56px] z-50">
     <div class="flex items-center gap-3">
       <div class="bg-amber-400 text-slate-950 p-1.5 rounded-lg font-bold text-base shadow">
@@ -69,10 +69,10 @@
   <!-- THÂN TRANG -->
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
-    <!-- CỘT TRÁI: BẢNG ĐIỀU KHIỂN NẠP HỌC LIỆU -->
+    <!-- CỘT TRÁI: ĐIỀU KHIỂN & NHẬP LIỆU -->
     <aside class="w-full md:w-96 lg:w-[420px] bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 flex flex-col gap-3 shrink-0 h-full overflow-y-auto shadow-sm">
       
-      <!-- GEMINI API KEY (Dùng khi bóc tách Word) -->
+      <!-- GEMINI API KEY -->
       <div class="bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
         <div class="flex items-center justify-between">
           <label class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
@@ -92,7 +92,7 @@
         </div>
       </div>
 
-      <!-- THANH CHUYỂN ĐỔI CHẾ ĐỘ NẠP -->
+      <!-- CHUYỂN ĐỔI CHẾ ĐỘ NẠP -->
       <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
         <button id="modeBtnAuto" onclick="switchInputMode('auto')" class="py-1.5 rounded-lg bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-file-zipper"></i> <span>Nạp File ZIP / Word</span>
@@ -102,7 +102,7 @@
         </button>
       </div>
 
-      <!-- CHẾ ĐỘ 1: NẠP TỆP (.ZIP MISTRAL HOẶC .DOCX WORD) -->
+      <!-- CHẾ ĐỘ 1: TỰ ĐỘNG (.ZIP MISTRAL / .DOCX WORD) -->
       <div id="autoModeSection" class="space-y-3">
         <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2.5 text-xs">
           <span class="font-bold text-slate-900 flex items-center gap-1.5">
@@ -254,7 +254,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI: BẢNG XEM BẢN NHÁP & TRA CỨU KHO -->
+    <!-- CỘT PHẢI: BẢN NHÁP & TRA CỨU KHO -->
     <main class="flex-1 bg-slate-100 p-4 md:p-6 h-full overflow-y-auto flex flex-col gap-4">
       
       <div class="bg-white p-2 rounded-xl shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-2">
@@ -277,7 +277,7 @@
         </div>
       </div>
 
-      <!-- VÙNG BẢN NHÁP -->
+      <!-- KHU VỰC BẢN NHÁP -->
       <div id="draftSection" class="space-y-3">
         <div id="draftContainer" class="space-y-3">
           <div class="bg-white p-8 rounded-xl border border-dashed border-slate-300 text-center text-slate-400 italic text-sm">
@@ -287,7 +287,7 @@
         </div>
       </div>
 
-      <!-- VÙNG TRA CỨU KHO ĐÃ LƯU -->
+      <!-- KHU VỰC KHO ĐÃ LƯU -->
       <div id="bankSection" class="hidden space-y-3">
         <div class="bg-white p-3 rounded-xl border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <select id="filterGrade" onchange="loadBankQuestions()" class="border p-1.5 rounded bg-slate-50 font-medium">
@@ -319,7 +319,7 @@
     </main>
   </div>
 
-  <!-- MODAL CHỈNH SỬA CÂU HỎI TRỰC QUAN -->
+  <!-- MODAL CHỈNH SỬA BẢN NHÁP -->
   <div id="editQuestionModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300 text-xs">
       <div class="bg-slate-900 text-white px-5 py-3 flex items-center justify-between border-b border-slate-700">
@@ -473,7 +473,7 @@
       if (input.files && input.files[0]) {
         const name = input.files[0].name.toLowerCase();
         if (name.endsWith('.zip')) {
-          badge.innerText = "Tệp Mistral OCR ZIP (Tự động & Rất nhanh)";
+          badge.innerText = "Tệp Mistral OCR ZIP (Tự động & Nhanh)";
           badge.className = "text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200";
         } else if (name.endsWith('.docx')) {
           badge.innerText = "Tệp Word DOCX (Bóc tách qua Gemini)";
@@ -523,7 +523,6 @@
       }
     }
 
-    // LƯU CÂU HỎI THỦ CÔNG
     async function saveManualQuestionDirectly() {
       const content = document.getElementById('mContent').value.trim();
       if (!content) { alert("Vui lòng nhập nội dung câu hỏi!"); return; }
@@ -574,7 +573,6 @@
       }
     }
 
-    // BÓC TÁCH FILE (TỰ ĐỘNG NHẬN DIỆN ZIP HOẶC DOCX)
     async function startParseExamFile() {
       const fileInput = document.getElementById('examFileInput');
       if (!fileInput.files || fileInput.files.length === 0) {
@@ -646,7 +644,6 @@
       }
     }
 
-    // HIỂN THỊ DANH SÁCH BẢN NHÁP
     function renderDraftView() {
       document.getElementById('draftCountBadge').innerText = currentDraftQuestions.length;
       const container = document.getElementById('draftContainer');
@@ -673,22 +670,19 @@
                 <button onclick="openEditModal(${idx})" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold transition flex items-center gap-1 cursor-pointer">
                   <i class="fa-solid fa-pen"></i> Sửa
                 </button>
-                <button onclick="removeDraftItem(${idx})" class="text-slate-400 hover:text-rose-600 text-xs font-bold px-1.5 py-1 rounded cursor-pointer" title="Xóa bỏ">✕</button>
+                <button onclick="removeDraftItem(${idx})" class="text-slate-400 hover:text-rose-600 text-xs font-bold px-1.5 py-1 rounded cursor-pointer" title="Xóa khỏi nháp">✕</button>
               </div>
             </div>
 
-            <!-- Nội dung đề bài -->
             <div class="text-sm font-medium text-slate-800 leading-relaxed pl-6">
               ${cleanLatexMath(q.content || '')}
             </div>
 
-            <!-- Hình ảnh đính kèm nếu có -->
-            ${q.image_base64 ? `
-              <div class="pl-6 my-2">
-                <img src="${q.image_base64}" class="max-h-56 rounded border p-1 bg-white shadow-sm" alt="Hình minh họa">
+            ${q.image_base64 && !q.content.includes('<img') ? `
+              <div class="pl-6 my-2 text-center">
+                <img src="${q.image_base64}" class="max-h-56 rounded border p-1 bg-white shadow-sm inline-block" alt="Hình minh họa">
               </div>` : ''}
 
-            <!-- Đáp án & Lời giải -->
             <div class="text-xs bg-amber-50/70 p-2.5 rounded-lg border border-amber-200 text-amber-950 space-y-1 ml-6">
               <div><strong>Đáp án nhận diện:</strong> <span class="font-bold text-emerald-800">${cleanLatexMath(q.correct_answer || 'Chưa xác định')}</span></div>
               ${q.explanation ? `<div><strong>Lời giải / Barem điểm:</strong> ${cleanLatexMath(q.explanation)}</div>` : ''}
@@ -752,7 +746,6 @@
       renderDraftView();
     }
 
-    // NẠP CÁC BẢN NHÁP ĐÃ DUYỆT VÀO DATABASE
     async function saveApprovedDraftsToDb() {
       const checkedBoxes = document.querySelectorAll('input[name="draftCheckbox"]:checked');
       if (checkedBoxes.length === 0) {
@@ -807,7 +800,6 @@
       switchView('bank');
     }
 
-    // TRA CỨU KHO SQLITE
     async function loadBankQuestions() {
       const grade = document.getElementById('filterGrade').value;
       const cog = document.getElementById('filterCognitive').value;
@@ -834,21 +826,37 @@
         }
 
         container.innerHTML = data.questions.map((r, i) => `
-          <div class="bg-white border rounded-xl p-4 shadow-sm space-y-2 text-xs">
+          <div class="bg-white border rounded-xl p-4 shadow-sm space-y-2 text-xs transition hover:border-indigo-300">
             <div class="flex items-center justify-between">
               <span class="font-bold text-indigo-700">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson}</span>
-              ${getCognitiveBadge(r.cognitive_level)}
+              <div class="flex items-center gap-2">
+                ${getCognitiveBadge(r.cognitive_level)}
+                <button onclick="deleteSavedQuestion(${r.id})" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 py-0.5 rounded cursor-pointer" title="Xóa khỏi kho database">✕</button>
+              </div>
             </div>
             <div class="text-sm font-medium text-slate-900 leading-relaxed">
               <strong>Bài ${i + 1}:</strong> ${cleanLatexMath(r.content)}
             </div>
-            ${r.image_base64 ? `<div class="my-2"><img src="${r.image_base64}" class="max-h-52 rounded border p-1 bg-white"></div>` : ''}
+            ${r.image_base64 && !r.content.includes('<img') ? `<div class="my-2 text-center"><img src="${r.image_base64}" class="max-h-52 rounded border p-1 bg-white inline-block"></div>` : ''}
             ${r.correct_answer ? `<div class="text-emerald-800 font-semibold bg-emerald-50 p-2 rounded border border-emerald-200"><strong>Đáp án:</strong> ${cleanLatexMath(r.correct_answer)}</div>` : ''}
             ${r.explanation ? `<div class="text-slate-700 bg-slate-50 p-2 rounded border text-[11px]"><strong>Barem lời giải:</strong> ${cleanLatexMath(r.explanation)}</div>` : ''}
           </div>
         `).join('');
       } catch (err) {
         container.innerHTML = `<p class="text-center text-rose-500 italic py-6">Lỗi tải dữ liệu: ${err.message}</p>`;
+      }
+    }
+
+    async function deleteSavedQuestion(id) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn câu hỏi #ID ${id} khỏi kho cơ sở dữ liệu không?`)) return;
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/questions/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error("Xóa thất bại từ máy chủ");
+        alert("Đã xóa câu hỏi thành công!");
+        loadBankQuestions();
+        updateTotalBankCount();
+      } catch (err) {
+        alert("Lỗi khi xóa câu hỏi: " + err.message);
       }
     }
 
