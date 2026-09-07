@@ -285,7 +285,7 @@
     </main>
   </div>
 
-  <!-- MODAL CHỈNH SỬA (DÙNG CHUNG CHO CẢ BẢN NHÁP VÀ KHO ĐÃ LƯU) -->
+  <!-- MODAL CHỈNH SỬA -->
   <div id="editQuestionModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-300 text-xs">
       <div class="bg-slate-900 text-white px-5 py-3 flex items-center justify-between border-b border-slate-700">
@@ -339,13 +339,8 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Đáp án đúng:</label>
-          <input type="text" id="editAnswer" class="w-full border border-emerald-300 rounded p-2 text-xs font-bold text-emerald-800">
-        </div>
-
-        <div>
           <label class="block font-semibold text-slate-700 mb-1">Lời giải chi tiết:</label>
-          <textarea id="editExplanation" rows="3" class="w-full border border-slate-300 rounded p-2 text-xs outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+          <textarea id="editExplanation" rows="4" class="w-full border border-slate-300 rounded p-2 text-xs outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
         </div>
       </div>
 
@@ -386,21 +381,15 @@
       11: ["Hàm số lượng giác", "Cấp số cộng và Cấp số nhân", "Đạo hàm"]
     };
 
-    // Hàm render KaTeX an toàn cho từng chuỗi con, không bao giờ chặn dấu so sánh < và >
     function renderMath(text) {
       if (!text) return '';
       let s = String(text);
-      // Xóa các thẻ markdown ảnh rác nếu còn sót
       s = s.replace(/!\[.*?\](?:\(.*?\))?/g, '');
-      // Chuẩn hóa $$ thành $
       s = s.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, '$$$1$$');
-      
-      // Xóa các macro \text rườm rà
       s = s.replace(/\\text\s*\{([^}]*)\}/g, '$1');
       s = s.replace(/\\text\s+/g, ' ');
       s = s.replace(/\\times/g, '×');
 
-      // Render KaTeX inline: KHÔNG BAO GIỜ loại trừ dấu < và >
       s = s.replace(/\$([^\$\r\n]+?)\$/g, (match, formula) => {
         try {
           return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false });
@@ -408,24 +397,9 @@
           return formula;
         }
       });
-
-      // Nếu còn sót lệnh LaTeX thô bên ngoài dấu $ (như \frac, \sqrt), tự động bọc và render
-      if (/\\(frac|sqrt|cdot|approx|Delta|pi)\b/.test(s) && !s.includes('<span class="katex">')) {
-        try {
-          s = s.replace(/([A-Za-z0-9\(\)\s=+\-*\/]*\\(?:frac|sqrt|cdot|approx|Delta|pi)[^;\n,]*)/g, (m) => {
-            try {
-              return katex.renderToString(m.trim(), { throwOnError: false, displayMode: false });
-            } catch (e) {
-              return m;
-            }
-          });
-        } catch (e) {}
-      }
-
       return s;
     }
 
-    // Parser bảng Barem Điểm Markdown: Render KaTeX độc lập trên từng ô để chống lọt thẻ HTML
     function parseMarkdownTables(text) {
       if (!text || !text.includes('|')) return renderMath(text);
       const lines = text.split('\n');
@@ -447,9 +421,7 @@
             const cellStyle = isScore
               ? 'text-center w-16 font-bold text-indigo-700 bg-slate-50 border-l border-slate-200 p-2'
               : 'text-left p-2 pl-3';
-            // RENDER MATH ĐỘC LẬP TRÊN TỪNG Ô CELL
-            const cellContent = renderMath(c.trim());
-            return `<td class="${cellStyle}">${cellContent}</td>`;
+            return `<td class="${cellStyle}">${renderMath(c.trim())}</td>`;
           }).join('') + '</tr>';
         } else {
           if (inTable) {
@@ -552,7 +524,6 @@
       const lesson = document.getElementById('mLesson').value.trim() || document.getElementById('mChapterSelect').value;
       const cog = document.getElementById('mCognitive').value;
       const qType = document.getElementById('mType').value;
-      const ans = document.getElementById('mAnswer').value.trim();
       const expl = document.getElementById('mExplanation').value.trim();
       const imgBase64 = document.getElementById('mImageBase64Val').value;
 
@@ -576,7 +547,7 @@
             level_stage: stage, grade: grade, subject: subject,
             topic: lesson, lesson: lesson, level: "Thông hiểu",
             cognitive_level: cog, q_type: qType, content: content,
-            options: options, correct_answer: ans, explanation: expl,
+            options: options, correct_answer: "", explanation: expl,
             has_image: imgBase64 ? 1 : 0, image_base64: imgBase64
           })
         });
@@ -584,7 +555,6 @@
         if (!res.ok) throw new Error("Lưu thất bại");
         alert("Đã lưu câu hỏi thành công vào kho database!");
         document.getElementById('mContent').value = '';
-        document.getElementById('mAnswer').value = '';
         document.getElementById('mExplanation').value = '';
         document.getElementById('mImageBase64Val').value = '';
         document.getElementById('mImageNameBadge').innerText = 'Chưa có ảnh';
@@ -681,10 +651,11 @@
               <img src="${q.image_base64}" class="max-h-60 rounded-lg border p-1.5 bg-white shadow-sm inline-block" alt="Hình minh họa">
             </div>` : ''}
 
-          <div class="text-xs bg-amber-50/70 p-3 rounded-lg border border-amber-200 text-amber-950 space-y-2 ml-6">
-            <div><strong class="text-indigo-950">Đáp án:</strong> <span class="font-bold text-emerald-800">${cleanLatexMath(q.correct_answer || 'Xem lời giải chi tiết')}</span></div>
-            ${q.explanation ? `<div><strong class="text-indigo-950">Lời giải:</strong><br/>${cleanLatexMath(q.explanation)}</div>` : ''}
-          </div>
+          ${q.explanation ? `
+            <div class="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 text-slate-800 space-y-1 ml-6">
+              <strong class="text-indigo-950 font-bold block mb-1">Lời giải chi tiết / Barem:</strong>
+              ${cleanLatexMath(q.explanation)}
+            </div>` : ''}
         </div>
       `).join('');
     }
@@ -714,7 +685,6 @@
       document.getElementById('editType').value = q.q_type || "essay";
       document.getElementById('editLesson').value = q.lesson || q.topic || "";
       document.getElementById('editContent').value = q.content || "";
-      document.getElementById('editAnswer').value = q.correct_answer || "";
       document.getElementById('editExplanation').value = q.explanation || "";
       document.getElementById('editImageBase64').value = q.image_base64 || "";
       document.getElementById('editImageBadge').innerText = q.image_base64 ? "Đã có ảnh" : "Chưa có ảnh";
@@ -753,7 +723,7 @@
         q_type: document.getElementById('editType').value,
         content: document.getElementById('editContent').value.trim(),
         options: base.options || [],
-        correct_answer: document.getElementById('editAnswer').value.trim(),
+        correct_answer: "",
         explanation: document.getElementById('editExplanation').value.trim(),
         has_image: document.getElementById('editImageBase64').value ? 1 : 0,
         image_base64: document.getElementById('editImageBase64').value,
@@ -804,7 +774,7 @@
           q_type: q.q_type || "essay",
           content: q.content || "",
           options: q.options || [],
-          correct_answer: q.correct_answer || "",
+          correct_answer: "",
           explanation: q.explanation || "",
           has_image: q.image_base64 ? 1 : 0,
           image_base64: q.image_base64 || ""
@@ -877,8 +847,11 @@
                 ${r.options.map(o => `<div class="bg-slate-50 p-1.5 rounded border">${cleanLatexMath(o)}</div>`).join('')}
               </div>` : ''}
             ${r.image_base64 ? `<div class="my-2 text-center"><img src="${r.image_base64}" class="max-h-52 rounded border p-1 bg-white inline-block"></div>` : ''}
-            ${r.correct_answer ? `<div class="text-emerald-800 font-semibold bg-emerald-50 p-2 rounded border border-emerald-200"><strong>Đáp án:</strong> ${cleanLatexMath(r.correct_answer)}</div>` : ''}
-            ${r.explanation ? `<div class="text-slate-700 bg-slate-50 p-2.5 rounded border text-[11px] space-y-1"><strong>Barem lời giải:</strong><br/>${cleanLatexMath(r.explanation)}</div>` : ''}
+            ${r.explanation ? `
+              <div class="text-slate-700 bg-slate-50 p-2.5 rounded border text-[11px] space-y-1">
+                <strong class="text-indigo-950 font-bold block mb-1">Barem lời giải chi tiết:</strong>
+                ${cleanLatexMath(r.explanation)}
+              </div>` : ''}
           </div>
         `).join('');
       } catch (err) {
