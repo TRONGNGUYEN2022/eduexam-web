@@ -386,9 +386,48 @@
       11: ["Hàm số lượng giác", "Cấp số cộng và Cấp số nhân", "Đạo hàm"]
     };
 
-    // Parser Markdown Table với cấu trúc kẻ khung Barem chuẩn thi cử
+    // Hàm render KaTeX an toàn cho từng chuỗi con, không bao giờ chặn dấu so sánh < và >
+    function renderMath(text) {
+      if (!text) return '';
+      let s = String(text);
+      // Xóa các thẻ markdown ảnh rác nếu còn sót
+      s = s.replace(/!\[.*?\](?:\(.*?\))?/g, '');
+      // Chuẩn hóa $$ thành $
+      s = s.replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, '$$$1$$');
+      
+      // Xóa các macro \text rườm rà
+      s = s.replace(/\\text\s*\{([^}]*)\}/g, '$1');
+      s = s.replace(/\\text\s+/g, ' ');
+      s = s.replace(/\\times/g, '×');
+
+      // Render KaTeX inline: KHÔNG BAO GIỜ loại trừ dấu < và >
+      s = s.replace(/\$([^\$\r\n]+?)\$/g, (match, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false });
+        } catch (e) {
+          return formula;
+        }
+      });
+
+      // Nếu còn sót lệnh LaTeX thô bên ngoài dấu $ (như \frac, \sqrt), tự động bọc và render
+      if (/\\(frac|sqrt|cdot|approx|Delta|pi)\b/.test(s) && !s.includes('<span class="katex">')) {
+        try {
+          s = s.replace(/([A-Za-z0-9\(\)\s=+\-*\/]*\\(?:frac|sqrt|cdot|approx|Delta|pi)[^;\n,]*)/g, (m) => {
+            try {
+              return katex.renderToString(m.trim(), { throwOnError: false, displayMode: false });
+            } catch (e) {
+              return m;
+            }
+          });
+        } catch (e) {}
+      }
+
+      return s;
+    }
+
+    // Parser bảng Barem Điểm Markdown: Render KaTeX độc lập trên từng ô để chống lọt thẻ HTML
     function parseMarkdownTables(text) {
-      if (!text || !text.includes('|')) return text;
+      if (!text || !text.includes('|')) return renderMath(text);
       const lines = text.split('\n');
       let inTable = false;
       let tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math w-full border-collapse border border-slate-300 bg-white rounded shadow-sm text-xs">';
@@ -408,7 +447,9 @@
             const cellStyle = isScore
               ? 'text-center w-16 font-bold text-indigo-700 bg-slate-50 border-l border-slate-200 p-2'
               : 'text-left p-2 pl-3';
-            return `<td class="${cellStyle}">${c.trim()}</td>`;
+            // RENDER MATH ĐỘC LẬP TRÊN TỪNG Ô CELL
+            const cellContent = renderMath(c.trim());
+            return `<td class="${cellStyle}">${cellContent}</td>`;
           }).join('') + '</tr>';
         } else {
           if (inTable) {
@@ -417,40 +458,21 @@
             tableHtml = '<div class="overflow-x-auto my-2"><table class="table-math w-full border-collapse border border-slate-300 bg-white rounded shadow-sm text-xs">';
             inTable = false;
           }
-          newLines.push(line);
+          if (trimmed) {
+            newLines.push(renderMath(trimmed));
+          }
         }
       }
       if (inTable) {
         tableHtml += '</tbody></table></div>';
         newLines.push(tableHtml);
       }
-      return newLines.join('\n');
+      return newLines.join('<br/>');
     }
 
     function cleanLatexMath(raw) {
       if (!raw) return '';
-      let str = String(raw);
-      // Chuyển toàn bộ $$ thành $ để đảm bảo đồng nhất
-      str = str.replace(/\$\$/g, '$');
-      // Chuyển đổi bảng markdown thành bảng HTML trước khi render KaTeX
-      str = parseMarkdownTables(str);
-      // Xóa các macro LaTeX \text rườm rà
-      str = str.replace(/\\text\s*\{([^}]*)\}/g, '$1');
-      str = str.replace(/\\text\s+/g, ' ');
-      str = str.replace(/\\times/g, '×');
-
-      // Render KaTeX cho từng công thức toán: TUYỆT ĐỐI không chứa thẻ HTML < hoặc >
-      if (str.includes('$')) {
-        str = str.replace(/\$([^$\r\n<>]+?)\$/g, (match, formula) => {
-          try {
-            return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false });
-          } catch (e) {
-            return formula;
-          }
-        });
-      }
-      str = str.replace(/\r\n|\r|\n/g, '<br/>');
-      return str;
+      return parseMarkdownTables(String(raw));
     }
 
     function getCognitiveBadge(m) {
