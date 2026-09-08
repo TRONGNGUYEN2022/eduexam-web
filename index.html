@@ -58,6 +58,7 @@
       border-radius: 12px;
       padding: 14px 16px;
       margin-top: 12px;
+      transition: all 0.2s ease;
     }
     .paper-solution-title {
       font-weight: 800;
@@ -134,6 +135,11 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
+      <!-- NÚT ẨN / HIỆN LỜI GIẢI -->
+      <button id="btnToggleExamSolution" onclick="toggleExamSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-eye-slash" id="toggleExamIcon"></i> <span id="toggleExamText">Ẩn Lời Giải</span>
+      </button>
+
       <a href="bank.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition border border-amber-300">
         <i class="fa-solid fa-boxes-stacked text-slate-950"></i>
         <span>Quản Trị Kho &amp; Nạp File</span>
@@ -205,7 +211,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI -->
+    <!-- CỘT PHẢI: GIẤY THI -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
       <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl leading-relaxed text-slate-900 mb-12 border border-slate-200">
         
@@ -302,12 +308,23 @@
 
     let currentExamData = null;
     let currentLevel = 'thpt';
+    let isExamSolutionVisible = true; // Trạng thái ẩn/hiện lời giải trên giấy thi
 
     const LEVEL_CONFIGS = {
       tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },
       thcs: { name: "THCS", grades: [6, 7, 8, 9], subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Tiếng Anh"], schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN"] },
       thpt: { name: "THPT", grades: [10, 11, 12], subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Tiếng Anh"], schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG"] }
     };
+
+    function toggleExamSolutionsVisibility() {
+      isExamSolutionVisible = !isExamSolutionVisible;
+      const boxes = document.querySelectorAll('.paper-solution-box');
+      boxes.forEach(box => {
+        box.style.display = isExamSolutionVisible ? 'block' : 'none';
+      });
+      document.getElementById('toggleExamText').innerText = isExamSolutionVisible ? 'Ẩn Lời Giải' : 'Hiện Lời Giải';
+      document.getElementById('toggleExamIcon').className = isExamSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+    }
 
     function renderMath(text) {
       if (!text) return '';
@@ -405,7 +422,6 @@
       return parseMarkdownTables(String(raw));
     }
 
-    // Bảng tùy chọn A B C D cố định cột 1 dòng, 2 dòng hoặc 4 dòng
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
@@ -498,7 +514,7 @@
           ${renderOptionsTable(q.options)}
 
           ${q.explanation ? `
-            <div class="paper-solution-box">
+            <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
@@ -518,7 +534,7 @@
           ${formatTikzHtml(q.tikz_code, q.image_base64)}
 
           ${q.explanation ? `
-            <div class="paper-solution-box">
+            <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
@@ -539,7 +555,7 @@
           <p class="italic text-slate-500 font-semibold pt-1 text-xs">Đáp số: .....................................................</p>
 
           ${q.explanation ? `
-            <div class="paper-solution-box">
+            <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
@@ -611,7 +627,6 @@
       closeBankViewerModal();
     }
 
-    // TẢI FILE WORD CHUẨN ĐỊNH DẠNG
     async function downloadWordDocxPython() {
       if (!currentExamData || !currentExamData.base_exam) { 
         alert("Vui lòng tạo đề thi trước khi tải Word!"); 
@@ -628,7 +643,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             base_exam: currentExamData.base_exam,
-            level: currentLevel
+            level: currentLevel,
+            include_answers: isExamSolutionVisible // Tự động đồng bộ việc có in kèm Lời giải vào file Word hay không
           })
         });
 
@@ -653,7 +669,7 @@
       }
     }
 
-    // SAO CHÉP DÁN TRỰC TIẾP VÀO WORD (CHUẨN 1 DÒNG / 2 DÒNG / 4 DÒNG)
+    // SAO CHÉP DÁN TRỰC TIẾP VÀO WORD (TỰ ĐỘNG LỌC BỎ LỜI GIẢI NẾU ĐANG ẨN)
     async function copyRichExamToClipboard() {
       const container = document.getElementById('examContainer');
       if (!container) {
@@ -661,12 +677,22 @@
         return;
       }
       try {
-        const html = container.innerHTML;
+        // Sao chép bản sao DOM để xử lý mà không ảnh hưởng màn hình hiển thị
+        const clone = container.cloneNode(true);
+        if (!isExamSolutionVisible) {
+          clone.querySelectorAll('.paper-solution-box').forEach(el => el.remove());
+        }
+        
+        const html = clone.innerHTML;
         const blobHtml = new Blob([html], { type: 'text/html' });
-        const blobText = new Blob([container.innerText], { type: 'text/plain' });
+        const blobText = new Blob([clone.innerText], { type: 'text/plain' });
         const data = [new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })];
         await navigator.clipboard.write(data);
-        alert("Đã sao chép toàn bộ đề thi! Bây giờ bạn chỉ cần mở Word và bấm Ctrl + V (Dán) sẽ có đầy đủ cột và khung viền.");
+        
+        const msg = isExamSolutionVisible 
+          ? "Đã sao chép đề thi KÈM LỜI GIẢI! Mở Word và bấm Ctrl + V (Dán)."
+          : "Đã sao chép ĐỀ THI (ĐÃ ẨN LỜI GIẢI)! Mở Word và bấm Ctrl + V (Dán) để in đề cho học sinh.";
+        alert(msg);
       } catch (e) {
         alert("Không thể sao chép tự động: " + e.message);
       }

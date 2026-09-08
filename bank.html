@@ -49,6 +49,7 @@
       padding: 16px 18px;
       margin-top: 14px;
       box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+      transition: all 0.2s ease;
     }
     .solution-header {
       color: #065f46;
@@ -94,7 +95,6 @@
       padding: 10px 14px;
       vertical-align: middle;
     }
-    .barem-table tr:hover { background: #f8fafc; }
 
     .options-table {
       width: 100%;
@@ -112,7 +112,6 @@
     }
 
     .katex { font-size: 1.12em !important; }
-    .katex-display { margin: 0.7em 0 !important; }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -132,6 +131,11 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2">
+      <!-- NÚT BẬT / TẮT LỜI GIẢI -->
+      <button id="btnToggleSolution" onclick="toggleSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-eye-slash" id="toggleSolutionIcon"></i> <span id="toggleSolutionText">Ẩn Lời Giải</span>
+      </button>
+
       <button id="btnRestoreGDrive" onclick="restoreDatabaseFromGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-cloud-arrow-down text-indigo-400"></i> <span>Khôi Phục GDrive</span>
       </button>
@@ -374,6 +378,7 @@
     let currentInputMode = 'auto';
     let currentDraftQuestions = [];
     let currentBankQuestions = [];
+    let isSolutionVisible = true; // Trạng thái hiển thị lời giải
 
     const STAGE_CONFIG = {
       tieuhoc: { grades: [1, 2, 3, 4, 5], defaultGrade: 5 },
@@ -387,6 +392,16 @@
       const gradeSel = document.getElementById(gradeSelId);
       gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
       gradeSel.value = cfg.defaultGrade;
+    }
+
+    function toggleSolutionsVisibility() {
+      isSolutionVisible = !isSolutionVisible;
+      const boxes = document.querySelectorAll('.card-solution');
+      boxes.forEach(box => {
+        box.style.display = isSolutionVisible ? 'block' : 'none';
+      });
+      document.getElementById('toggleSolutionText').innerText = isSolutionVisible ? 'Ẩn Lời Giải' : 'Hiện Lời Giải';
+      document.getElementById('toggleSolutionIcon').className = isSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
     }
 
     // THUẬT TOÁN TOKENIZER TOÁN HỌC TỔNG QUÁT
@@ -485,7 +500,6 @@
       return parseMarkdownTables(String(raw));
     }
 
-    // Bảng tùy chọn A B C D cố định cột 1 dòng, 2 dòng hoặc 4 dòng
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
@@ -678,7 +692,7 @@
             </div>` : ''}
 
           ${q.explanation ? `
-            <div class="card-solution">
+            <div class="card-solution" style="display: ${isSolutionVisible ? 'block' : 'none'};">
               <div class="solution-header">
                 <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
@@ -773,7 +787,7 @@
           ${r.image_base64 ? `<div class="my-3 text-center"><img src="${r.image_base64}" class="max-h-64 rounded-xl border border-slate-200 p-1.5 bg-white shadow-sm inline-block"></div>` : ''}
 
           ${r.explanation ? `
-            <div class="card-solution">
+            <div class="card-solution" style="display: ${isSolutionVisible ? 'block' : 'none'};">
               <div class="solution-header">
                 <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
