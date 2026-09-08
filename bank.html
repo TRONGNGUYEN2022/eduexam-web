@@ -369,35 +369,25 @@
       gradeSel.value = cfg.defaultGrade;
     }
 
-    // THUẬT TOÁN TOKENIZER TOÁN HỌC TỔNG QUÁT (KHÔNG ĐẶC BIỆT HOÁ TỪNG LỆNH)
+    // THUẬT TOÁN TOKENIZER TOÁN HỌC TỔNG QUÁT
     function renderMath(text) {
       if (!text) return '';
       let s = String(text);
 
-      // 1. Khử heading thừa
       s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài|Question)\s*\d+[\s.:*]*/gmi, '');
-
-      // 2. Chuẩn hoá các lỗi OCR thông dụng
       s = s.replace(/\^{2,}/g, '^')
            .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
            .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
            .replace(/\\text\s*\{([^}]*)\}/g, '$1')
            .replace(/\\times/g, '×');
 
-      // 3. TỰ ĐỘNG CÂN BẰNG DẤU $ TOÀN VĂN:
-      // Tách văn bản theo các đoạn $...$
-      // Nếu phát hiện một đoạn văn bản thường nằm ngoài $ có chứa ký tự escape '\' (ký hiệu của lệnh LaTeX)
-      // thì gom toàn bộ biểu thức chứa ký tự đó vào trong $...$
       const parts = s.split('$');
       let rebuilt = [];
 
       for (let i = 0; i < parts.length; i++) {
         let part = parts[i];
         if (i % 2 === 0) {
-          // Đoạn text thông thường (nằm ngoài $)
           if (part.includes('\\')) {
-            // Biểu thức toán tổng quát: bắt từ vị trí có toán tử (=, :, là) hoặc lệnh TeX
-            // đến hết các ký tự toán học (số, chữ cái, ngoặc {}, [], (), dấu phẩy, mũ, gạch dưới)
             part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
               let pfx = prefix || '';
               let exp = expr.trim();
@@ -409,16 +399,13 @@
           }
           rebuilt.push(part);
         } else {
-          // Đoạn đã nằm giữa 2 dấu $ -> giữ nguyên an toàn
           rebuilt.push(`$${part}$`);
         }
       }
 
       s = rebuilt.join('');
-      // Dọn dấu $ lồng nhau
       s = s.replace(/\${2,}/g, '$');
 
-      // 4. Render KaTeX với cơ chế an toàn tổng quát (không bao giờ văng text đỏ)
       s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
         try {
           return katex.renderToString(formula.trim(), {
