@@ -14,25 +14,91 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="./eduexam-math-widget.js"></script>
 
+  <!-- Google Fonts: Tiếng Việt sắc nét và Toán học -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=STIX+Two+Text:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
     * { box-sizing: border-box; }
     html, body {
       height: 100%; margin: 0; padding: 0; overflow: hidden;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Be Vietnam Pro', sans-serif;
       background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 100%);
       color: #0f172a;
     }
     .exam-paper {
-      font-family: 'Times New Roman', Times, serif;
+      font-family: 'Times New Roman', 'STIX Two Text', serif;
       background: #ffffff;
-      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.35);
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .table-math th, .table-math td { border: 1px solid #cbd5e1; padding: 6px 10px; }
+
+    /* Hộp câu hỏi trên tờ đề thi */
+    .paper-question-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px 20px;
+      transition: all 0.2s ease;
+    }
+    .paper-question-text {
+      font-size: 15.5px !important;
+      line-height: 1.8 !important;
+      color: #0f172a;
+      font-weight: 500;
+    }
+
+    /* Hộp lời giải / barem trên tờ đề */
+    .paper-solution-box {
+      background: #f0fdf4 !important;
+      border: 1.5px solid #86efac !important;
+      border-left: 5px solid #059669 !important;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-top: 12px;
+    }
+    .paper-solution-title {
+      font-weight: 800;
+      font-size: 14px;
+      color: #065f46;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .paper-solution-text {
+      font-size: 15px !important;
+      line-height: 1.8 !important;
+      color: #064e3b;
+    }
+
+    /* Bảng Barem trên tờ đề */
+    .barem-table-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #a7f3d0;
+      margin: 8px 0;
+      background: #ffffff;
+    }
+    .barem-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14.5px !important;
+      line-height: 1.7 !important;
+      color: #064e3b;
+    }
+    .barem-table td {
+      border: 1px solid #d1fae5;
+      padding: 8px 12px;
+    }
+
+    .katex {
+      font-size: 1.12em !important;
+    }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -52,21 +118,13 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
-      <a href="bank.html" class="bg-amber-400 hover:bg-amber-300 active:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer border border-amber-300">
+      <a href="bank.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition border border-amber-300">
         <i class="fa-solid fa-boxes-stacked text-slate-950"></i>
         <span>Quản Trị Kho &amp; Nạp File</span>
       </a>
 
       <button onclick="openBankViewerModal()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 hover:text-white font-semibold text-xs px-3 py-1.5 rounded-lg border border-indigo-400/40 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-database text-amber-400"></i> <span>Chọn Từ Kho (<span id="bankCountBadge">0</span>)</span>
-      </button>
-
-      <button id="btnSwitchMode" onclick="toggleExamMode()" class="bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-laptop-code"></i> <span id="btnModeText">Phòng Thi Online</span>
-      </button>
-
-      <button id="btnToggleToolbar" onclick="toggleMathWidget()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-calculator text-amber-300"></i> <span>Bảng Toán</span>
       </button>
 
       <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
@@ -77,9 +135,8 @@
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
-    <!-- CỘT TRÁI -->
+    <!-- CỘT TRÁI: CẤU HÌNH ĐỀ -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-slate-900/90 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
-      
       <div class="space-y-3">
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-2">
           <label class="block font-bold text-slate-200 flex items-center justify-between">
@@ -87,9 +144,9 @@
             <span id="levelBadge" class="text-[10px] bg-indigo-500/20 text-indigo-300 font-bold px-2 py-0.5 rounded-full border border-indigo-400/30">THPT</span>
           </label>
           <div class="grid grid-cols-3 gap-1.5 font-bold">
-            <button type="button" onclick="selectLevel('tieuhoc')" id="btnLvlTieuhoc" class="py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition cursor-pointer">Tiểu học</button>
-            <button type="button" onclick="selectLevel('thcs')" id="btnLvlThcs" class="py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition cursor-pointer">THCS</button>
-            <button type="button" onclick="selectLevel('thpt')" id="btnLvlThpt" class="py-1.5 rounded-lg border border-indigo-500 bg-indigo-600 text-white transition cursor-pointer">THPT</button>
+            <button type="button" onclick="selectLevel('tieuhoc')" id="btnLvlTieuhoc" class="py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-400">Tiểu học</button>
+            <button type="button" onclick="selectLevel('thcs')" id="btnLvlThcs" class="py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-400">THCS</button>
+            <button type="button" onclick="selectLevel('thpt')" id="btnLvlThpt" class="py-1.5 rounded-lg border border-indigo-500 bg-indigo-600 text-white">THPT</button>
           </div>
         </div>
 
@@ -116,12 +173,12 @@
 
         <div class="bg-indigo-950/40 p-3 rounded-xl border border-indigo-500/30 space-y-2">
           <label class="block font-bold text-indigo-300">Tiêu đề đề thi</label>
-          <input type="text" id="inputExamTitle" value="ĐỀ KIỂM TRA ĐỊNH KỲ" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white outline-none">
+          <input type="text" id="inputExamTitle" value="ĐỀ KIỂM TRA ĐỊNH KỲ" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white outline-none font-medium">
         </div>
       </div>
 
       <div class="pt-3 mt-auto border-t border-slate-800 space-y-2">
-        <button onclick="openBankViewerModal()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:scale-[0.99] text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
+        <button onclick="openBankViewerModal()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 text-white font-bold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
           <i class="fa-solid fa-layer-group text-amber-300"></i>
           <span>Chọn Câu Từ Kho Để Tạo Đề</span>
         </button>
@@ -129,17 +186,8 @@
     </aside>
 
     <!-- CỘT PHẢI: GIẤY THI -->
-    <main class="flex-1 bg-slate-950/60 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
-      
-      <div id="onlineBar" class="hidden w-full max-w-4xl bg-gradient-to-r from-slate-900 to-indigo-950 text-white px-5 py-3.5 rounded-t-2xl shadow-xl flex items-center justify-between border-b-2 border-amber-400">
-        <div class="flex items-center gap-3">
-          <span class="bg-red-600 px-3 py-1 rounded-full text-xs font-black animate-pulse uppercase tracking-wider">Trực Tuyến</span>
-          <span class="text-xs text-indigo-200">Đang bấm giờ thi cử tự động</span>
-        </div>
-        <div class="text-base font-mono font-bold bg-black/40 px-4 py-1.5 rounded-xl border border-indigo-400/30 text-amber-300" id="timerCountdown">90:00</div>
-      </div>
-
-      <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl text-[14px] md:text-[15px] leading-relaxed text-slate-900 mb-12 border border-slate-200/80">
+    <main class="flex-1 bg-slate-950/80 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
+      <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl leading-relaxed text-slate-900 mb-12 border border-slate-200">
         
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; border-bottom: 2px solid #0f172a; padding-bottom: 12px;">
           <tr>
@@ -162,23 +210,23 @@
 
         <div id="examBody" class="space-y-8">
           <div>
-            <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3 py-1.5 font-bold text-sm text-indigo-950 mb-3 rounded-r">
+            <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3.5 py-2 font-bold text-sm text-indigo-950 mb-3 rounded-r">
               PHẦN I. CÂU HỎI TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN
             </div>
             <div class="space-y-4" id="part1Container">
-              <p class="text-slate-400 italic py-4 text-center">Bấm "Chọn Câu Từ Kho Để Tạo Đề" để nạp nội dung đề thi...</p>
+              <p class="text-slate-400 italic py-6 text-center">Bấm "Chọn Câu Từ Kho Để Tạo Đề" để nạp nội dung...</p>
             </div>
           </div>
 
           <div>
-            <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3 py-1.5 font-bold text-sm text-indigo-950 mb-3 rounded-r">
+            <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3.5 py-2 font-bold text-sm text-indigo-950 mb-3 rounded-r">
               PHẦN II. CÂU HỎI TRẮC NGHIỆM ĐÚNG / SAI
             </div>
             <div class="space-y-4" id="part2Container"></div>
           </div>
 
           <div>
-            <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3 py-1.5 font-bold text-sm text-indigo-950 mb-3 rounded-r">
+            <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3.5 py-2 font-bold text-sm text-indigo-950 mb-3 rounded-r">
               PHẦN III. CÂU HỎI TỰ LUẬN / TRẢ LỜI NGẮN
             </div>
             <div class="space-y-4" id="part3Container"></div>
@@ -190,13 +238,13 @@
     </main>
   </div>
 
-  <!-- MODAL BỐC CÂU HỎI THUẦN THUẬT TOÁN (KHÔNG DÙNG AI) -->
+  <!-- MODAL BỐC CÂU HỎI -->
   <div id="bankViewerModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
       <div class="bg-slate-900 text-white px-6 py-3.5 flex items-center justify-between border-b border-slate-800">
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-database text-amber-400"></i>
-          <h3 class="font-bold text-sm md:text-base">Ngân Hàng Câu Hỏi Khảo Thí (Tạo đề trực tiếp)</h3>
+          <h3 class="font-bold text-sm md:text-base">Chọn Câu Hỏi Từ Ngân Hàng</h3>
         </div>
         <button onclick="closeBankViewerModal()" class="text-slate-400 hover:text-white font-bold cursor-pointer text-lg">✕</button>
       </div>
@@ -234,7 +282,6 @@
 
     let currentExamData = null;
     let currentLevel = 'thpt';
-    let isStudentExamMode = false;
 
     const LEVEL_CONFIGS = {
       tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },
@@ -244,7 +291,14 @@
 
     function renderMath(text) {
       if (!text) return '';
-      let s = String(text).replace(/!\[.*?\](?:\(.*?\))?/g, '').replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, '$$$1$$').replace(/\\text\s*\{([^}]*)\}/g, '$1').replace(/\\text\s+/g, ' ').replace(/\\times/g, '×');
+      let s = String(text)
+        .replace(/!\[.*?\](?:\(.*?\))?/g, '')
+        .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
+        .replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, '$$$1$$')
+        .replace(/\\text\s*\{([^}]*)\}/g, '$1')
+        .replace(/\\text\s+/g, ' ')
+        .replace(/\\times/g, '×');
+
       s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, f) => {
         try { return katex.renderToString(f.trim(), { throwOnError: false, displayMode: false }); } catch (e) { return f; }
       });
@@ -268,7 +322,7 @@
       if (!text || !text.includes('|')) return renderMath(text);
       const lines = text.split('\n');
       let inTable = false;
-      let tableHtml = '<div class="overflow-x-auto my-3"><table class="table-math w-full border-collapse border border-slate-300 bg-white rounded-xl shadow-xs text-xs overflow-hidden">';
+      let tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
       let newLines = [];
 
       for (let line of lines) {
@@ -277,12 +331,16 @@
           if (trimmed.includes('---')) continue;
           const cells = trimmed.split('|').slice(1, -1);
           if (!inTable) { inTable = true; tableHtml += '<tbody>'; }
-          tableHtml += '<tr class="border-b border-slate-200">' + cells.map(c => `<td class="text-left p-2.5 pl-3 leading-relaxed">${renderMath(c.trim())}</td>`).join('') + '</tr>';
+          tableHtml += '<tr>' + cells.map((c, idx) => {
+            const isScoreCol = idx === cells.length - 1 && cells.length > 1;
+            const alignClass = isScoreCol ? 'text-center font-bold text-emerald-800 bg-emerald-50/50 w-24' : 'text-left';
+            return `<td class="${alignClass}">${renderMath(c.trim())}</td>`;
+          }).join('') + '</tr>';
         } else {
           if (inTable) {
             tableHtml += '</tbody></table></div>';
             newLines.push(tableHtml);
-            tableHtml = '<div class="overflow-x-auto my-3"><table class="table-math w-full border-collapse border border-slate-300 bg-white rounded-xl shadow-xs text-xs overflow-hidden">';
+            tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
             inTable = false;
           }
           if (trimmed) newLines.push(renderMath(trimmed));
@@ -300,46 +358,17 @@
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         const src = imageUrl.startsWith('data:') ? imageUrl : 'data:image/png;base64,' + imageUrl;
-        return `<div class="my-3 text-center"><img src="${src}" class="max-h-60 mx-auto rounded-xl p-2 bg-white shadow-sm border border-slate-200" alt="Hình minh họa" /></div>`;
+        return `<div class="my-3 text-center"><img src="${src}" class="max-h-64 mx-auto rounded-xl p-2 bg-white shadow-sm border border-slate-200" alt="Hình minh họa" /></div>`;
       }
       return '';
-    }
-
-    function renderCognitiveSelector(qIdx, currentM, partPrefix) {
-      const levels = [
-        { code: 'M1', label: 'M1', color: 'text-blue-700' },
-        { code: 'M2', label: 'M2', color: 'text-emerald-700' },
-        { code: 'M3', label: 'M3', color: 'text-amber-700' },
-        { code: 'M4', label: 'M4', color: 'text-rose-700' }
-      ];
-      return `
-        <div class="inline-flex items-center gap-1.5 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 text-[11px] font-bold">
-          ${levels.map(lvl => `
-            <label class="inline-flex items-center gap-0.5 cursor-pointer hover:opacity-80">
-              <input type="radio" name="cog_${partPrefix}_${qIdx}" value="${lvl.code}" 
-                     ${currentM === lvl.code ? 'checked' : ''} 
-                     onchange="updateCognitiveLevel('${partPrefix}', ${qIdx}, '${lvl.code}')" 
-                     class="w-3 h-3 accent-indigo-600 cursor-pointer">
-              <span class="${lvl.color}">${lvl.label}</span>
-            </label>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    function updateCognitiveLevel(partPrefix, index, newLevel) {
-      if (currentExamData && currentExamData.base_exam) {
-        let list = (partPrefix === 'p1') ? currentExamData.base_exam.part_1_mcq : ((partPrefix === 'p2') ? currentExamData.base_exam.part_2_tf : (currentExamData.base_exam.part_3_short_ans || currentExamData.base_exam.part_3_essay));
-        if (list && list[index]) list[index].cognitive_level = newLevel;
-      }
     }
 
     function selectLevel(lvl) {
       currentLevel = lvl;
       ['tieuhoc', 'thcs', 'thpt'].forEach(l => {
         document.getElementById(`btnLvl${l.charAt(0).toUpperCase() + l.slice(1)}`).className = (l === lvl)
-          ? "py-1.5 rounded-lg border border-indigo-500 bg-indigo-600 text-white transition cursor-pointer"
-          : "py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 hover:bg-slate-800 transition cursor-pointer";
+          ? "py-1.5 rounded-lg border border-indigo-500 bg-indigo-600 text-white"
+          : "py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-slate-400";
       });
       document.getElementById('levelBadge').innerText = LEVEL_CONFIGS[lvl].name;
       loadLevelOptions();
@@ -369,69 +398,80 @@
       const p1 = exam.part_1_mcq || [];
       document.getElementById('part1Container').innerHTML = p1.map((q, idx) => {
         let opts = { 'A': '', 'B': '', 'C': '', 'D': '' };
-        let rawOpts = [];
         if (Array.isArray(q.options)) {
           q.options.forEach((o, i) => {
             const cleaned = cleanOptionText(o);
-            rawOpts.push(cleaned);
             opts[['A','B','C','D'][i]] = cleanLatexMath(cleaned);
           });
         }
-        const maxOptLength = Math.max(...rawOpts.map(t => t.length), 0);
-        const hasComplexMath = rawOpts.some(t => /\\(frac|int|sqrt|sum|prod)/.test(t));
-        
-        let gridLayoutClass = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
-        if (hasComplexMath || maxOptLength > 45) gridLayoutClass = "grid grid-cols-1";
-        else if (maxOptLength > 20) gridLayoutClass = "grid grid-cols-1 sm:grid-cols-2";
 
         return `
-          <div class="space-y-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="paper-question-box space-y-3">
             <div class="flex items-center justify-between gap-1">
-              <span class="font-bold text-indigo-950 text-sm">Câu ${idx + 1}:</span>
-              ${renderCognitiveSelector(idx, q.cognitive_level || 'M2', 'p1')}
+              <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
             </div>
-            <div class="text-slate-800 leading-relaxed">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
+            <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
             ${formatTikzHtml(q.tikz_code, q.image_base64)}
-            <div class="${gridLayoutClass} gap-2 pt-1 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-sm">
               ${['A','B','C','D'].map(k => `
-                <label class="p-2 rounded-lg bg-white border border-slate-200 hover:border-indigo-300 flex items-start gap-2 shadow-2xs cursor-pointer">
-                  <input type="radio" name="p1_q${idx}" value="${k}" class="mt-0.5 accent-indigo-600"> 
-                  <span><strong>${k}.</strong> ${opts[k]}</span>
-                </label>
+                <div class="p-2.5 rounded-xl bg-white border border-slate-200 flex items-start gap-2 shadow-2xs">
+                  <span><strong class="text-indigo-950">${k}.</strong> ${opts[k]}</span>
+                </div>
               `).join('')}
             </div>
+
+            ${q.explanation ? `
+              <div class="paper-solution-box">
+                <div class="paper-solution-title">
+                  <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
+                </div>
+                <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
+              </div>` : ''}
           </div>
         `;
       }).join('');
 
       const p2 = exam.part_2_tf || [];
-      document.getElementById('part2Container').innerHTML = p2.map((q, idx) => {
-        return `
-          <div class="space-y-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-            <div class="flex items-center justify-between gap-1">
-              <span class="font-bold text-indigo-950 text-sm">Câu ${idx + 1}:</span>
-              ${renderCognitiveSelector(idx, q.cognitive_level || 'M2', 'p2')}
-            </div>
-            <div class="text-slate-800 leading-relaxed">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
-            ${formatTikzHtml(q.tikz_code, q.image_base64)}
+      document.getElementById('part2Container').innerHTML = p2.map((q, idx) => `
+        <div class="paper-question-box space-y-3">
+          <div class="flex items-center justify-between gap-1">
+            <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
           </div>
-        `;
-      }).join('');
+          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
+          ${formatTikzHtml(q.tikz_code, q.image_base64)}
+
+          ${q.explanation ? `
+            <div class="paper-solution-box">
+              <div class="paper-solution-title">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
+              </div>
+              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
+            </div>` : ''}
+        </div>
+      `).join('');
 
       const p3 = exam.part_3_short_ans || exam.part_3_essay || [];
-      document.getElementById('part3Container').innerHTML = p3.map((q, idx) => {
-        return `
-          <div class="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div class="flex items-center justify-between gap-1">
-              <span class="font-bold text-indigo-950 text-sm">Câu ${idx + 1}:</span>
-              ${renderCognitiveSelector(idx, q.cognitive_level || 'M3', 'p3')}
-            </div>
-            <div class="text-slate-800 leading-relaxed">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
-            ${formatTikzHtml(q.tikz_code, q.image_base64)}
-            <p class="italic text-slate-500 font-semibold pt-1 text-xs">Đáp số: .....................................................</p>
+      document.getElementById('part3Container').innerHTML = p3.map((q, idx) => `
+        <div class="paper-question-box space-y-3">
+          <div class="flex items-center justify-between gap-1">
+            <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M3'}</span>
           </div>
-        `;
-      }).join('');
+          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
+          ${formatTikzHtml(q.tikz_code, q.image_base64)}
+          <p class="italic text-slate-500 font-semibold pt-1 text-xs">Đáp số: .....................................................</p>
+
+          ${q.explanation ? `
+            <div class="paper-solution-box">
+              <div class="paper-solution-title">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
+              </div>
+              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
+            </div>` : ''}
+        </div>
+      `).join('');
     }
 
     async function openBankViewerModal() {
@@ -463,12 +503,12 @@
       }
 
       container.innerHTML = data.questions.map((r, i) => `
-        <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-3 shadow-xs hover:border-indigo-300">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-3 shadow-xs">
           <input type="checkbox" name="bankQuestionCheckbox" value="${r.id}" class="mt-1 w-4 h-4 accent-indigo-600 cursor-pointer">
-          <div class="flex-1 text-xs space-y-1.5">
+          <div class="flex-1 text-sm space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-700">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson || r.topic}</span>
-              <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200 font-bold">${r.cognitive_level || 'M2'}</span>
+              <span class="font-bold text-indigo-900">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson || r.topic}</span>
+              <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200 text-xs font-bold">${r.cognitive_level || 'M2'}</span>
             </div>
             <div class="text-slate-800 font-medium leading-relaxed">${cleanLatexMath(cleanQuestionContent(r.content))}</div>
           </div>
@@ -496,18 +536,6 @@
       closeBankViewerModal();
     }
 
-    async function updateBankCounterBadge() {
-      const res = await fetch(`${API_BASE_URL}/api/questions/filter`);
-      const data = await res.json();
-      document.getElementById('bankCountBadge').innerText = `${data.total || 0} câu`;
-    }
-
-    function toggleExamMode() {
-      isStudentExamMode = !isStudentExamMode;
-      document.getElementById('onlineBar').classList.toggle('hidden', !isStudentExamMode);
-      document.getElementById('btnModeText').innerText = isStudentExamMode ? "Tắt Phòng Thi" : "Phòng Thi Online";
-    }
-
     async function downloadWordDocxPython() {
       if (!currentExamData) { alert("Chưa có đề thi!"); return; }
       const res = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
@@ -520,7 +548,6 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       selectLevel('thpt');
-      updateBankCounterBadge();
     });
   </script>
 </body>
