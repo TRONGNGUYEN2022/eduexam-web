@@ -37,10 +37,11 @@
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
     .paper-question-box {
-      background: #f8fafc;
+      background: #ffffff;
       border: 1.5px solid #e2e8f0;
       border-radius: 14px;
       padding: 16px 20px;
+      margin-bottom: 16px;
       transition: all 0.2s ease;
     }
     .paper-question-text {
@@ -57,7 +58,6 @@
       border-radius: 12px;
       padding: 14px 16px;
       margin-top: 12px;
-      transition: all 0.3s ease;
     }
     .paper-solution-title {
       font-weight: 800;
@@ -77,8 +77,8 @@
     .barem-table-wrap {
       border-radius: 8px;
       overflow: hidden;
-      border: 1px solid #a7f3d0;
-      margin: 8px 0;
+      border: 2px solid #64748b;
+      margin: 10px 0;
       background: #ffffff;
     }
     .barem-table {
@@ -86,11 +86,32 @@
       border-collapse: collapse;
       font-size: 14.5px !important;
       line-height: 1.7 !important;
-      color: #064e3b;
+      color: #0f172a;
+    }
+    .barem-table th, .barem-table tr:first-child td {
+      background-color: #f1f5f9;
+      font-weight: bold;
+      color: #1e293b;
+      border-bottom: 2px solid #64748b;
     }
     .barem-table td {
-      border: 1px solid #d1fae5;
+      border: 1px solid #cbd5e1;
       padding: 8px 12px;
+    }
+
+    .options-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px;
+      margin-top: 6px;
+    }
+    .options-table td {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      vertical-align: top;
+      font-size: 14.5px;
     }
 
     .katex { font-size: 1.12em !important; }
@@ -113,16 +134,6 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
-      <!-- Nút Ẩn / Hiện Lời Giải -->
-      <button onclick="toggleExamPaperSolutions()" id="btnTogglePaperSol" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-eye-slash text-amber-300" id="iconPaperSol"></i> <span id="textPaperSol">Ẩn Lời Giải</span>
-      </button>
-
-      <!-- Nút Sao Chép Toàn Bộ Đề Ra Word -->
-      <button onclick="copyFormattedExamToClipboard()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-copy"></i> <span>Sao Chép Dán Word</span>
-      </button>
-
       <a href="bank.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition border border-amber-300">
         <i class="fa-solid fa-boxes-stacked text-slate-950"></i>
         <span>Quản Trị Kho &amp; Nạp File</span>
@@ -132,15 +143,13 @@
         <i class="fa-solid fa-database text-amber-400"></i> <span>Chọn Từ Kho (<span id="bankCountBadge">0</span>)</span>
       </button>
 
-      <!-- Tải Word: Chỉ Đề hoặc Kèm Đáp Án -->
-      <div class="inline-flex rounded-lg shadow-sm">
-        <button onclick="downloadWordDocx(false)" title="Tải chỉ đề thi" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-l-lg border border-slate-700 flex items-center gap-1.5 transition cursor-pointer">
-          <i class="fa-solid fa-file-word text-blue-400"></i> <span>Tải Đề .docx</span>
-        </button>
-        <button onclick="downloadWordDocx(true)" title="Tải đề thi kèm Lời giải / Barem" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-2 py-1.5 rounded-r-lg border-t border-b border-r border-slate-700 transition cursor-pointer">
-          <span>+ Lời giải</span>
-        </button>
-      </div>
+      <button onclick="copyRichExamToClipboard()" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer" title="Sao chép để dán trực tiếp vào Word">
+        <i class="fa-solid fa-paste text-emerald-400"></i> <span>Sao Chép Dán Word</span>
+      </button>
+
+      <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-file-word text-blue-400"></i> <span>Tải .docx</span>
+      </button>
     </div>
   </header>
 
@@ -196,7 +205,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI: GIẤY THI -->
+    <!-- CỘT PHẢI -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
       <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl leading-relaxed text-slate-900 mb-12 border border-slate-200">
         
@@ -293,51 +302,12 @@
 
     let currentExamData = null;
     let currentLevel = 'thpt';
-    let isPaperSolutionsVisible = true; // Trạng thái ẩn/hiện lời giải trên tờ đề
 
     const LEVEL_CONFIGS = {
       tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },
       thcs: { name: "THCS", grades: [6, 7, 8, 9], subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Tiếng Anh"], schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN"] },
       thpt: { name: "THPT", grades: [10, 11, 12], subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Tiếng Anh"], schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG"] }
     };
-
-    function toggleExamPaperSolutions() {
-      isPaperSolutionsVisible = !isPaperSolutionsVisible;
-      document.querySelectorAll('.paper-solution-box').forEach(el => {
-        el.style.display = isPaperSolutionsVisible ? 'block' : 'none';
-      });
-      document.getElementById('textPaperSol').innerText = isPaperSolutionsVisible ? "Ẩn Lời Giải" : "Hiện Lời Giải";
-      document.getElementById('iconPaperSol').className = isPaperSolutionsVisible ? "fa-solid fa-eye-slash text-amber-300" : "fa-solid fa-eye text-emerald-400";
-    }
-
-    // SAO CHÉP TRỰC TIẾP RA WORD (DÁN VÀO WORD RA EQUATION NGUYÊN BẢN)
-    async function copyFormattedExamToClipboard() {
-      const container = document.getElementById('examContainer');
-      if (!container) { alert("Chưa có đề thi!"); return; }
-
-      // Tạo một bản sao tạm để copy sạch sẽ
-      const clone = container.cloneNode(true);
-      if (!isPaperSolutionsVisible) {
-        clone.querySelectorAll('.paper-solution-box').forEach(el => el.remove());
-      }
-
-      try {
-        const blob = new Blob([clone.innerHTML], { type: 'text/html' });
-        const textBlob = new Blob([clone.innerText], { type: 'text/plain' });
-        const data = [new ClipboardItem({ 'text/html': blob, 'text/plain': textBlob })];
-        await navigator.clipboard.write(data);
-        alert("Đã sao chép toàn bộ đề thi vào Clipboard! Hãy mở file Word và bấm Ctrl + V (Dán) để nhận định dạng chuẩn.");
-      } catch (err) {
-        // Fallback chọn vùng quét truyền thống
-        const range = document.createRange();
-        range.selectNode(container);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        document.execCommand('copy');
-        window.getSelection().removeAllRanges();
-        alert("Đã sao chép! Hãy dán (Ctrl + V) vào Microsoft Word.");
-      }
-    }
 
     function renderMath(text) {
       if (!text) return '';
@@ -360,7 +330,10 @@
             part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
               let pfx = prefix || '';
               let exp = expr.trim();
-              return exp.length > 0 ? `${pfx}$${exp}$` : match;
+              if (exp.length > 0) {
+                return `${pfx}$${exp}$`;
+              }
+              return match;
             });
           }
           rebuilt.push(part);
@@ -373,16 +346,12 @@
       s = s.replace(/\${2,}/g, '$');
 
       s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
-        try {
-          return katex.renderToString(formula.trim(), {
-            throwOnError: false,
-            displayMode: false
-          });
-        } catch (e) {
-          return formula;
+        try { 
+          return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false }); 
+        } catch (e) { 
+          return formula; 
         }
       });
-
       return s;
     }
 
@@ -436,24 +405,53 @@
       return parseMarkdownTables(String(raw));
     }
 
+    // Bảng tùy chọn A B C D cố định cột 1 dòng, 2 dòng hoặc 4 dòng
+    function renderOptionsTable(options) {
+      if (!options || options.length === 0) return '';
+      const letters = ['A', 'B', 'C', 'D'];
+      const rawOpts = options.map((o, i) => ({
+        letter: letters[i] || `(${i+1})`,
+        text: cleanLatexMath(cleanOptionText(o))
+      }));
+
+      const maxLen = Math.max(...options.map(o => String(o).length));
+      
+      if (maxLen < 20 && rawOpts.length === 4) {
+        return `
+          <table class="options-table">
+            <tr>
+              ${rawOpts.map(o => `<td style="width: 25%;"><strong>${o.letter}.</strong> ${o.text}</td>`).join('')}
+            </tr>
+          </table>
+        `;
+      } else if (maxLen < 45 && rawOpts.length === 4) {
+        return `
+          <table class="options-table">
+            <tr>
+              <td style="width: 50%;"><strong>${rawOpts[0].letter}.</strong> ${rawOpts[0].text}</td>
+              <td style="width: 50%;"><strong>${rawOpts[1].letter}.</strong> ${rawOpts[1].text}</td>
+            </tr>
+            <tr>
+              <td style="width: 50%;"><strong>${rawOpts[2].letter}.</strong> ${rawOpts[2].text}</td>
+              <td style="width: 50%;"><strong>${rawOpts[3].letter}.</strong> ${rawOpts[3].text}</td>
+            </tr>
+          </table>
+        `;
+      } else {
+        return `
+          <table class="options-table">
+            ${rawOpts.map(o => `<tr><td style="width: 100%;"><strong>${o.letter}.</strong> ${o.text}</td></tr>`).join('')}
+          </table>
+        `;
+      }
+    }
+
     function formatTikzHtml(tikzCode, imageUrl) {
       if (imageUrl && imageUrl.trim()) {
         const src = imageUrl.startsWith('data:') ? imageUrl : 'data:image/png;base64,' + imageUrl;
         return `<div class="my-3 text-center"><img src="${src}" class="max-h-64 mx-auto rounded-xl p-2 bg-white shadow-sm border border-slate-200" alt="Hình minh họa" /></div>`;
       }
       return '';
-    }
-
-    // TÍNH TOÁN DÀN HÀNG ĐÁP ÁN: 1 HÀNG, 2 HÀNG, 4 HÀNG
-    function getOptionsGridClass(options) {
-      if (!options || options.length === 0) return '';
-      const rawList = options.map(o => String(o));
-      const maxLen = Math.max(...rawList.map(t => t.length), 0);
-      const hasComplex = rawList.some(t => /\\(frac|int|sqrt|sum|prod|begin\{cases\})/.test(t));
-      
-      if (hasComplex || maxLen > 45) return 'grid grid-cols-1'; // 4 hàng
-      if (maxLen > 20) return 'grid grid-cols-1 sm:grid-cols-2'; // 2 hàng
-      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';   // 1 hàng duy nhất
     }
 
     function selectLevel(lvl) {
@@ -489,47 +487,29 @@
       if (!exam) return;
 
       const p1 = exam.part_1_mcq || [];
-      document.getElementById('part1Container').innerHTML = p1.map((q, idx) => {
-        let opts = { 'A': '', 'B': '', 'C': '', 'D': '' };
-        if (Array.isArray(q.options)) {
-          q.options.forEach((o, i) => {
-            const cleaned = cleanOptionText(o);
-            opts[['A','B','C','D'][i]] = cleanLatexMath(cleaned);
-          });
-        }
-
-        const gridClass = getOptionsGridClass(q.options || []);
-
-        return `
-          <div class="paper-question-box space-y-3">
-            <div class="flex items-center justify-between gap-1">
-              <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
-            </div>
-            <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
-            ${formatTikzHtml(q.tikz_code, q.image_base64)}
-            <div class="${gridClass} gap-2 pt-1 text-sm">
-              ${['A','B','C','D'].map(k => `
-                <div class="p-2.5 rounded-xl bg-white border border-slate-200 flex items-start gap-2 shadow-2xs">
-                  <span><strong class="text-indigo-950">${k}.</strong> ${opts[k]}</span>
-                </div>
-              `).join('')}
-            </div>
-
-            ${q.explanation ? `
-              <div class="paper-solution-box" style="display: ${isPaperSolutionsVisible ? 'block' : 'none'};">
-                <div class="paper-solution-title">
-                  <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
-                </div>
-                <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
-              </div>` : ''}
+      document.getElementById('part1Container').innerHTML = p1.map((q, idx) => `
+        <div class="paper-question-box space-y-2">
+          <div class="flex items-center justify-between gap-1">
+            <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
+            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
           </div>
-        `;
-      }).join('');
+          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
+          ${formatTikzHtml(q.tikz_code, q.image_base64)}
+          ${renderOptionsTable(q.options)}
+
+          ${q.explanation ? `
+            <div class="paper-solution-box">
+              <div class="paper-solution-title">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
+              </div>
+              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
+            </div>` : ''}
+        </div>
+      `).join('');
 
       const p2 = exam.part_2_tf || [];
       document.getElementById('part2Container').innerHTML = p2.map((q, idx) => `
-        <div class="paper-question-box space-y-3">
+        <div class="paper-question-box space-y-2">
           <div class="flex items-center justify-between gap-1">
             <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
             <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
@@ -538,7 +518,7 @@
           ${formatTikzHtml(q.tikz_code, q.image_base64)}
 
           ${q.explanation ? `
-            <div class="paper-solution-box" style="display: ${isPaperSolutionsVisible ? 'block' : 'none'};">
+            <div class="paper-solution-box">
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
@@ -549,7 +529,7 @@
 
       const p3 = exam.part_3_short_ans || exam.part_3_essay || [];
       document.getElementById('part3Container').innerHTML = p3.map((q, idx) => `
-        <div class="paper-question-box space-y-3">
+        <div class="paper-question-box space-y-2">
           <div class="flex items-center justify-between gap-1">
             <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
             <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M3'}</span>
@@ -559,7 +539,7 @@
           <p class="italic text-slate-500 font-semibold pt-1 text-xs">Đáp số: .....................................................</p>
 
           ${q.explanation ? `
-            <div class="paper-solution-box" style="display: ${isPaperSolutionsVisible ? 'block' : 'none'};">
+            <div class="paper-solution-box">
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
@@ -631,21 +611,65 @@
       closeBankViewerModal();
     }
 
-    async function downloadWordDocx(includeExplanation = false) {
-      if (!currentExamData) { alert("Chưa có đề thi!"); return; }
-      const res = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          base_exam: currentExamData.base_exam,
-          level: currentLevel,
-          include_explanation: includeExplanation
-        })
-      });
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = includeExplanation ? `De_Thi_Kem_Loi_Giai.docx` : `De_Thi_Chuan.docx`;
-      a.click();
+    // TẢI FILE WORD CHUẨN ĐỊNH DẠNG
+    async function downloadWordDocxPython() {
+      if (!currentExamData || !currentExamData.base_exam) { 
+        alert("Vui lòng tạo đề thi trước khi tải Word!"); 
+        return; 
+      }
+      const btn = document.getElementById('btnExportDocx');
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i> <span>Đang tạo .docx...</span>`;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            base_exam: currentExamData.base_exam,
+            level: currentLevel
+          })
+        });
+
+        if (!res.ok) {
+          throw new Error(`Mã lỗi HTTP: ${res.status}`);
+        }
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `De_Thi_Chuan_${document.getElementById('grade').value}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert("Lỗi khi tải file Word: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
+    }
+
+    // SAO CHÉP DÁN TRỰC TIẾP VÀO WORD (CHUẨN 1 DÒNG / 2 DÒNG / 4 DÒNG)
+    async function copyRichExamToClipboard() {
+      const container = document.getElementById('examContainer');
+      if (!container) {
+        alert("Chưa có đề thi!");
+        return;
+      }
+      try {
+        const html = container.innerHTML;
+        const blobHtml = new Blob([html], { type: 'text/html' });
+        const blobText = new Blob([container.innerText], { type: 'text/plain' });
+        const data = [new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })];
+        await navigator.clipboard.write(data);
+        alert("Đã sao chép toàn bộ đề thi! Bây giờ bạn chỉ cần mở Word và bấm Ctrl + V (Dán) sẽ có đầy đủ cột và khung viền.");
+      } catch (e) {
+        alert("Không thể sao chép tự động: " + e.message);
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
