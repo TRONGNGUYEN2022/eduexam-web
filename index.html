@@ -8,15 +8,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script defer src="https://unpkg.com/mathlive"></script>
-  <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
-  <script src="https://tikzjax.com/v1/tikzjax.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="./eduexam-math-widget.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=STIX+Two+Text:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
 
   <style>
     * { box-sizing: border-box; }
@@ -27,31 +23,21 @@
       color: #0f172a;
     }
     .exam-paper {
-      font-family: 'Times New Roman', 'STIX Two Text', serif;
+      font-family: 'Times New Roman', serif;
       background: #ffffff;
       box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.35);
     }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* NỘI DUNG ĐỀ THI 16PX RÕ NÉT */
     .paper-question-box {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
       border-radius: 14px;
       padding: 16px 20px;
       margin-bottom: 16px;
-      transition: all 0.2s ease;
     }
-    .paper-question-text {
-      font-size: 16px !important;
-      line-height: 1.85 !important;
-      color: #0f172a;
-      font-weight: 500;
-    }
-
     .paper-solution-box {
       background: #f0fdf4 !important;
       border: 1.5px solid #86efac !important;
@@ -59,48 +45,7 @@
       border-radius: 12px;
       padding: 16px 18px;
       margin-top: 12px;
-      transition: all 0.2s ease;
     }
-    .paper-solution-title {
-      font-weight: 800;
-      font-size: 15px;
-      color: #065f46;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 8px;
-    }
-    .paper-solution-text {
-      font-size: 16px !important;
-      line-height: 1.85 !important;
-      color: #064e3b;
-    }
-
-    .barem-table-wrap {
-      border-radius: 8px;
-      overflow: hidden;
-      border: 2px solid #64748b;
-      margin: 10px 0;
-      background: #ffffff;
-    }
-    .barem-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 15px !important;
-      line-height: 1.8 !important;
-      color: #0f172a;
-    }
-    .barem-table th, .barem-table tr:first-child td {
-      background-color: #f1f5f9;
-      font-weight: bold;
-      color: #1e293b;
-      border-bottom: 2px solid #64748b;
-    }
-    .barem-table td {
-      border: 1px solid #cbd5e1;
-      padding: 8px 12px;
-    }
-
     .options-table {
       width: 100%;
       border-collapse: separate;
@@ -115,7 +60,6 @@
       vertical-align: top;
       font-size: 15.5px;
     }
-
     .katex { font-size: 1.15em !important; }
   </style>
 </head>
@@ -131,29 +75,24 @@
           <span>EduExam Pro</span>
           <span class="text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2 py-0.5 rounded-full font-bold uppercase">Biên soạn đề</span>
         </h1>
-        <p class="text-[10px] text-slate-400 hidden sm:block">Khảo thí GDPT 2018 chuẩn hóa ma trận M1-M4 &amp; Toán học KaTeX</p>
+        <p class="text-[10px] text-slate-400 hidden sm:block">Khảo thí GDPT 2018 chuẩn hóa ma trận &amp; Toán học KaTeX</p>
       </div>
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
-      <!-- NÚT ẨN / HIỆN LỜI GIẢI MẶC ĐỊNH LÀ ẨN -->
       <button id="btnToggleExamSolution" onclick="toggleExamSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-eye" id="toggleExamIcon"></i> <span id="toggleExamText">Hiện Lời Giải</span>
       </button>
-
       <a href="bank.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition border border-amber-300">
         <i class="fa-solid fa-boxes-stacked text-slate-950"></i>
         <span>Quản Trị Kho &amp; Nạp File</span>
       </a>
-
       <button onclick="openBankViewerModal()" class="bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 hover:text-white font-semibold text-xs px-3 py-1.5 rounded-lg border border-indigo-400/40 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-database text-amber-400"></i> <span>Chọn Từ Kho (<span id="bankCountBadge">0</span>)</span>
       </button>
-
-      <button onclick="copyRichExamToClipboard()" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer" title="Sao chép để dán trực tiếp vào Word">
+      <button onclick="copyRichExamToClipboard()" class="bg-slate-800 hover:bg-slate-700 text-emerald-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-paste text-emerald-400"></i> <span>Sao Chép Dán Word</span>
       </button>
-
       <button id="btnExportDocx" onclick="downloadWordDocxPython()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-file-word text-blue-400"></i> <span>Tải .docx</span>
       </button>
@@ -161,9 +100,7 @@
   </header>
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
-    
-    <!-- CỘT TRÁI -->
-    <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-slate-900/90 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
+    <aside class="w-full md:w-84 lg:w-96 bg-slate-900/90 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
       <div class="space-y-3">
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-2">
           <label class="block font-bold text-slate-200 flex items-center justify-between">
@@ -180,21 +117,18 @@
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-1 text-slate-400">Môn học</label>
-            <select id="subject" onchange="syncHeaderPreview();" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none"></select>
+            <select id="subject" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none"></select>
           </div>
           <div>
             <label class="block font-semibold mb-1 text-slate-400">Khối lớp</label>
-            <select id="grade" onchange="syncHeaderPreview();" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none"></select>
+            <select id="grade" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none"></select>
           </div>
         </div>
 
         <div>
           <label class="block font-semibold mb-1 text-slate-400">Thời gian làm bài</label>
-          <select id="duration" onchange="syncHeaderPreview()" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none">
-            <option value="45">45 phút (Định kỳ)</option>
-            <option value="60">60 phút</option>
-            <option value="90" selected>90 phút (Học kỳ / THPT)</option>
-            <option value="120">120 phút (Tuyển sinh)</option>
+          <select id="duration" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none">
+            <option value="45">45 phút</option><option value="90" selected>90 phút</option>
           </select>
         </div>
 
@@ -212,15 +146,13 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
       <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl leading-relaxed text-slate-900 mb-12 border border-slate-200">
         
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; border-bottom: 2px solid #0f172a; padding-bottom: 12px;">
           <tr>
             <td style="width: 48%; vertical-align: top; text-align: center; border: none; padding: 0;">
-              <p style="font-weight: 800; font-size: 13px; margin: 0; text-transform: uppercase;" id="previewSchool">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
-              <p style="font-weight: 700; font-size: 12px; margin: 3px 0 8px 0; text-transform: uppercase;" id="previewDept">TỔ TOÁN HỌC</p>
+              <p style="font-weight: 800; font-size: 13px; margin: 0; text-transform: uppercase;">TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG</p>
               <div style="text-align: left; font-size: 12.5px; line-height: 1.7; margin-top: 6px;">
                 <p style="margin: 0;">Họ và tên: <span class="font-bold text-indigo-950">..................................................................</span></p>
                 <p style="margin: 0;">Số báo danh: <span class="font-bold text-indigo-950">....................</span> Lớp: <span class="font-bold text-indigo-950">................</span></p>
@@ -228,9 +160,8 @@
             </td>
             <td style="width: 52%; vertical-align: top; text-align: center; border: none; padding: 0;">
               <p style="font-weight: 800; font-size: 14px; margin: 0; text-transform: uppercase;" id="previewTitle">ĐỀ KIỂM TRA ĐỊNH KỲ</p>
-              <p style="font-weight: 700; font-size: 12px; margin: 2px 0;" id="previewYear">NĂM HỌC 2025 - 2026</p>
-              <p style="font-weight: 700; font-size: 12px; margin: 2px 0;" id="previewSubjectDuration">Môn: TOÁN HỌC - Thời gian: 90 phút</p>
-              <div style="margin-top: 6px; display: inline-block; border: 1.5px solid #0f172a; padding: 2px 14px; font-weight: 800; font-size: 12px; border-radius: 4px;" id="previewCode">MÃ ĐỀ: 101</div>
+              <p style="font-weight: 700; font-size: 12px; margin: 2px 0;">NĂM HỌC 2025 - 2026</p>
+              <div style="margin-top: 6px; display: inline-block; border: 1.5px solid #0f172a; padding: 2px 14px; font-weight: 800; font-size: 12px; border-radius: 4px;">MÃ ĐỀ: 101</div>
             </td>
           </tr>
         </table>
@@ -238,23 +169,21 @@
         <div id="examBody" class="space-y-8">
           <div>
             <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3.5 py-2 font-bold text-sm text-indigo-950 mb-3 rounded-r">
-              PHẦN I. CÂU HỎI TRẮC NGHIỆM NHIỀU PHƯƠNG ÁN LỰA CHỌN
+              PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN
             </div>
             <div class="space-y-4" id="part1Container">
               <p class="text-slate-400 italic py-6 text-center">Bấm "Chọn Câu Từ Kho Để Tạo Đề" để nạp nội dung...</p>
             </div>
           </div>
-
           <div>
             <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3.5 py-2 font-bold text-sm text-indigo-950 mb-3 rounded-r">
-              PHẦN II. CÂU HỎI TRẮC NGHIỆM ĐÚNG / SAI
+              PHẦN II. TRẮC NGHIỆM ĐÚNG / SAI
             </div>
             <div class="space-y-4" id="part2Container"></div>
           </div>
-
           <div>
             <div class="bg-indigo-50 border-l-4 border-indigo-600 px-3.5 py-2 font-bold text-sm text-indigo-950 mb-3 rounded-r">
-              PHẦN III. CÂU HỎI TỰ LUẬN / TRẢ LỜI NGẮN
+              PHẦN III. TỰ LUẬN / TRẢ LỜI NGẮN
             </div>
             <div class="space-y-4" id="part3Container"></div>
           </div>
@@ -265,7 +194,6 @@
     </main>
   </div>
 
-  <!-- MODAL BỐC CÂU HỎI -->
   <div id="bankViewerModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200">
       <div class="bg-slate-900 text-white px-6 py-3.5 flex items-center justify-between border-b border-slate-800">
@@ -276,23 +204,12 @@
         <button onclick="closeBankViewerModal()" class="text-slate-400 hover:text-white font-bold cursor-pointer text-lg">✕</button>
       </div>
 
-      <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+      <div class="p-4 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <select id="bvGrade" onchange="loadBankQuestions()" class="border border-slate-300 p-2 rounded-lg bg-white font-medium"></select>
         <select id="bvType" onchange="loadBankQuestions()" class="border border-slate-300 p-2 rounded-lg bg-white font-medium">
-          <option value="">-- Tất cả dạng câu --</option>
-          <option value="single_choice">Trắc nghiệm</option>
-          <option value="true_false">Đúng / Sai</option>
-          <option value="essay">Tự luận / Trả lời ngắn</option>
+          <option value="">-- Tất cả dạng câu --</option><option value="single_choice">Trắc nghiệm</option><option value="true_false">Đúng / Sai</option><option value="essay">Tự luận</option>
         </select>
-        <select id="bvCognitive" onchange="loadBankQuestions()" class="border border-slate-300 p-2 rounded-lg bg-white font-semibold text-indigo-950">
-          <option value="">-- Tất cả mức độ --</option>
-          <option value="M1">Nhận biết (M1)</option>
-          <option value="M2">Thông hiểu (M2)</option>
-          <option value="M3">Vận dụng (M3)</option>
-          <option value="M4">Vận dụng cao (M4)</option>
-        </select>
-        <input type="text" id="bvLessonKeyword" placeholder="Bài học / Chủ đề..." oninput="loadBankQuestions()" 
-               class="border border-slate-300 p-2 rounded-lg bg-white outline-none focus:border-indigo-500 font-medium">
+        <input type="text" id="bvLessonKeyword" placeholder="Chủ đề..." oninput="loadBankQuestions()" class="border border-slate-300 p-2 rounded-lg bg-white outline-none font-medium">
         <button onclick="generateExamFromSelectedBank()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-3 rounded-lg shadow transition cursor-pointer flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-check-double"></i> <span>Tạo Đề Đã Chọn</span>
         </button>
@@ -303,26 +220,20 @@
   </div>
 
   <script>
-    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:8000'
-      : 'https://eduexam-backend.onrender.com';
-
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://eduexam-backend.onrender.com';
     let currentExamData = null;
     let currentLevel = 'thpt';
     let isExamSolutionVisible = false;
 
     const LEVEL_CONFIGS = {
-      tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },
-      thcs: { name: "THCS", grades: [6, 7, 8, 9], subjects: ["Toán học", "Khoa học tự nhiên", "Ngữ văn", "Tiếng Anh"], schools: ["TRƯỜNG THCS LÊ QUÝ ĐÔN"] },
-      thpt: { name: "THPT", grades: [10, 11, 12], subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Tiếng Anh"], schools: ["TRƯỜNG THPT CHUYÊN LÊ HỒNG PHONG"] }
+      tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"] },
+      thcs: { name: "THCS", grades: [6, 7, 8, 9], subjects: ["Toán học", "KHTN", "Ngữ văn", "Tiếng Anh"] },
+      thpt: { name: "THPT", grades: [10, 11, 12], subjects: ["Toán học", "Vật lí", "Hóa học", "Sinh học", "Ngữ văn", "Tiếng Anh"] }
     };
 
     function toggleExamSolutionsVisibility() {
       isExamSolutionVisible = !isExamSolutionVisible;
-      const boxes = document.querySelectorAll('.paper-solution-box');
-      boxes.forEach(box => {
-        box.style.display = isExamSolutionVisible ? 'block' : 'none';
-      });
+      document.querySelectorAll('.paper-solution-box').forEach(box => box.style.display = isExamSolutionVisible ? 'block' : 'none');
       document.getElementById('toggleExamText').innerText = isExamSolutionVisible ? 'Ẩn Lời Giải' : 'Hiện Lời Giải';
       document.getElementById('toggleExamIcon').className = isExamSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
     }
@@ -330,142 +241,31 @@
     function renderMath(text) {
       if (!text) return '';
       let s = String(text);
-
-      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
-      s = s.replace(/\^{2,}/g, '^')
-           .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
-           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
-           .replace(/\\text\s*\{([^}]*)\}/g, '$1')
-           .replace(/\\times/g, '×');
-
       const parts = s.split('$');
       let rebuilt = [];
-
       for (let i = 0; i < parts.length; i++) {
         let part = parts[i];
         if (i % 2 === 0) {
-          if (part.includes('\\')) {
-            part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
-              let pfx = prefix || '';
-              let exp = expr.trim();
-              return exp.length > 0 ? `${pfx}$${exp}$` : match;
-            });
-          }
           rebuilt.push(part);
         } else {
-          rebuilt.push(`$${part}$`);
-        }
-      }
-
-      s = rebuilt.join('');
-      s = s.replace(/\${2,}/g, '$');
-
-      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
-        try { 
-          return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false }); 
-        } catch (e) { 
-          return formula; 
-        }
-      });
-      return s;
-    }
-
-    function cleanOptionText(text) {
-      if (!text) return '';
-      return String(text).replace(/^[A-D]\s*[\.,:]\s*/i, '').trim();
-    }
-
-    function cleanQuestionContent(content) {
-      if (!content) return '';
-      let s = String(content);
-      s = s.replace(/\s*(?:Trang\s*\d+\/\d+|Mã\s*đề(?:\s*thi)?\s*[\d\w]+|\*\*PHẦN\s*[I|V|X]+[\s\S]*).*$/i, '');
-      s = s.replace(/\s*(?:[A-D]\.|\b[A-D]\s*[\.,:])\s*[\s\S]*$/, '');
-      return s.trim();
-    }
-
-    function parseMarkdownTables(text) {
-      if (!text || !text.includes('|')) return renderMath(text);
-      const lines = text.split('\n');
-      let inTable = false;
-      let tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
-      let newLines = [];
-
-      for (let line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-          if (trimmed.includes('---')) continue;
-          const cells = trimmed.split('|').slice(1, -1);
-          if (!inTable) { inTable = true; tableHtml += '<tbody>'; }
-          tableHtml += '<tr>' + cells.map((c, idx) => {
-            const isScoreCol = idx === cells.length - 1 && cells.length > 1;
-            const alignClass = isScoreCol ? 'text-center font-bold text-emerald-800 bg-emerald-50/50 w-24' : 'text-left';
-            return `<td class="${alignClass}">${renderMath(c.trim())}</td>`;
-          }).join('') + '</tr>';
-        } else {
-          if (inTable) {
-            tableHtml += '</tbody></table></div>';
-            newLines.push(tableHtml);
-            tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
-            inTable = false;
+          try {
+            rebuilt.push(katex.renderToString(part.trim(), { throwOnError: false, displayMode: false }));
+          } catch (e) {
+            rebuilt.push(`$${part}$`);
           }
-          if (trimmed) newLines.push(renderMath(trimmed));
         }
       }
-      if (inTable) { tableHtml += '</tbody></table></div>'; newLines.push(tableHtml); }
-      return newLines.join('<br/>');
-    }
-
-    function cleanLatexMath(raw) {
-      if (!raw) return '';
-      return parseMarkdownTables(String(raw));
+      return rebuilt.join('');
     }
 
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
-      const rawOpts = options.map((o, i) => ({
-        letter: letters[i] || `(${i+1})`,
-        text: cleanLatexMath(cleanOptionText(o))
-      }));
-
-      const maxLen = Math.max(...options.map(o => String(o).length));
-      
-      if (maxLen < 20 && rawOpts.length === 4) {
-        return `
-          <table class="options-table">
-            <tr>
-              ${rawOpts.map(o => `<td style="width: 25%;"><strong>${o.letter}.</strong> ${o.text}</td>`).join('')}
-            </tr>
-          </table>
-        `;
-      } else if (maxLen < 45 && rawOpts.length === 4) {
-        return `
-          <table class="options-table">
-            <tr>
-              <td style="width: 50%;"><strong>${rawOpts[0].letter}.</strong> ${rawOpts[0].text}</td>
-              <td style="width: 50%;"><strong>${rawOpts[1].letter}.</strong> ${rawOpts[1].text}</td>
-            </tr>
-            <tr>
-              <td style="width: 50%;"><strong>${rawOpts[2].letter}.</strong> ${rawOpts[2].text}</td>
-              <td style="width: 50%;"><strong>${rawOpts[3].letter}.</strong> ${rawOpts[3].text}</td>
-            </tr>
-          </table>
-        `;
-      } else {
-        return `
-          <table class="options-table">
-            ${rawOpts.map(o => `<tr><td style="width: 100%;"><strong>${o.letter}.</strong> ${o.text}</td></tr>`).join('')}
-          </table>
-        `;
-      }
-    }
-
-    function formatTikzHtml(tikzCode, imageUrl) {
-      if (imageUrl && imageUrl.trim()) {
-        const src = imageUrl.startsWith('data:') ? imageUrl : 'data:image/png;base64,' + imageUrl;
-        return `<div class="my-3 text-center"><img src="${src}" class="max-h-64 mx-auto rounded-xl p-2 bg-white shadow-sm border border-slate-200" alt="Hình minh họa" /></div>`;
-      }
-      return '';
+      return `
+        <table class="options-table">
+          ${options.map((o, i) => `<tr><td style="width: 100%;"><strong>${letters[i] || (i+1)}.</strong> ${renderMath(o)}</td></tr>`).join('')}
+        </table>
+      `;
     }
 
     function selectLevel(lvl) {
@@ -477,90 +277,50 @@
       });
       document.getElementById('levelBadge').innerText = LEVEL_CONFIGS[lvl].name;
       loadLevelOptions();
-      syncHeaderPreview();
     }
 
     function loadLevelOptions() {
       const cfg = LEVEL_CONFIGS[currentLevel];
       const gradeSel = document.getElementById('grade');
       gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
-      gradeSel.value = currentLevel === 'thpt' ? "12" : (currentLevel === 'thcs' ? "9" : "5");
+      gradeSel.value = cfg.grades[cfg.grades.length - 1];
 
       const subjSel = document.getElementById('subject');
       subjSel.innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
       document.getElementById('bvGrade').innerHTML = gradeSel.innerHTML;
     }
 
-    function syncHeaderPreview() {
-      const cfg = LEVEL_CONFIGS[currentLevel];
-      document.getElementById('previewSchool').innerText = cfg.schools[0];
-      document.getElementById('previewSubjectDuration').innerText = `Môn: ${document.getElementById('subject').value.toUpperCase()} - Thời gian: ${document.getElementById('duration').value} phút`;
-    }
-
-    function renderExamToView(exam, matrix) {
+    function renderExamToView(exam) {
       if (!exam) return;
+      document.getElementById('previewTitle').innerText = exam.exam_title || "ĐỀ KIỂM TRA ĐỊNH KỲ";
 
-      const p1 = exam.part_1_mcq || [];
-      document.getElementById('part1Container').innerHTML = p1.map((q, idx) => `
-        <div class="paper-question-box space-y-2">
-          <div class="flex items-center justify-between gap-1">
-            <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
+      const renderPart = (containerId, qList) => {
+        const container = document.getElementById(containerId);
+        if (!qList || qList.length === 0) {
+          container.innerHTML = `<p class="text-slate-400 italic py-3 text-center">Không có câu hỏi phần này.</p>`;
+          return;
+        }
+        container.innerHTML = qList.map((q, idx) => `
+          <div class="paper-question-box space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
+            </div>
+            <div class="paper-question-text">${renderMath(q.content || '')}</div>
+            ${q.image_base64 ? `<div class="my-3 text-center"><img src="${q.image_base64}" class="max-h-64 mx-auto rounded-xl p-2 bg-white shadow-sm border border-slate-200"></div>` : ''}
+            ${renderOptionsTable(q.options)}
+            ${q.explanation ? `
+              <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
+                <div class="font-bold text-emerald-800 mb-1"><i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:</div>
+                <div class="text-emerald-900">${renderMath(q.explanation)}</div>
+              </div>` : ''}
           </div>
-          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
-          ${formatTikzHtml(q.tikz_code, q.image_base64)}
-          ${renderOptionsTable(q.options)}
+        `).join('');
+      };
 
-          ${q.explanation ? `
-            <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
-              <div class="paper-solution-title">
-                <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
-              </div>
-              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
-            </div>` : ''}
-        </div>
-      `).join('');
-
-      const p2 = exam.part_2_tf || [];
-      document.getElementById('part2Container').innerHTML = p2.map((q, idx) => `
-        <div class="paper-question-box space-y-2">
-          <div class="flex items-center justify-between gap-1">
-            <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
-          </div>
-          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
-          ${formatTikzHtml(q.tikz_code, q.image_base64)}
-
-          ${q.explanation ? `
-            <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
-              <div class="paper-solution-title">
-                <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
-              </div>
-              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
-            </div>` : ''}
-        </div>
-      `).join('');
-
-      const p3 = exam.part_3_short_ans || exam.part_3_essay || [];
-      document.getElementById('part3Container').innerHTML = p3.map((q, idx) => `
-        <div class="paper-question-box space-y-2">
-          <div class="flex items-center justify-between gap-1">
-            <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
-            <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M3'}</span>
-          </div>
-          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
-          ${formatTikzHtml(q.tikz_code, q.image_base64)}
-          <p class="italic text-slate-500 font-semibold pt-1 text-xs">Đáp số: .....................................................</p>
-
-          ${q.explanation ? `
-            <div class="paper-solution-box" style="display: ${isExamSolutionVisible ? 'block' : 'none'};">
-              <div class="paper-solution-title">
-                <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
-              </div>
-              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
-            </div>` : ''}
-        </div>
-      `).join('');
+      renderPart('part1Container', exam.part_1_mcq);
+      renderPart('part2Container', exam.part_2_tf);
+      renderPart('part3Container', exam.part_3_short_ans || exam.part_3_essay);
     }
 
     async function openBankViewerModal() {
@@ -570,17 +330,11 @@
     function closeBankViewerModal() { document.getElementById('bankViewerModal').classList.add('hidden'); }
 
     async function loadBankQuestions() {
-      const grade = document.getElementById('bvGrade').value;
-      const qType = document.getElementById('bvType').value;
-      const cog = document.getElementById('bvCognitive').value;
-      const lessonKw = document.getElementById('bvLessonKeyword')?.value.trim();
-
-      const params = new URLSearchParams();
-      if (grade) params.append('grade', grade);
-      if (qType) params.append('q_type', qType);
-      if (cog) params.append('cognitive_level', cog);
-      if (lessonKw) params.append('lesson', lessonKw);
-
+      const params = new URLSearchParams({
+        grade: document.getElementById('bvGrade').value,
+        q_type: document.getElementById('bvType').value,
+        lesson: document.getElementById('bvLessonKeyword').value.trim()
+      });
       const res = await fetch(`${API_BASE_URL}/api/questions/filter?${params.toString()}`);
       const data = await res.json();
       document.getElementById('bankCountBadge').innerText = data.total || 0;
@@ -591,15 +345,15 @@
         return;
       }
 
-      container.innerHTML = data.questions.map((r, i) => `
+      container.innerHTML = data.questions.map(r => `
         <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-start gap-3 shadow-xs">
           <input type="checkbox" name="bankQuestionCheckbox" value="${r.id}" class="mt-1 w-4 h-4 accent-indigo-600 cursor-pointer">
           <div class="flex-1 text-sm space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-900">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson || r.topic}</span>
+              <span class="font-bold text-indigo-900">#ID ${r.id} | Lớp ${r.grade} | Chủ đề: ${r.lesson || r.topic}</span>
               <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200 text-xs font-bold">${r.cognitive_level || 'M2'}</span>
             </div>
-            <div class="text-slate-800 font-medium leading-relaxed">${cleanLatexMath(cleanQuestionContent(r.content))}</div>
+            <div class="text-slate-800 font-medium leading-relaxed">${renderMath(r.content)}</div>
           </div>
         </div>
       `).join('');
@@ -615,46 +369,33 @@
           level: currentLevel,
           subject: document.getElementById('subject').value,
           grade: parseInt(document.getElementById('grade').value),
-          exam_title: document.getElementById('inputExamTitle')?.value.trim() || "ĐỀ KIỂM TRA ĐỊNH KỲ",
+          exam_title: document.getElementById('inputExamTitle').value.trim() || "ĐỀ KIỂM TRA ĐỊNH KỲ",
           selected_question_ids: ids
         })
       });
       const result = await res.json();
-      currentExamData = { status: "success", base_exam: result.base_exam, answer_matrix: result.answer_matrix };
-      renderExamToView(result.base_exam, result.answer_matrix);
+      currentExamData = { status: "success", base_exam: result.base_exam };
+      renderExamToView(result.base_exam);
       closeBankViewerModal();
     }
 
     async function downloadWordDocxPython() {
-      if (!currentExamData || !currentExamData.base_exam) { 
-        alert("Vui lòng tạo đề thi trước khi tải Word!"); 
-        return; 
-      }
+      if (!currentExamData || !currentExamData.base_exam) { alert("Vui lòng tạo đề thi trước khi tải Word!"); return; }
       const btn = document.getElementById('btnExportDocx');
       const origHtml = btn.innerHTML;
       btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i> <span>Đang tạo .docx...</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-blue-400"></i> <span>Đang tải...</span>`;
 
       try {
         const res = await fetch(`${API_BASE_URL}/api/exams/export-word`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base_exam: currentExamData.base_exam,
-            level: currentLevel,
-            include_answers: isExamSolutionVisible
-          })
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ base_exam: currentExamData.base_exam, level: currentLevel, include_answers: isExamSolutionVisible })
         });
-
-        if (!res.ok) {
-          throw new Error(`Mã lỗi HTTP: ${res.status}`);
-        }
-
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `De_Thi_Chuan_${document.getElementById('grade').value}.docx`;
+        a.download = `De_Thi_${document.getElementById('grade').value}.docx`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -669,34 +410,20 @@
 
     async function copyRichExamToClipboard() {
       const container = document.getElementById('examContainer');
-      if (!container) {
-        alert("Chưa có đề thi!");
-        return;
-      }
+      if (!container) { alert("Chưa có đề thi!"); return; }
       try {
         const clone = container.cloneNode(true);
-        if (!isExamSolutionVisible) {
-          clone.querySelectorAll('.paper-solution-box').forEach(el => el.remove());
-        }
-        
-        const html = clone.innerHTML;
-        const blobHtml = new Blob([html], { type: 'text/html' });
+        if (!isExamSolutionVisible) clone.querySelectorAll('.paper-solution-box').forEach(el => el.remove());
+        const blobHtml = new Blob([clone.innerHTML], { type: 'text/html' });
         const blobText = new Blob([clone.innerText], { type: 'text/plain' });
-        const data = [new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })];
-        await navigator.clipboard.write(data);
-        
-        const msg = isExamSolutionVisible 
-          ? "Đã sao chép đề thi KÈM LỜI GIẢI! Mở Word và bấm Ctrl + V."
-          : "Đã sao chép ĐỀ THI (ĐÃ ẨN LỜI GIẢI)! Mở Word và bấm Ctrl + V để in đề cho học sinh.";
-        alert(msg);
+        await navigator.clipboard.write([new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })]);
+        alert("Đã sao chép đề thi! Mở Word và bấm Ctrl + V.");
       } catch (e) {
         alert("Không thể sao chép tự động: " + e.message);
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      selectLevel('thpt');
-    });
+    window.addEventListener('DOMContentLoaded', () => { selectLevel('thpt'); });
   </script>
 </body>
 </html>
