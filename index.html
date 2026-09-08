@@ -40,7 +40,6 @@
     .exam-paper { font-family: 'Times New Roman', Times, serif; }
     .hidden { display: none !important; }
 
-    /* Thanh cuộn độc lập cho 2 cột */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -68,7 +67,6 @@
 </head>
 <body class="flex flex-col antialiased">
 
-  <!-- HEADER DUY NHẤT: ĐẶT NÚT CHUYỂN SANG BANK.HTML NGAY ĐẦU -->
   <header class="bg-indigo-700 text-white px-3 py-2 md:px-5 flex flex-wrap items-center justify-between shadow-md gap-2 z-50 shrink-0 min-h-[56px]">
     <div class="flex items-center gap-2.5 shrink-0">
       <div class="bg-white text-indigo-700 p-1.5 rounded-lg font-bold text-base leading-none shadow-sm">
@@ -76,15 +74,14 @@
       </div>
       <div>
         <h1 class="font-bold text-sm md:text-base leading-tight">EduExam Pro (Biên Soạn Đề Thi)</h1>
-        <p class="text-[10px] text-indigo-200 hidden sm:block">Khảo thí GDPT 2018 đa cấp học, Kho Drive GV &amp; Vẽ hình TikZ Trực Quan</p>
+        <p class="text-[10px] text-indigo-200 hidden sm:block">Khảo thí GDPT 2018 đa cấp học &amp; Quản trị ma trận M1-M4</p>
       </div>
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
-      <!-- NÚT CHUYỂN SANG TRANG QUẢN TRỊ KHO & NẠP FILE WORD -->
       <a href="bank.html" class="bg-amber-400 hover:bg-amber-500 active:bg-amber-600 text-slate-950 font-black text-xs px-3 py-1.5 rounded-lg shadow flex items-center gap-1.5 transition cursor-pointer border border-amber-300">
         <i class="fa-solid fa-boxes-stacked text-indigo-900"></i>
-        <span>Quản Trị Kho &amp; Nạp File (.docx)</span>
+        <span>Quản Trị Kho &amp; Nạp File</span>
       </a>
 
       <button onclick="openBankViewerModal()" class="bg-indigo-950 hover:bg-black text-amber-300 font-bold text-xs px-3 py-1.5 rounded shadow flex items-center gap-1.5 transition cursor-pointer border border-amber-400/50">
@@ -105,13 +102,11 @@
     </div>
   </header>
 
-  <!-- BỐ CỤC CHÍNH: 2 CỘT SCROLL ĐỘC LẬP -->
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
     <!-- CỘT TRÁI: SIDEBAR THIẾT LẬP ĐỀ THI -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 flex flex-col gap-3 shrink-0 h-full overflow-y-auto shadow-sm">
       
-      <!-- GEMINI API KEY -->
       <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-2">
         <div class="flex items-center justify-between">
           <label class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
@@ -141,7 +136,6 @@
 
       <div class="space-y-2.5 text-xs pr-1">
         
-        <!-- CẤP HỌC MỤC TIÊU -->
         <div class="bg-indigo-50/90 p-2.5 rounded-lg border border-indigo-200 space-y-1.5">
           <label class="block font-bold text-indigo-950 flex items-center justify-between">
             <span><i class="fa-solid fa-school text-indigo-600"></i> Cấp học mục tiêu</span>
@@ -154,7 +148,6 @@
           </div>
         </div>
 
-        <!-- AI MODEL -->
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-1.5">
           <label class="block font-bold text-slate-800 flex items-center justify-between">
             <span><i class="fa-solid fa-microchip text-indigo-600"></i> AI Model</span>
@@ -167,7 +160,6 @@
           </select>
         </div>
 
-        <!-- MÔN HỌC & KHỐI LỚP -->
         <div class="grid grid-cols-3 gap-2">
           <div class="col-span-2">
             <label class="block font-semibold mb-0.5 text-slate-700">Môn học</label>
@@ -189,7 +181,6 @@
           </select>
         </div>
 
-        <!-- BÀI HỌC VÀ MỨC ĐỘ M1 - M4 (GDPT 2018) -->
         <div class="bg-indigo-900/5 p-3 rounded-lg border border-indigo-200 space-y-2">
           <label class="block font-bold text-indigo-950 text-xs flex items-center justify-between">
             <span><i class="fa-solid fa-book-open text-indigo-600"></i> Bài học &amp; Mức độ (M1-M4)</span>
@@ -200,7 +191,7 @@
             <input type="text" id="inputLessonName" placeholder="Ví dụ: Ứng dụng đạo hàm khảo sát hàm số..." class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-medium">
           </div>
           <div>
-            <label class="block font-semibold text-slate-700 mb-0.5">Mức độ nhận thức trọng tâm:</label>
+            <label class="block font-semibold text-slate-700 mb-0.5">Mức độ nhận thức mặc định:</label>
             <select id="inputCognitiveLevel" class="w-full border border-indigo-300 rounded p-1.5 bg-white text-xs font-semibold text-indigo-900">
               <option value="M1">Nhận biết (M1) - Tái hiện định nghĩa, công thức</option>
               <option value="M2" selected>Thông hiểu (M2) - Diễn giải, tính toán cơ bản</option>
@@ -232,7 +223,6 @@
     <!-- CỘT PHẢI: TỜ GIẤY THI -->
     <main class="flex-1 bg-slate-200/80 p-3 sm:p-6 h-full overflow-y-auto flex flex-col items-center">
       
-      <!-- Phòng Thi Online Bar -->
       <div id="onlineBar" class="hidden w-full max-w-4xl bg-indigo-900 text-white px-4 py-3 rounded-t shadow flex flex-wrap items-center justify-between gap-2 border-b-2 border-amber-400">
         <div class="flex items-center gap-3">
           <span class="bg-red-600 px-2.5 py-0.5 rounded text-xs font-bold animate-pulse">ĐANG THI TRỰC TUYẾN</span>
@@ -246,7 +236,6 @@
         </div>
       </div>
 
-      <!-- Tờ Giấy Thi Preview -->
       <div id="examContainer" class="bg-white w-full max-w-4xl p-5 sm:p-10 shadow-lg rounded exam-paper text-[14px] md:text-[15px] leading-relaxed text-black border border-slate-300 mb-10">
         
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
@@ -285,7 +274,7 @@
           </div>
 
           <div>
-            <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN (3,0 điểm)</div>
+            <div id="p3Heading" class="font-bold text-sm sm:text-[15px] mb-1">PHẦN III. CÂU TRẮC NGHIỆM TRẢ LỜI NGẮN / TỰ LUẬN (3,0 điểm)</div>
             <div class="space-y-4 text-xs sm:text-sm" id="part3Container"></div>
           </div>
         </div>
@@ -426,11 +415,23 @@
       str = str.replace(/\r\n|\r|\n/g, '<br/>');
 
       if (str.includes('$')) {
-        str = str.replace(/\$([^$]+)\$/g, (match, formula) => {
+        str = str.replace(/\$([^$\r\n]+?)\$/g, (match, formula) => {
           try { return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false }); } catch (e) { return formula; }
         });
       }
       return str;
+    }
+
+    // Làm sạch tiền tố A., B., C., D. nếu lọt vào phương án
+    function cleanOptionText(text) {
+      if (!text) return '';
+      return String(text).replace(/^[A-D]\s*[\.,:]\s*/i, '').trim();
+    }
+
+    // Cắt bỏ phần A, B, C, D nếu bị dính kèm vào nội dung đề bài
+    function cleanQuestionContent(content) {
+      if (!content) return '';
+      return content.replace(/\n\s*[A-D][\.,:][\s\S]*$/i, '').trim();
     }
 
     function formatTikzHtml(tikzCode, imageUrl) {
@@ -446,12 +447,40 @@
       return '';
     }
 
-    function getCognitiveBadge(m) {
-      const cog = m || 'M2';
-      if (cog === 'M1') return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 ml-1.5">[Nhận biết - M1]</span>`;
-      if (cog === 'M2') return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 ml-1.5">[Thông hiểu - M2]</span>`;
-      if (cog === 'M3') return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 ml-1.5">[Vận dụng - M3]</span>`;
-      return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 ml-1.5">[Vận dụng cao - M4]</span>`;
+    // Bộ 4 ô Radio M1-M4 để thẩm định mức độ nhận thức trực tiếp
+    function renderCognitiveSelector(qIdOrIndex, currentM, partPrefix) {
+      const levels = [
+        { code: 'M1', label: 'M1', color: 'text-blue-700' },
+        { code: 'M2', label: 'M2', color: 'text-emerald-700' },
+        { code: 'M3', label: 'M3', color: 'text-amber-700' },
+        { code: 'M4', label: 'M4', color: 'text-rose-700' }
+      ];
+      return `
+        <div class="inline-flex items-center gap-1.5 bg-white px-2 py-0.5 rounded border border-slate-300 text-[11px] font-semibold ml-2 shadow-2xs">
+          ${levels.map(lvl => `
+            <label class="inline-flex items-center gap-0.5 cursor-pointer hover:opacity-80">
+              <input type="radio" name="cog_${partPrefix}_${qIdOrIndex}" value="${lvl.code}" 
+                     ${currentM === lvl.code ? 'checked' : ''} 
+                     onchange="updateCognitiveLevel('${partPrefix}', ${qIdOrIndex}, '${lvl.code}')" 
+                     class="w-3 h-3 accent-indigo-600 cursor-pointer">
+              <span class="${lvl.color} font-bold text-[10px]">${lvl.code}</span>
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function updateCognitiveLevel(partPrefix, index, newLevel) {
+      if (currentExamData && currentExamData.base_exam) {
+        let list = [];
+        if (partPrefix === 'p1') list = currentExamData.base_exam.part_1_mcq;
+        else if (partPrefix === 'p2') list = currentExamData.base_exam.part_2_tf;
+        else list = currentExamData.base_exam.part_3_short_ans || currentExamData.base_exam.part_3_essay;
+        
+        if (list && list[index]) {
+          list[index].cognitive_level = newLevel;
+        }
+      }
     }
 
     function selectLevel(lvl) {
@@ -551,40 +580,80 @@
     function renderExamToView(exam, matrix) {
       if (!exam) return;
       window.currentRenderedQuestions = [];
-      let globalIndex = 0;
 
+      // PHẦN I: TRẮC NGHIỆM ĐƠN LỰA CHỌN (TỰ ĐỘNG DÀN 1 DÒNG, 2 DÒNG HOẶC 4 DÒNG)
       const p1 = exam.part_1_mcq || [];
       document.getElementById('part1Container').innerHTML = p1.map((q, idx) => {
-        const cIdx = globalIndex++; window.currentRenderedQuestions.push(q);
+        window.currentRenderedQuestions.push(q);
         let opts = { 'A': '', 'B': '', 'C': '', 'D': '' };
+        let rawOpts = [];
+
         if (Array.isArray(q.options)) {
-          q.options.forEach((o, i) => { opts[['A','B','C','D'][i]] = cleanLatexMath(typeof o === 'object' ? o.text : o); });
+          q.options.forEach((o, i) => {
+            const rawOpt = typeof o === 'object' ? (o.text || '') : String(o);
+            const cleaned = cleanOptionText(rawOpt);
+            rawOpts.push(cleaned);
+            opts[['A','B','C','D'][i]] = cleanLatexMath(cleaned);
+          });
         }
+        const cleanContent = cleanQuestionContent(q.content || '');
+
+        // Tự động tính toán bố cục cột
+        const maxOptLength = Math.max(...rawOpts.map(t => t.length), 0);
+        const hasComplexMath = rawOpts.some(t => /\\(frac|int|sqrt|sum|prod|iint)/.test(t));
+        
+        let gridLayoutClass = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"; // 1 dòng (4 cột) nếu ngắn
+        if (hasComplexMath || maxOptLength > 45) {
+          gridLayoutClass = "grid grid-cols-1"; // 4 dòng (1 cột) nếu dài hoặc có tích phân/phân số
+        } else if (maxOptLength > 20) {
+          gridLayoutClass = "grid grid-cols-1 sm:grid-cols-2"; // 2 dòng (2 cột) nếu độ dài vừa
+        }
+
         return `
-          <div class="space-y-1.5 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-            <p><strong>Câu ${idx + 1}:</strong> ${getCognitiveBadge(q.cognitive_level)} ${cleanLatexMath(q.content || '')}</p>
+          <div class="space-y-1.5 p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-1">
+              <span class="font-bold text-indigo-950">Câu ${idx + 1}:</span>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-500 font-semibold">Mức độ:</span>
+                ${renderCognitiveSelector(idx, q.cognitive_level || 'M2', 'p1')}
+              </div>
+            </div>
+            <div class="text-slate-800 leading-relaxed">${cleanLatexMath(cleanContent)}</div>
             ${formatTikzHtml(q.tikz_code, q.image_base64)}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-              ${['A','B','C','D'].map(k => `<label class="p-1 rounded hover:bg-indigo-50 cursor-pointer"><input type="radio" name="p1_q${idx}" value="${k}"> <strong>${k}.</strong> ${opts[k]}</label>`).join('')}
+            <div class="${gridLayoutClass} gap-2 pt-1 text-xs">
+              ${['A','B','C','D'].map(k => `
+                <label class="p-2 rounded bg-white border border-slate-200 hover:bg-indigo-50 cursor-pointer flex items-start gap-1.5 shadow-2xs">
+                  <input type="radio" name="p1_q${idx}" value="${k}" class="mt-0.5"> 
+                  <span><strong>${k}.</strong> ${opts[k]}</span>
+                </label>
+              `).join('')}
             </div>
           </div>
         `;
       }).join('');
 
+      // PHẦN II: ĐÚNG / SAI
       const p2 = exam.part_2_tf || [];
       document.getElementById('part2Container').innerHTML = p2.map((q, idx) => {
-        const cIdx = globalIndex++; window.currentRenderedQuestions.push(q);
+        window.currentRenderedQuestions.push(q);
         const st = q.statements || {};
         return `
-          <div class="space-y-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-            <p><strong>Câu ${idx + 1}:</strong> ${getCognitiveBadge(q.cognitive_level)} ${cleanLatexMath(q.prompt || '')}</p>
+          <div class="space-y-2 p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="flex flex-wrap items-center justify-between gap-1">
+              <span class="font-bold text-indigo-950">Câu ${idx + 1}:</span>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-500 font-semibold">Mức độ:</span>
+                ${renderCognitiveSelector(idx, q.cognitive_level || 'M2', 'p2')}
+              </div>
+            </div>
+            <div class="text-slate-800 leading-relaxed">${cleanLatexMath(q.prompt || q.content || '')}</div>
             <div class="space-y-1 pl-2">
               ${['a','b','c','d'].map(k => `
-                <div class="flex justify-between items-center p-1 bg-white rounded border text-xs">
+                <div class="flex justify-between items-center p-1.5 bg-white rounded border border-slate-200 text-xs">
                   <span><strong>${k})</strong> ${cleanLatexMath(st[k]||'')}</span>
                   <div>
-                    <label class="text-emerald-700 font-semibold mr-2"><input type="radio" name="p2_q${idx}_${k}" value="Đ"> Đúng</label>
-                    <label class="text-rose-700 font-semibold"><input type="radio" name="p2_q${idx}_${k}" value="S"> Sai</label>
+                    <label class="text-emerald-700 font-semibold mr-3 cursor-pointer"><input type="radio" name="p2_q${idx}_${k}" value="Đ"> Đúng</label>
+                    <label class="text-rose-700 font-semibold cursor-pointer"><input type="radio" name="p2_q${idx}_${k}" value="S"> Sai</label>
                   </div>
                 </div>`).join('')}
             </div>
@@ -592,12 +661,20 @@
         `;
       }).join('');
 
+      // PHẦN III: TRẢ LỜI NGẮN / TỰ LUẬN
       const p3 = exam.part_3_short_ans || exam.part_3_essay || [];
       document.getElementById('part3Container').innerHTML = p3.map((q, idx) => {
-        const cIdx = globalIndex++; window.currentRenderedQuestions.push(q);
+        window.currentRenderedQuestions.push(q);
         return `
-          <div class="space-y-2 bg-slate-50 p-3 rounded-lg border border-slate-300">
-            <p class="font-bold text-indigo-950 text-sm">Câu ${idx + 1}: ${getCognitiveBadge(q.cognitive_level)} ${cleanLatexMath(q.content || '')}</p>
+          <div class="space-y-2 bg-slate-50 p-3.5 rounded-lg border border-slate-300">
+            <div class="flex flex-wrap items-center justify-between gap-1">
+              <span class="font-bold text-indigo-950 text-sm">Câu ${idx + 1}:</span>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-slate-500 font-semibold">Mức độ:</span>
+                ${renderCognitiveSelector(idx, q.cognitive_level || 'M3', 'p3')}
+              </div>
+            </div>
+            <div class="text-slate-900 leading-relaxed">${cleanLatexMath(q.content || '')}</div>
             <p class="italic text-slate-600 font-semibold pt-1">Đáp số: .....................................................</p>
           </div>
         `;
@@ -630,10 +707,10 @@
       const data = await res.json();
       document.getElementById('bankCountBadge').innerText = data.total || 0;
       document.getElementById('bankRecordsContainer').innerHTML = data.questions.map((r, i) => `
-        <div class="bg-white border rounded-xl p-4 flex items-start gap-3">
+        <div class="bg-white border rounded-xl p-4 flex items-start gap-3 shadow-2xs">
           <input type="checkbox" name="bankQuestionCheckbox" value="${r.id}" class="mt-1 w-4 h-4 accent-indigo-600 cursor-pointer">
           <div class="flex-1 text-xs space-y-1">
-            <div class="font-bold text-indigo-700">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson} ${getCognitiveBadge(r.cognitive_level)}</div>
+            <div class="font-bold text-indigo-700">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson} <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-200 ml-1 font-bold">${r.cognitive_level || 'M2'}</span></div>
             <div class="font-medium text-slate-900"><strong>Câu ${i+1}:</strong> ${cleanLatexMath(r.content)}</div>
           </div>
         </div>

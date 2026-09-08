@@ -42,11 +42,11 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2">
-      <button onclick="restoreDatabaseFromGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded border border-slate-600 shadow flex items-center gap-1.5 transition cursor-pointer">
+      <button id="btnRestoreGDrive" onclick="restoreDatabaseFromGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded border border-slate-600 shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-cloud-arrow-down text-indigo-400"></i> <span class="hidden md:inline">Khôi Phục GDrive</span>
       </button>
 
-      <button onclick="uploadDatabaseToGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded border border-slate-600 shadow flex items-center gap-1.5 transition cursor-pointer">
+      <button id="btnBackupGDrive" onclick="uploadDatabaseToGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded border border-slate-600 shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-brands fa-google-drive text-emerald-400"></i> <span class="hidden md:inline">Sao Lưu GDrive</span>
       </button>
 
@@ -202,13 +202,8 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">Đáp án đúng / Kết số:</label>
-          <input type="text" id="mAnswer" placeholder="Ví dụ: A hoặc $x = 2$..." class="w-full border rounded p-1.5 bg-white text-xs text-emerald-800 font-bold">
-        </div>
-
-        <div>
           <label class="block font-semibold text-slate-700 mb-1">Hướng dẫn giải chi tiết:</label>
-          <textarea id="mExplanation" rows="2" placeholder="Trình bày các bước giải..." class="w-full border border-slate-300 rounded p-2 bg-white text-xs"></textarea>
+          <textarea id="mExplanation" rows="3" placeholder="Trình bày các bước giải..." class="w-full border border-slate-300 rounded p-2 bg-white text-xs"></textarea>
         </div>
 
         <button onclick="saveManualQuestionDirectly()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow flex items-center justify-center gap-1.5 transition cursor-pointer">
@@ -265,8 +260,10 @@
           </select>
           <select id="filterCognitive" onchange="loadBankQuestions()" class="border p-1.5 rounded bg-slate-50 font-semibold text-indigo-950">
             <option value="">-- Tất cả mức độ --</option>
-            <option value="M1">Nhận biết (M1)</option><option value="M2">Thông hiểu (M2)</option>
-            <option value="M3">Vận dụng (M3)</option><option value="M4">Vận dụng cao (M4)</option>
+            <option value="M1">Nhận biết (M1)</option>
+            <option value="M2">Thông hiểu (M2)</option>
+            <option value="M3">Vận dụng (M3)</option>
+            <option value="M4">Vận dụng cao (M4)</option>
           </select>
           <select id="filterType" onchange="loadBankQuestions()" class="border p-1.5 rounded bg-slate-50 font-medium">
             <option value="">-- Tất cả dạng câu --</option>
@@ -447,12 +444,64 @@
       return parseMarkdownTables(String(raw));
     }
 
-    function getCognitiveBadge(m) {
-      const cog = m || 'M2';
-      if (cog === 'M1') return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">[Nhận biết - M1]</span>`;
-      if (cog === 'M2') return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">[Thông hiểu - M2]</span>`;
-      if (cog === 'M3') return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">[Vận dụng - M3]</span>`;
-      return `<span class="text-[11px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200">[Vận dụng cao - M4]</span>`;
+    // Tự động tính toán cấu trúc lưới (1 dòng 4 cột, 2 dòng 2 cột, hoặc 4 dòng 1 cột)
+    function getOptionsGridClass(options) {
+      if (!options || options.length === 0) return '';
+      const rawList = options.map(o => String(o));
+      const maxLen = Math.max(...rawList.map(t => t.length), 0);
+      const hasComplex = rawList.some(t => /\\(frac|int|sqrt|sum|prod|iint)/.test(t));
+
+      if (hasComplex || maxLen > 45) {
+        return 'grid grid-cols-1';
+      } else if (maxLen > 20) {
+        return 'grid grid-cols-1 sm:grid-cols-2';
+      }
+      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+    }
+
+    // 4 Radio Checkbox chọn M1-M4 trên từng câu
+    function renderCognitivePicker(idx, currentM, scope) {
+      const levels = [
+        { code: 'M1', label: 'M1', color: 'text-blue-700' },
+        { code: 'M2', label: 'M2', color: 'text-emerald-700' },
+        { code: 'M3', label: 'M3', color: 'text-amber-700' },
+        { code: 'M4', label: 'M4', color: 'text-rose-700' }
+      ];
+      return `
+        <div class="inline-flex items-center gap-1.5 bg-white px-2 py-0.5 rounded border border-slate-300 text-[11px] font-semibold ml-2 shadow-2xs">
+          ${levels.map(lvl => `
+            <label class="inline-flex items-center gap-0.5 cursor-pointer hover:opacity-80">
+              <input type="radio" name="cog_${scope}_${idx}" value="${lvl.code}" 
+                     ${currentM === lvl.code ? 'checked' : ''} 
+                     onchange="changeQuestionCognitive('${scope}', ${idx}, '${lvl.code}')" 
+                     class="w-3 h-3 accent-indigo-600 cursor-pointer">
+              <span class="${lvl.color} font-bold text-[10px]">${lvl.label}</span>
+            </label>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    async function changeQuestionCognitive(scope, idx, newM) {
+      if (scope === 'draft') {
+        if (currentDraftQuestions[idx]) {
+          currentDraftQuestions[idx].cognitive_level = newM;
+        }
+      } else if (scope === 'bank') {
+        const q = currentBankQuestions[idx];
+        if (q) {
+          q.cognitive_level = newM;
+          try {
+            await fetch(`${API_BASE_URL}/api/questions/${q.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(q)
+            });
+          } catch (e) {
+            console.error("Lỗi cập nhật mức độ nhận thức:", e);
+          }
+        }
+      }
     }
 
     function getQuestionTypeBadge(t) {
@@ -624,12 +673,13 @@
       container.innerHTML = currentDraftQuestions.map((q, idx) => `
         <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 transition hover:border-indigo-300">
           <div class="flex items-start justify-between gap-2">
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-1.5">
               <input type="checkbox" name="draftCheckbox" value="${idx}" checked class="w-4 h-4 accent-indigo-600 cursor-pointer">
               <span class="font-bold text-xs text-indigo-900">Câu ${idx + 1}</span>
-              ${getCognitiveBadge(q.cognitive_level)}
               ${getQuestionTypeBadge(q.q_type)}
-              <span class="text-[11px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">Lớp ${q.grade || 9}</span>
+              <span class="text-[11px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold">Lớp ${q.grade || 9}</span>
+              <span class="text-[10px] text-slate-500 font-semibold ml-1">Mức độ:</span>
+              ${renderCognitivePicker(idx, q.cognitive_level || 'M2', 'draft')}
             </div>
             <div class="flex items-center gap-1.5">
               <button onclick="openEditModal(${idx}, null)" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold transition cursor-pointer"><i class="fa-solid fa-pen"></i> Sửa</button>
@@ -642,8 +692,12 @@
           </div>
 
           ${q.options && q.options.length > 0 ? `
-            <div class="pl-6 grid grid-cols-2 gap-1 text-xs">
-              ${q.options.map(o => `<div class="bg-slate-50 p-1.5 rounded border">${cleanLatexMath(o)}</div>`).join('')}
+            <div class="pl-6 ${getOptionsGridClass(q.options)} gap-1.5 text-xs">
+              ${q.options.map((o, i) => {
+                const optLetter = ['A', 'B', 'C', 'D'][i];
+                const cleanOpt = String(o).replace(/^[A-D]\s*[\.,:]\s*/i, '');
+                return `<div class="bg-slate-50 p-2 rounded border border-slate-200"><strong>${optLetter}.</strong> ${cleanLatexMath(cleanOpt)}</div>`;
+              }).join('')}
             </div>` : ''}
 
           ${q.image_base64 ? `
@@ -830,11 +884,14 @@
 
         container.innerHTML = currentBankQuestions.map((r, i) => `
           <div class="bg-white border rounded-xl p-4 shadow-sm space-y-2 text-xs transition hover:border-indigo-300">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-700">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson}</span>
-              <div class="flex items-center gap-2">
-                ${getCognitiveBadge(r.cognitive_level)}
+            <div class="flex flex-wrap items-center justify-between gap-1">
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-indigo-700">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson}</span>
                 ${getQuestionTypeBadge(r.q_type)}
+                <span class="text-[10px] text-slate-500 font-semibold ml-1">Mức độ:</span>
+                ${renderCognitivePicker(i, r.cognitive_level || 'M2', 'bank')}
+              </div>
+              <div class="flex items-center gap-2">
                 <button onclick='openEditModal(null, ${r.id})' class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-bold cursor-pointer" title="Sửa câu hỏi">Sửa</button>
                 <button onclick="deleteSavedQuestion(${r.id})" class="text-slate-400 hover:text-rose-600 font-bold px-1.5 py-0.5 rounded cursor-pointer" title="Xóa">✕</button>
               </div>
@@ -843,8 +900,12 @@
               <strong>Bài ${i + 1}:</strong> ${cleanLatexMath(r.content)}
             </div>
             ${r.options && r.options.length > 0 ? `
-              <div class="grid grid-cols-2 gap-1 text-xs">
-                ${r.options.map(o => `<div class="bg-slate-50 p-1.5 rounded border">${cleanLatexMath(o)}</div>`).join('')}
+              <div class="${getOptionsGridClass(r.options)} gap-1.5 text-xs">
+                ${r.options.map((o, i) => {
+                  const optLetter = ['A', 'B', 'C', 'D'][i];
+                  const cleanOpt = String(o).replace(/^[A-D]\s*[\.,:]\s*/i, '');
+                  return `<div class="bg-slate-50 p-2 rounded border border-slate-200"><strong>${optLetter}.</strong> ${cleanLatexMath(cleanOpt)}</div>`;
+                }).join('')}
               </div>` : ''}
             ${r.image_base64 ? `<div class="my-2 text-center"><img src="${r.image_base64}" class="max-h-52 rounded border p-1 bg-white inline-block"></div>` : ''}
             ${r.explanation ? `
@@ -894,13 +955,42 @@
     }
 
     async function uploadDatabaseToGoogleDrive() {
-      const res = await fetch(`${API_BASE_URL}/api/drive/upload-db`, { method: 'POST' });
-      const data = await res.json(); alert(data.message);
+      const btn = document.getElementById('btnBackupGDrive');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-emerald-400"></i> Đang sao lưu...`;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/drive/upload-db`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || "Đã đồng bộ lên Google Drive thành công!");
+      } catch (err) {
+        alert("Lỗi sao lưu Google Drive: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
 
     async function restoreDatabaseFromGoogleDrive() {
-      const res = await fetch(`${API_BASE_URL}/api/drive/restore-db`, { method: 'POST' });
-      const data = await res.json(); alert(data.message); loadBankQuestions(); updateTotalBankCount();
+      if (!confirm("Bạn có chắc muốn khôi phục cơ sở dữ liệu từ Google Drive? Dữ liệu hiện tại sẽ được thay thế.")) return;
+      const btn = document.getElementById('btnRestoreGDrive');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-indigo-400"></i> Đang khôi phục...`;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/drive/restore-db`, { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || "Đã khôi phục cơ sở dữ liệu thành công!");
+        loadBankQuestions();
+        updateTotalBankCount();
+      } catch (err) {
+        alert("Lỗi khôi phục Google Drive: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
