@@ -36,7 +36,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* NỘI DUNG ĐỀ THI 16PX RÕ RÀNG */
+    /* NỘI DUNG ĐỀ THI 16PX RÕ NÉT */
     .paper-question-box {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -136,7 +136,7 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
-      <!-- NÚT ẨN / HIỆN LỜI GIẢI MẶC ĐỊNH LÀ ẨN ĐỂ IN ĐỀ -->
+      <!-- NÚT ẨN / HIỆN LỜI GIẢI MẶC ĐỊNH LÀ ẨN -->
       <button id="btnToggleExamSolution" onclick="toggleExamSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-eye" id="toggleExamIcon"></i> <span id="toggleExamText">Hiện Lời Giải</span>
       </button>
@@ -309,7 +309,7 @@
 
     let currentExamData = null;
     let currentLevel = 'thpt';
-    let isExamSolutionVisible = false; // Mặc định ẩn lời giải để in đề sạch sẽ
+    let isExamSolutionVisible = false;
 
     const LEVEL_CONFIGS = {
       tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },

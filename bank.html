@@ -27,7 +27,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* FONT SIZE 16PX RÕ NÉT */
+    /* CỠ CHỮ RÕ NÉT 16PX TRÊN TOÀN BỘ GIAO DIỆN KHO */
     .card-question {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -409,7 +409,7 @@
       if (!text) return '';
       let s = String(text);
 
-      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài|Question)\s*\d+[\s.:*]*/gmi, '');
+      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
       s = s.replace(/\^{2,}/g, '^')
            .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
            .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
