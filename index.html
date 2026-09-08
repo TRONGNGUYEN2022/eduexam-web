@@ -36,6 +36,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+    /* NỘI DUNG ĐỀ THI 16PX RÕ RÀNG */
     .paper-question-box {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -45,8 +46,8 @@
       transition: all 0.2s ease;
     }
     .paper-question-text {
-      font-size: 15.5px !important;
-      line-height: 1.8 !important;
+      font-size: 16px !important;
+      line-height: 1.85 !important;
       color: #0f172a;
       font-weight: 500;
     }
@@ -56,13 +57,13 @@
       border: 1.5px solid #86efac !important;
       border-left: 5px solid #059669 !important;
       border-radius: 12px;
-      padding: 14px 16px;
+      padding: 16px 18px;
       margin-top: 12px;
       transition: all 0.2s ease;
     }
     .paper-solution-title {
       font-weight: 800;
-      font-size: 14px;
+      font-size: 15px;
       color: #065f46;
       display: flex;
       align-items: center;
@@ -70,8 +71,8 @@
       margin-bottom: 8px;
     }
     .paper-solution-text {
-      font-size: 15px !important;
-      line-height: 1.8 !important;
+      font-size: 16px !important;
+      line-height: 1.85 !important;
       color: #064e3b;
     }
 
@@ -85,8 +86,8 @@
     .barem-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 14.5px !important;
-      line-height: 1.7 !important;
+      font-size: 15px !important;
+      line-height: 1.8 !important;
       color: #0f172a;
     }
     .barem-table th, .barem-table tr:first-child td {
@@ -112,10 +113,10 @@
       border-radius: 8px;
       padding: 8px 12px;
       vertical-align: top;
-      font-size: 14.5px;
+      font-size: 15.5px;
     }
 
-    .katex { font-size: 1.12em !important; }
+    .katex { font-size: 1.15em !important; }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -135,9 +136,9 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
-      <!-- NÚT ẨN / HIỆN LỜI GIẢI -->
+      <!-- NÚT ẨN / HIỆN LỜI GIẢI MẶC ĐỊNH LÀ ẨN ĐỂ IN ĐỀ -->
       <button id="btnToggleExamSolution" onclick="toggleExamSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-eye-slash" id="toggleExamIcon"></i> <span id="toggleExamText">Ẩn Lời Giải</span>
+        <i class="fa-solid fa-eye" id="toggleExamIcon"></i> <span id="toggleExamText">Hiện Lời Giải</span>
       </button>
 
       <a href="bank.html" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition border border-amber-300">
@@ -308,7 +309,7 @@
 
     let currentExamData = null;
     let currentLevel = 'thpt';
-    let isExamSolutionVisible = false; // Mặc định ở màn hình soạn đề là Ẩn lời giải để in đề
+    let isExamSolutionVisible = false; // Mặc định ẩn lời giải để in đề sạch sẽ
 
     const LEVEL_CONFIGS = {
       tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },
@@ -419,7 +420,6 @@
       return parseMarkdownTables(String(raw));
     }
 
-    // Bảng tùy chọn A B C D cố định cột 1 dòng, 2 dòng hoặc 4 dòng
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
@@ -687,7 +687,7 @@
         
         const msg = isExamSolutionVisible 
           ? "Đã sao chép đề thi KÈM LỜI GIẢI! Mở Word và bấm Ctrl + V."
-          : "Đã sao chép ĐỀ THI (ĐÃ ẨN LỜI GIẢI)! Mở Word và bấm Ctrl + V.";
+          : "Đã sao chép ĐỀ THI (ĐÃ ẨN LỜI GIẢI)! Mở Word và bấm Ctrl + V để in đề cho học sinh.";
         alert(msg);
       } catch (e) {
         alert("Không thể sao chép tự động: " + e.message);
