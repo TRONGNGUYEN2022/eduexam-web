@@ -499,7 +499,7 @@
     async function updateBankCounterBadge() {
       const res = await fetch(`${API_BASE_URL}/api/questions/filter`);
       const data = await res.json();
-      document.getElementById('bankCountBadge').innerText = data.total || 0;
+      document.getElementById('bankCountBadge').innerText = `${data.total || 0} câu`;
     }
 
     function toggleExamMode() {
