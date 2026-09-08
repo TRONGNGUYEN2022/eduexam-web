@@ -14,7 +14,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="./eduexam-math-widget.js"></script>
 
-  <!-- Google Fonts: Tiếng Việt sắc nét và Toán học -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=STIX+Two+Text:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
@@ -37,7 +36,6 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Hộp câu hỏi trên tờ đề thi */
     .paper-question-box {
       background: #f8fafc;
       border: 1.5px solid #e2e8f0;
@@ -52,7 +50,6 @@
       font-weight: 500;
     }
 
-    /* Hộp lời giải / barem trên tờ đề */
     .paper-solution-box {
       background: #f0fdf4 !important;
       border: 1.5px solid #86efac !important;
@@ -76,7 +73,6 @@
       color: #064e3b;
     }
 
-    /* Bảng Barem trên tờ đề */
     .barem-table-wrap {
       border-radius: 8px;
       overflow: hidden;
@@ -96,9 +92,7 @@
       padding: 8px 12px;
     }
 
-    .katex {
-      font-size: 1.12em !important;
-    }
+    .katex { font-size: 1.12em !important; }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -135,7 +129,7 @@
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
-    <!-- CỘT TRÁI: CẤU HÌNH ĐỀ -->
+    <!-- CỘT TRÁI -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-slate-900/90 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
       <div class="space-y-3">
         <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 space-y-2">
@@ -185,7 +179,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI: GIẤY THI -->
+    <!-- CỘT PHẢI -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
       <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl leading-relaxed text-slate-900 mb-12 border border-slate-200">
         
@@ -293,11 +287,20 @@
       if (!text) return '';
       let s = String(text)
         .replace(/!\[.*?\](?:\(.*?\))?/g, '')
+        .replace(/\^{2,}/g, '^')
+        .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
         .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
+        .replace(/(\d+)\^\s*\\circ/g, '$1^\\circ')
+        .replace(/\{\s*6\s*\}\s*R/g, '{6} R')
         .replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, '$$$1$$')
         .replace(/\\text\s*\{([^}]*)\}/g, '$1')
         .replace(/\\text\s+/g, ' ')
         .replace(/\\times/g, '×');
+
+      s = s.replace(/(\\(?:widehat|frac|sqrt|cdot|tan|cos|sin|Delta|vec)[^$\n<]+)/g, (match) => {
+        let m = match.trim();
+        return m.startsWith('$') ? m : `$${m}$`;
+      });
 
       s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, f) => {
         try { return katex.renderToString(f.trim(), { throwOnError: false, displayMode: false }); } catch (e) { return f; }

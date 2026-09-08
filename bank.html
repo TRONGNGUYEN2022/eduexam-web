@@ -10,7 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <!-- Nhúng bộ font tiếng Việt và Toán học sắc nét -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=STIX+Two+Text:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
@@ -19,7 +18,7 @@
     * { box-sizing: border-box; }
     html, body {
       height: 100%; margin: 0; padding: 0; overflow: hidden;
-      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Be Vietnam Pro', sans-serif;
       background-color: #0b0f19;
       color: #0f172a;
     }
@@ -28,7 +27,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* KHỐI ĐỀ BÀI: Tông màu Indigo / Trắng trang nhã */
+    /* Thẻ Câu Hỏi Nổi Bật */
     .card-question {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -43,7 +42,7 @@
       font-weight: 500;
     }
 
-    /* KHỐI LỜI GIẢI / BAREM: Tách biệt hoàn toàn với tông Xanh Ngọc Bảo (Emerald) */
+    /* Thẻ Lời Giải Xanh Ngọc Barem */
     .card-solution {
       background: #f0fdf4 !important;
       border: 1.5px solid #86efac !important;
@@ -64,7 +63,6 @@
       margin-bottom: 10px;
       border-bottom: 1.5px dashed #a7f3d0;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
     }
     .solution-body {
       font-size: 15.5px !important;
@@ -73,7 +71,7 @@
       font-weight: 500;
     }
 
-    /* BẢNG BAREM ĐIỂM: Đồng bộ font 15px, không bị co nhỏ chữ */
+    /* Bảng Barem Điểm */
     .barem-table-wrap {
       border-radius: 10px;
       overflow: hidden;
@@ -93,17 +91,11 @@
       padding: 10px 14px;
       vertical-align: middle;
     }
-    .barem-table tr:hover {
-      background: #ecfdf5;
-    }
+    .barem-table tr:hover { background: #ecfdf5; }
 
-    /* TĂNG CỠ CÔNG THỨC TOÁN CHO ĐỒNG BỘ */
-    .katex {
-      font-size: 1.12em !important;
-    }
-    .katex-display {
-      margin: 0.7em 0 !important;
-    }
+    /* Cỡ KaTeX Chuẩn */
+    .katex { font-size: 1.12em !important; }
+    .katex-display { margin: 0.7em 0 !important; }
   </style>
 </head>
 <body class="flex flex-col antialiased">
@@ -140,7 +132,7 @@
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
     
-    <!-- CỘT TRÁI: NHẬP LIỆU -->
+    <!-- CỘT TRÁI -->
     <aside class="w-full md:w-96 lg:w-[420px] bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
       <div class="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 font-bold">
         <button id="modeBtnAuto" onclick="switchInputMode('auto')" class="py-2 rounded-lg bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
@@ -151,7 +143,7 @@
         </button>
       </div>
 
-      <!-- CHẾ ĐỘ 1: TỰ ĐỘNG NẠP ZIP -->
+      <!-- NẠP ZIP -->
       <div id="autoModeSection" class="space-y-3">
         <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5">
           <span class="font-bold text-white flex items-center gap-2">
@@ -186,7 +178,7 @@
           </div>
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Chủ đề mặc định:</label>
-            <input type="text" id="autoTopicInput" placeholder="Ví dụ: Ôn thi học kỳ, Tốt nghiệp..." 
+            <input type="text" id="autoTopicInput" placeholder="Ví dụ: Ôn thi tốt nghiệp THPT..." 
                    class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none focus:border-indigo-500">
           </div>
         </div>
@@ -206,7 +198,7 @@
         </div>
       </div>
 
-      <!-- CHẾ ĐỘ 2: THỦ CÔNG -->
+      <!-- NHẬP THỦ CÔNG -->
       <div id="manualModeSection" class="hidden space-y-2.5">
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -273,7 +265,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI: XEM CHI TIẾT -->
+    <!-- CỘT PHẢI -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-6 h-full overflow-y-auto flex flex-col gap-4">
       <div class="bg-slate-900 p-2.5 rounded-2xl shadow-md border border-slate-800 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-1.5">
@@ -360,17 +352,32 @@
     let currentDraftQuestions = [];
     let currentBankQuestions = [];
 
-    // HÀM XỬ LÝ TOÁN VÀ DỌN DẸP LỖI OCR LATEX (NHƯ \circDJ, \text, $$)
+    // BỘ RỬA CÔNG THỨC TOÁN LATEX TẬN GỐC - TRIỆT TIÊU LỖI CHỮ ĐỎ OCR
     function renderMath(text) {
       if (!text) return '';
       let s = String(text)
         .replace(/!\[.*?\](?:\(.*?\))?/g, '')
-        .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}') // Sửa lỗi dính chữ \circDJ
+        // 1. Sửa lỗi OCR dính dấu 2 mũ ^^ -> ^
+        .replace(/\^{2,}/g, '^')
+        // 2. Sửa lỗi \circ dính liền chữ cái: 30^\circDJ -> 30^\circ \text{DJ}
+        .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
+        .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
+        // 3. Sửa dấu mũ trơ trọi 30^^ -> 30^
+        .replace(/(\d+)\^\s*\\circ/g, '$1^\\circ')
+        // 4. Chuẩn hóa phân số dính biến ngoài ngoặc: {6} R -> {6}R
+        .replace(/\{\s*6\s*\}\s*R/g, '{6} R')
         .replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, '$$$1$$')
         .replace(/\\text\s*\{([^}]*)\}/g, '$1')
         .replace(/\\text\s+/g, ' ')
         .replace(/\\times/g, '×');
 
+      // 5. Tự động đóng dấu $ cho các khối công thức bị rớt mất $ bên ngoài
+      s = s.replace(/(\\(?:widehat|frac|sqrt|cdot|tan|cos|sin|Delta|vec)[^$\n<]+)/g, (match) => {
+        let m = match.trim();
+        return m.startsWith('$') ? m : `$${m}$`;
+      });
+
+      // 6. Gọi KaTeX render an toàn
       s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, f) => {
         try { 
           return katex.renderToString(f.trim(), { throwOnError: false, displayMode: false }); 
@@ -389,7 +396,6 @@
       return s.trim();
     }
 
-    // BÓC BẢNG BAREM: ĐỒNG BỘ 15PX, TÁCH BAREM ĐIỂM CHUẨN ĐẸP
     function parseMarkdownTables(text) {
       if (!text || !text.includes('|')) return renderMath(text);
       const lines = text.split('\n');
@@ -533,7 +539,6 @@
 
       container.innerHTML = currentDraftQuestions.map((q, idx) => `
         <div class="card-question p-5 md:p-6 space-y-4">
-          <!-- THANH TIÊU ĐỀ CÂU HỎI -->
           <div class="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
             <div class="flex flex-wrap items-center gap-2">
               <input type="checkbox" name="draftCheckbox" value="${idx}" checked class="w-4 h-4 accent-indigo-600 cursor-pointer">
@@ -546,12 +551,10 @@
             <button onclick="removeDraftItem(${idx})" class="text-slate-400 hover:text-rose-600 font-bold px-2 py-1 text-sm cursor-pointer">✕</button>
           </div>
 
-          <!-- NỘI DUNG ĐỀ BÀI (15.5PX ĐẬM NÉT) -->
           <div class="question-content pl-2">
             ${cleanLatexMath(cleanQuestionContent(q.content || ''))}
           </div>
 
-          <!-- PHƯƠNG ÁN LỰA CHỌN -->
           ${q.options && q.options.length > 0 ? `
             <div class="pl-2 ${getOptionsGridClass(q.options)} gap-2.5 text-sm">
               ${q.options.map((o, i) => {
@@ -565,13 +568,11 @@
               }).join('')}
             </div>` : ''}
 
-          <!-- HÌNH MINH HỌA -->
           ${q.image_base64 ? `
             <div class="my-3 text-center">
               <img src="${q.image_base64}" class="max-h-64 rounded-xl border border-slate-200 p-1.5 bg-white shadow-sm inline-block" alt="Hình">
             </div>` : ''}
 
-          <!-- HỘP LỜI GIẢI / BAREM (NỀN XANH EMERALD TÁCH BIỆT RÕ RÀNG) -->
           ${q.explanation ? `
             <div class="card-solution">
               <div class="solution-header">
