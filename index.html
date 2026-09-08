@@ -211,7 +211,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI: GIẤY THI -->
+    <!-- CỘT PHẢI -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-8 h-full overflow-y-auto flex flex-col items-center">
       <div id="examContainer" class="exam-paper w-full max-w-4xl p-6 sm:p-12 rounded-2xl leading-relaxed text-slate-900 mb-12 border border-slate-200">
         
@@ -308,7 +308,7 @@
 
     let currentExamData = null;
     let currentLevel = 'thpt';
-    let isExamSolutionVisible = true; // Trạng thái ẩn/hiện lời giải trên giấy thi
+    let isExamSolutionVisible = false; // Mặc định ở màn hình soạn đề là Ẩn lời giải để in đề
 
     const LEVEL_CONFIGS = {
       tieuhoc: { name: "Tiểu học", grades: [1, 2, 3, 4, 5], subjects: ["Toán học", "Tiếng Việt"], schools: ["TRƯỜNG TIỂU HỌC NGUYỄN THIỆN THUẬT"] },
@@ -347,10 +347,7 @@
             part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
               let pfx = prefix || '';
               let exp = expr.trim();
-              if (exp.length > 0) {
-                return `${pfx}$${exp}$`;
-              }
-              return match;
+              return exp.length > 0 ? `${pfx}$${exp}$` : match;
             });
           }
           rebuilt.push(part);
@@ -422,6 +419,7 @@
       return parseMarkdownTables(String(raw));
     }
 
+    // Bảng tùy chọn A B C D cố định cột 1 dòng, 2 dòng hoặc 4 dòng
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
@@ -644,7 +642,7 @@
           body: JSON.stringify({
             base_exam: currentExamData.base_exam,
             level: currentLevel,
-            include_answers: isExamSolutionVisible // Tự động đồng bộ việc có in kèm Lời giải vào file Word hay không
+            include_answers: isExamSolutionVisible
           })
         });
 
@@ -669,7 +667,6 @@
       }
     }
 
-    // SAO CHÉP DÁN TRỰC TIẾP VÀO WORD (TỰ ĐỘNG LỌC BỎ LỜI GIẢI NẾU ĐANG ẨN)
     async function copyRichExamToClipboard() {
       const container = document.getElementById('examContainer');
       if (!container) {
@@ -677,7 +674,6 @@
         return;
       }
       try {
-        // Sao chép bản sao DOM để xử lý mà không ảnh hưởng màn hình hiển thị
         const clone = container.cloneNode(true);
         if (!isExamSolutionVisible) {
           clone.querySelectorAll('.paper-solution-box').forEach(el => el.remove());
@@ -690,8 +686,8 @@
         await navigator.clipboard.write(data);
         
         const msg = isExamSolutionVisible 
-          ? "Đã sao chép đề thi KÈM LỜI GIẢI! Mở Word và bấm Ctrl + V (Dán)."
-          : "Đã sao chép ĐỀ THI (ĐÃ ẨN LỜI GIẢI)! Mở Word và bấm Ctrl + V (Dán) để in đề cho học sinh.";
+          ? "Đã sao chép đề thi KÈM LỜI GIẢI! Mở Word và bấm Ctrl + V."
+          : "Đã sao chép ĐỀ THI (ĐÃ ẨN LỜI GIẢI)! Mở Word và bấm Ctrl + V.";
         alert(msg);
       } catch (e) {
         alert("Không thể sao chép tự động: " + e.message);

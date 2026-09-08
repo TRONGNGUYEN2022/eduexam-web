@@ -49,7 +49,6 @@
       padding: 16px 18px;
       margin-top: 14px;
       box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
-      transition: all 0.2s ease;
     }
     .solution-header {
       color: #065f46;
@@ -131,9 +130,9 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2">
-      <!-- NÚT BẬT / TẮT LỜI GIẢI -->
-      <button id="btnToggleSolution" onclick="toggleSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-eye-slash" id="toggleSolutionIcon"></i> <span id="toggleSolutionText">Ẩn Lời Giải</span>
+      <!-- NÚT ẨN / HIỆN LỜI GIẢI -->
+      <button id="btnToggleBankSol" onclick="toggleBankSolutions()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-eye-slash" id="toggleBankSolIcon"></i> <span id="toggleBankSolText">Ẩn Lời Giải</span>
       </button>
 
       <button id="btnRestoreGDrive" onclick="restoreDatabaseFromGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
@@ -182,7 +181,6 @@
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Khối lớp:</label>
               <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none">
-                <!-- Điền tự động theo Cấp học -->
               </select>
             </div>
           </div>
@@ -378,7 +376,7 @@
     let currentInputMode = 'auto';
     let currentDraftQuestions = [];
     let currentBankQuestions = [];
-    let isSolutionVisible = true; // Trạng thái hiển thị lời giải
+    let isBankSolutionVisible = true;
 
     const STAGE_CONFIG = {
       tieuhoc: { grades: [1, 2, 3, 4, 5], defaultGrade: 5 },
@@ -394,17 +392,17 @@
       gradeSel.value = cfg.defaultGrade;
     }
 
-    function toggleSolutionsVisibility() {
-      isSolutionVisible = !isSolutionVisible;
+    function toggleBankSolutions() {
+      isBankSolutionVisible = !isBankSolutionVisible;
       const boxes = document.querySelectorAll('.card-solution');
       boxes.forEach(box => {
-        box.style.display = isSolutionVisible ? 'block' : 'none';
+        box.style.display = isBankSolutionVisible ? 'block' : 'none';
       });
-      document.getElementById('toggleSolutionText').innerText = isSolutionVisible ? 'Ẩn Lời Giải' : 'Hiện Lời Giải';
-      document.getElementById('toggleSolutionIcon').className = isSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+      document.getElementById('toggleBankSolText').innerText = isBankSolutionVisible ? 'Ẩn Lời Giải' : 'Hiện Lời Giải';
+      document.getElementById('toggleBankSolIcon').className = isBankSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
     }
 
-    // THUẬT TOÁN TOKENIZER TOÁN HỌC TỔNG QUÁT
+    // TOKENIZER TOÁN HỌC TỔNG QUÁT: Nhận diện theo cấu trúc từ vựng TeX
     function renderMath(text) {
       if (!text) return '';
       let s = String(text);
@@ -426,10 +424,7 @@
             part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
               let pfx = prefix || '';
               let exp = expr.trim();
-              if (exp.length > 0) {
-                return `${pfx}$${exp}$`;
-              }
-              return match;
+              return exp.length > 0 ? `${pfx}$${exp}$` : match;
             });
           }
           rebuilt.push(part);
@@ -692,7 +687,7 @@
             </div>` : ''}
 
           ${q.explanation ? `
-            <div class="card-solution" style="display: ${isSolutionVisible ? 'block' : 'none'};">
+            <div class="card-solution" style="display: ${isBankSolutionVisible ? 'block' : 'none'};">
               <div class="solution-header">
                 <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
@@ -787,7 +782,7 @@
           ${r.image_base64 ? `<div class="my-3 text-center"><img src="${r.image_base64}" class="max-h-64 rounded-xl border border-slate-200 p-1.5 bg-white shadow-sm inline-block"></div>` : ''}
 
           ${r.explanation ? `
-            <div class="card-solution" style="display: ${isSolutionVisible ? 'block' : 'none'};">
+            <div class="card-solution" style="display: ${isBankSolutionVisible ? 'block' : 'none'};">
               <div class="solution-header">
                 <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
