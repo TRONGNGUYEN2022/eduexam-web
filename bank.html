@@ -139,7 +139,7 @@
         </button>
       </div>
 
-      <!-- CHẾ ĐỘ 1: ZIP -->
+      <!-- CHẾ ĐỘ 1: ZIP (ĐỒNG BỘ CẤP HỌC & KHỐI LỚP) -->
       <div id="autoModeSection" class="space-y-3">
         <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5">
           <span class="font-bold text-white flex items-center gap-2">
@@ -148,7 +148,7 @@
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Cấp học:</label>
-              <select id="autoStageSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none">
+              <select id="autoStageSelect" onchange="syncStageGradeSelector('autoStageSelect', 'autoGradeSelect')" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none">
                 <option value="thpt" selected>THPT</option>
                 <option value="thcs">THCS</option>
                 <option value="tieuhoc">Tiểu học</option>
@@ -157,10 +157,7 @@
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Khối lớp:</label>
               <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none">
-                <option value="12" selected>Lớp 12</option>
-                <option value="11">Lớp 11</option>
-                <option value="10">Lớp 10</option>
-                <option value="9">Lớp 9</option>
+                <!-- Điền tự động theo Cấp học -->
               </select>
             </div>
           </div>
@@ -204,6 +201,14 @@
               <option value="11">Lớp 11</option>
               <option value="10">Lớp 10</option>
               <option value="9">Lớp 9</option>
+              <option value="8">Lớp 8</option>
+              <option value="7">Lớp 7</option>
+              <option value="6">Lớp 6</option>
+              <option value="5">Lớp 5</option>
+              <option value="4">Lớp 4</option>
+              <option value="3">Lớp 3</option>
+              <option value="2">Lớp 2</option>
+              <option value="1">Lớp 1</option>
             </select>
           </div>
           <div>
@@ -311,9 +316,10 @@
         <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
           <select id="filterGrade" onchange="loadBankQuestions()" class="border border-slate-700 p-2 rounded-xl bg-slate-950 text-white font-medium outline-none">
             <option value="">-- Tất cả khối --</option>
-            <option value="6">Lớp 6</option><option value="7">Lớp 7</option><option value="8">Lớp 8</option>
-            <option value="9">Lớp 9</option><option value="10">Lớp 10</option><option value="11">Lớp 11</option>
-            <option value="12" selected>Lớp 12</option>
+            <option value="1">Lớp 1</option><option value="2">Lớp 2</option><option value="3">Lớp 3</option>
+            <option value="4">Lớp 4</option><option value="5">Lớp 5</option><option value="6">Lớp 6</option>
+            <option value="7">Lớp 7</option><option value="8">Lớp 8</option><option value="9">Lớp 9</option>
+            <option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12" selected>Lớp 12</option>
           </select>
           <select id="filterCognitive" onchange="loadBankQuestions()" class="border border-slate-700 p-2 rounded-xl bg-slate-950 text-indigo-300 font-bold outline-none">
             <option value="">-- Mức độ --</option>
@@ -348,43 +354,82 @@
     let currentDraftQuestions = [];
     let currentBankQuestions = [];
 
-    // BỘ VÁ TOÁN TOÀN DIỆN
+    // CẤU HÌNH TỔNG QUÁT MA TRẬN GDPT 2018
+    const STAGE_CONFIG = {
+      tieuhoc: { grades: [1, 2, 3, 4, 5], defaultGrade: 5 },
+      thcs: { grades: [6, 7, 8, 9], defaultGrade: 9 },
+      thpt: { grades: [10, 11, 12], defaultGrade: 12 }
+    };
+
+    function syncStageGradeSelector(stageSelId, gradeSelId) {
+      const stage = document.getElementById(stageSelId).value;
+      const cfg = STAGE_CONFIG[stage] || STAGE_CONFIG.thpt;
+      const gradeSel = document.getElementById(gradeSelId);
+      gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+      gradeSel.value = cfg.defaultGrade;
+    }
+
+    // THUẬT TOÁN TOKENIZER TOÁN HỌC TỔNG QUÁT (KHÔNG ĐẶC BIỆT HOÁ TỪNG LỆNH)
     function renderMath(text) {
       if (!text) return '';
       let s = String(text);
 
-      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
+      // 1. Khử heading thừa
+      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài|Question)\s*\d+[\s.:*]*/gmi, '');
+
+      // 2. Chuẩn hoá các lỗi OCR thông dụng
       s = s.replace(/\^{2,}/g, '^')
            .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
-           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ \1}')
-           .replace(/\{\s*6\s*\}\s*R/g, '{6} R')
+           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
            .replace(/\\text\s*\{([^}]*)\}/g, '$1')
            .replace(/\\times/g, '×');
 
-      s = s.replace(/([=:])\s*(\\(?:sqrt|frac|int|sum|prod|pm|pi|left|right|vec|overrightarrow|widehat)\b[^\n\$]+?)(\$\$|\$|\.|\,|$|\n)/g, (m, p1, p2, p3) => {
-        let cleanP2 = p2.trim();
-        let endPunc = (p3 === '$$' || p3 === '$') ? '' : p3;
-        return `${p1} $${cleanP2}$ ${endPunc}`;
-      });
+      // 3. TỰ ĐỘNG CÂN BẰNG DẤU $ TOÀN VĂN:
+      // Tách văn bản theo các đoạn $...$
+      // Nếu phát hiện một đoạn văn bản thường nằm ngoài $ có chứa ký tự escape '\' (ký hiệu của lệnh LaTeX)
+      // thì gom toàn bộ biểu thức chứa ký tự đó vào trong $...$
+      const parts = s.split('$');
+      let rebuilt = [];
 
-      s = s.replace(/\$\$/g, '$');
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i];
+        if (i % 2 === 0) {
+          // Đoạn text thông thường (nằm ngoài $)
+          if (part.includes('\\')) {
+            // Biểu thức toán tổng quát: bắt từ vị trí có toán tử (=, :, là) hoặc lệnh TeX
+            // đến hết các ký tự toán học (số, chữ cái, ngoặc {}, [], (), dấu phẩy, mũ, gạch dưới)
+            part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
+              let pfx = prefix || '';
+              let exp = expr.trim();
+              if (exp.length > 0) {
+                return `${pfx}$${exp}$`;
+              }
+              return match;
+            });
+          }
+          rebuilt.push(part);
+        } else {
+          // Đoạn đã nằm giữa 2 dấu $ -> giữ nguyên an toàn
+          rebuilt.push(`$${part}$`);
+        }
+      }
 
-      s = s.replace(/(?<!\$)([\\](?:widehat|frac|sqrt|cdot|tan|cos|sin|Delta|vec|overrightarrow|int|pm|pi|left|right)\b[^$\n]+?)(?!\$)/g, (match) => {
-        let m = match.trim();
-        if (m.startsWith('$') && m.endsWith('$')) return m;
-        if (m.includes('<') || m.includes('>')) return m;
-        return `$${m}$`;
-      });
-
+      s = rebuilt.join('');
+      // Dọn dấu $ lồng nhau
       s = s.replace(/\${2,}/g, '$');
 
-      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, f) => {
-        try { 
-          return katex.renderToString(f.trim(), { throwOnError: false, displayMode: false }); 
-        } catch (e) { 
-          return f; 
+      // 4. Render KaTeX với cơ chế an toàn tổng quát (không bao giờ văng text đỏ)
+      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), {
+            throwOnError: false,
+            displayMode: false
+          });
+        } catch (e) {
+          return formula;
         }
       });
+
       return s;
     }
 
@@ -771,6 +816,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      syncStageGradeSelector('autoStageSelect', 'autoGradeSelect');
       updateTotalBankCount();
     });
   </script>

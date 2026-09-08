@@ -290,35 +290,46 @@
       s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
       s = s.replace(/\^{2,}/g, '^')
            .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
-           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ \1}')
-           .replace(/\{\s*6\s*\}\s*R/g, '{6} R')
+           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
            .replace(/\\text\s*\{([^}]*)\}/g, '$1')
            .replace(/\\times/g, '×');
 
-      s = s.replace(/([=:])\s*(\\(?:sqrt|frac|int|sum|prod|pm|pi|left|right|vec|overrightarrow|widehat)\b[^\n\$]+?)(\$\$|\$|\.|\,|$|\n)/g, (m, p1, p2, p3) => {
-        let cleanP2 = p2.trim();
-        let endPunc = (p3 === '$$' || p3 === '$') ? '' : p3;
-        return `${p1} $${cleanP2}$ ${endPunc}`;
-      });
+      const parts = s.split('$');
+      let rebuilt = [];
 
-      s = s.replace(/\$\$/g, '$');
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i];
+        if (i % 2 === 0) {
+          if (part.includes('\\')) {
+            part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
+              let pfx = prefix || '';
+              let exp = expr.trim();
+              if (exp.length > 0) {
+                return `${pfx}$${exp}$`;
+              }
+              return match;
+            });
+          }
+          rebuilt.push(part);
+        } else {
+          rebuilt.push(`$${part}$`);
+        }
+      }
 
-      s = s.replace(/(?<!\$)([\\](?:widehat|frac|sqrt|cdot|tan|cos|sin|Delta|vec|overrightarrow|int|pm|pi|left|right)\b[^$\n]+?)(?!\$)/g, (match) => {
-        let m = match.trim();
-        if (m.startsWith('$') && m.endsWith('$')) return m;
-        if (m.includes('<') || m.includes('>')) return m;
-        return `$${m}$`;
-      });
-
+      s = rebuilt.join('');
       s = s.replace(/\${2,}/g, '$');
 
-      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, f) => {
-        try { 
-          return katex.renderToString(f.trim(), { throwOnError: false, displayMode: false }); 
-        } catch (e) { 
-          return f; 
+      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), {
+            throwOnError: false,
+            displayMode: false
+          });
+        } catch (e) {
+          return formula;
         }
       });
+
       return s;
     }
 
@@ -396,7 +407,7 @@
       const cfg = LEVEL_CONFIGS[currentLevel];
       const gradeSel = document.getElementById('grade');
       gradeSel.innerHTML = cfg.grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
-      gradeSel.value = currentLevel === 'thpt' ? "12" : (currentLevel === 'thcs' ? "9" : "4");
+      gradeSel.value = currentLevel === 'thpt' ? "12" : (currentLevel === 'thcs' ? "9" : "5");
 
       const subjSel = document.getElementById('subject');
       subjSel.innerHTML = cfg.subjects.map(s => `<option value="${s}">${s}</option>`).join('');
