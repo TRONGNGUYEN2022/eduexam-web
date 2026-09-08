@@ -27,7 +27,6 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* FONT SIZE 16PX RÕ NÉT */
     .card-question {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -133,7 +132,6 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2">
-      <!-- NÚT ẨN / HIỆN LỜI GIẢI -->
       <button id="btnToggleBankSol" onclick="toggleBankSolutions()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-eye-slash" id="toggleBankSolIcon"></i> <span id="toggleBankSolText">Ẩn Lời Giải</span>
       </button>
@@ -154,7 +152,6 @@
   </header>
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
-    
     <!-- CỘT TRÁI -->
     <aside class="w-full md:w-96 lg:w-[420px] bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
       <div class="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 font-bold">
@@ -166,7 +163,6 @@
         </button>
       </div>
 
-      <!-- CHẾ ĐỘ 1: ZIP (ĐỒNG BỘ CẤP HỌC & KHỐI LỚP) -->
       <div id="autoModeSection" class="space-y-3">
         <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5">
           <span class="font-bold text-white flex items-center gap-2">
@@ -183,8 +179,7 @@
             </div>
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Khối lớp:</label>
-              <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none">
-              </select>
+              <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none"></select>
             </div>
           </div>
           <div>
@@ -217,7 +212,6 @@
         </div>
       </div>
 
-      <!-- CHẾ ĐỘ 2: THỦ CÔNG -->
       <div id="manualModeSection" class="hidden space-y-2.5">
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -409,7 +403,7 @@
       if (!text) return '';
       let s = String(text);
 
-      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài|Question)\s*\d+[\s.:*]*/gmi, '');
+      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài|Question)\s*\d+[\s.:*]*/, '');
       s = s.replace(/\^{2,}/g, '^')
            .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
            .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
@@ -452,11 +446,12 @@
       return s;
     }
 
+    // Bảo toàn đỉnh ABCD không bị cắt nhầm chữ
     function cleanQuestionContent(content) {
       if (!content) return '';
       let s = String(content);
       s = s.replace(/\s*(?:Trang\s*\d+\/\d+|Mã\s*đề(?:\s*thi)?\s*[\d\w]+|\*\*PHẦN\s*[I|V|X]+[\s\S]*).*$/i, '');
-      s = s.replace(/\s*(?:[A-D]\.|\b[A-D]\s*[\.,:])\s*[\s\S]*$/, '');
+      s = s.replace(/(?:^|\n)\s*(?:\*\*)?[A-D][\.,:]\s*[\s\S]*$/, '');
       return s.trim();
     }
 
@@ -497,6 +492,7 @@
       return parseMarkdownTables(String(raw));
     }
 
+    // Giữ layout 1 dòng (4 cột), 2 dòng (2 cột) hoặc 4 dòng (1 cột)
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
