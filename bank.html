@@ -219,7 +219,7 @@
         </div>
       </div>
 
-      <!-- TAB 1: BẢN NHÁP (KÈM BỘ LỌC) -->
+      <!-- TAB 1: BẢN NHÁP (KÈM BỘ LỌC BÀI HỌC / CHỦ ĐỀ) -->
       <div id="draftSection" class="space-y-3">
         <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
           <div class="relative">
@@ -254,7 +254,7 @@
         </div>
       </div>
 
-      <!-- TAB 2: KHO ĐÃ LƯU (KÈM BỘ LỌC) -->
+      <!-- TAB 2: KHO ĐÃ LƯU (KÈM BỘ LỌC BÀI HỌC / CHỦ ĐỀ) -->
       <div id="bankSection" class="hidden space-y-3">
         <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
           <select id="filterGrade" onchange="loadBankQuestions()" class="border border-slate-700 p-2 rounded-xl bg-slate-950 text-white font-medium outline-none">
@@ -416,6 +416,27 @@
       document.getElementById('modeBtnManual').className = !isAuto ? "py-2 rounded-lg bg-indigo-600 text-white shadow transition cursor-pointer" : "py-2 rounded-lg text-slate-400 hover:text-white transition cursor-pointer";
       document.getElementById('autoModeSection').classList.toggle('hidden', !isAuto);
       document.getElementById('manualModeSection').classList.toggle('hidden', isAuto);
+    }
+
+    async function saveManualQuestionDirectly() {
+      const content = document.getElementById('mContent').value.trim();
+      if (!content) { alert("Vui lòng nhập nội dung đề!"); return; }
+      try {
+        await fetch(`${API_BASE_URL}/api/questions/save`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            level_stage: "thpt", grade: parseInt(document.getElementById('mGrade').value) || 12,
+            subject: document.getElementById('mSubject').value, topic: document.getElementById('mLesson').value.trim() || "Chung",
+            lesson: document.getElementById('mLesson').value.trim() || "Chung", level: "Thông hiểu",
+            cognitive_level: document.getElementById('mCognitive').value, q_type: document.getElementById('mType').value,
+            content: content, options: [], correct_answer: "", explanation: document.getElementById('mExplanation').value.trim(),
+            has_image: 0, image_base64: ""
+          })
+        });
+        alert("Đã lưu thành công!");
+        updateTotalBankCount();
+        switchView('bank');
+      } catch (err) { alert("Lỗi: " + err.message); }
     }
 
     async function startParseExamFile() {
