@@ -166,7 +166,7 @@
         </button>
       </div>
 
-      <!-- CHẾ ĐỘ 1: ZIP (ĐỒNG BỘ CẤP HỌC & KHỐI LỚP) -->
+      <!-- CHẾ ĐỘ 1: ZIP -->
       <div id="autoModeSection" class="space-y-3">
         <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5">
           <span class="font-bold text-white flex items-center gap-2">
@@ -409,7 +409,7 @@
       if (!text) return '';
       let s = String(text);
 
-      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
+      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài|Question)\s*\d+[\s.:*]*/gmi, '');
       s = s.replace(/\^{2,}/g, '^')
            .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
            .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
