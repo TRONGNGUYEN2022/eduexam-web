@@ -49,6 +49,7 @@
       padding: 16px 18px;
       margin-top: 14px;
       box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);
+      transition: all 0.3s ease;
     }
     .solution-header {
       color: #065f46;
@@ -111,12 +112,17 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-2">
+      <!-- Nút Ẩn/Hiện Lời Giải Toàn Bộ -->
+      <button id="btnToggleSolutions" onclick="toggleGlobalSolutions()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
+        <i class="fa-solid fa-eye-slash text-amber-300" id="iconToggleSol"></i> <span id="textToggleSol">Ẩn Lời Giải</span>
+      </button>
+
       <button id="btnRestoreGDrive" onclick="restoreDatabaseFromGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-solid fa-cloud-arrow-down text-indigo-400"></i> <span>Khôi Phục GDrive</span>
+        <i class="fa-solid fa-cloud-arrow-down text-indigo-400"></i> <span class="hidden md:inline">Khôi Phục GDrive</span>
       </button>
 
       <button id="btnBackupGDrive" onclick="uploadDatabaseToGoogleDrive()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs px-3 py-1.5 rounded-lg border border-slate-700 shadow flex items-center gap-1.5 transition cursor-pointer">
-        <i class="fa-brands fa-google-drive text-emerald-400"></i> <span>Sao Lưu GDrive</span>
+        <i class="fa-brands fa-google-drive text-emerald-400"></i> <span class="hidden md:inline">Sao Lưu GDrive</span>
       </button>
 
       <a href="index.html" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3.5 py-1.5 rounded-lg shadow-md flex items-center gap-2 transition border border-indigo-400/40">
@@ -157,7 +163,6 @@
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Khối lớp:</label>
               <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none">
-                <!-- Điền tự động theo Cấp học -->
               </select>
             </div>
           </div>
@@ -353,8 +358,8 @@
     let currentInputMode = 'auto';
     let currentDraftQuestions = [];
     let currentBankQuestions = [];
+    let isSolutionsVisible = true; // Trạng thái ẩn/hiện lời giải
 
-    // CẤU HÌNH TỔNG QUÁT MA TRẬN GDPT 2018
     const STAGE_CONFIG = {
       tieuhoc: { grades: [1, 2, 3, 4, 5], defaultGrade: 5 },
       thcs: { grades: [6, 7, 8, 9], defaultGrade: 9 },
@@ -369,7 +374,15 @@
       gradeSel.value = cfg.defaultGrade;
     }
 
-    // THUẬT TOÁN TOKENIZER TOÁN HỌC TỔNG QUÁT
+    function toggleGlobalSolutions() {
+      isSolutionsVisible = !isSolutionsVisible;
+      document.querySelectorAll('.card-solution').forEach(el => {
+        el.style.display = isSolutionsVisible ? 'block' : 'none';
+      });
+      document.getElementById('textToggleSol').innerText = isSolutionsVisible ? "Ẩn Lời Giải" : "Hiện Lời Giải";
+      document.getElementById('iconToggleSol').className = isSolutionsVisible ? "fa-solid fa-eye-slash text-amber-300" : "fa-solid fa-eye text-emerald-400";
+    }
+
     function renderMath(text) {
       if (!text) return '';
       let s = String(text);
@@ -391,10 +404,7 @@
             part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
               let pfx = prefix || '';
               let exp = expr.trim();
-              if (exp.length > 0) {
-                return `${pfx}$${exp}$`;
-              }
-              return match;
+              return exp.length > 0 ? `${pfx}$${exp}$` : match;
             });
           }
           rebuilt.push(part);
@@ -465,14 +475,16 @@
       return parseMarkdownTables(String(raw));
     }
 
+    // THUẬT TOÁN DÀN ĐÁP ÁN 1 HÀNG, 2 HÀNG HOẶC 4 HÀNG
     function getOptionsGridClass(options) {
       if (!options || options.length === 0) return '';
       const rawList = options.map(o => String(o));
       const maxLen = Math.max(...rawList.map(t => t.length), 0);
-      const hasComplex = rawList.some(t => /\\(frac|int|sqrt|sum|prod)/.test(t));
-      if (hasComplex || maxLen > 45) return 'grid grid-cols-1';
-      if (maxLen > 20) return 'grid grid-cols-1 sm:grid-cols-2';
-      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';
+      const hasComplex = rawList.some(t => /\\(frac|int|sqrt|sum|prod|begin\{cases\})/.test(t));
+      
+      if (hasComplex || maxLen > 45) return 'grid grid-cols-1'; // 4 hàng
+      if (maxLen > 20) return 'grid grid-cols-1 sm:grid-cols-2'; // 2 hàng
+      return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4';   // 1 hàng duy nhất
     }
 
     function renderCognitivePicker(idx, currentM, scope) {
@@ -636,7 +648,7 @@
             </div>` : ''}
 
           ${q.explanation ? `
-            <div class="card-solution">
+            <div class="card-solution" style="display: ${isSolutionsVisible ? 'block' : 'none'};">
               <div class="solution-header">
                 <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
@@ -736,7 +748,7 @@
           ${r.image_base64 ? `<div class="my-3 text-center"><img src="${r.image_base64}" class="max-h-64 rounded-xl border border-slate-200 p-1.5 bg-white shadow-sm inline-block"></div>` : ''}
 
           ${r.explanation ? `
-            <div class="card-solution">
+            <div class="card-solution" style="display: ${isSolutionsVisible ? 'block' : 'none'};">
               <div class="solution-header">
                 <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
