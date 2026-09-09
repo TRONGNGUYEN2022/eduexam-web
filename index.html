@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
   <script defer src="https://unpkg.com/mathlive"></script>
   <link rel="stylesheet" type="text/css" href="https://tikzjax.com/v1/fonts.css">
   <script src="https://tikzjax.com/v1/tikzjax.js"></script>
@@ -37,6 +36,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+    /* NỘI DUNG ĐỀ THI 16PX RÕ NÉT */
     .paper-question-box {
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
@@ -136,6 +136,7 @@
     </div>
     
     <div class="flex flex-wrap items-center gap-1.5 justify-end">
+      <!-- NÚT ẨN / HIỆN LỜI GIẢI MẶC ĐỊNH LÀ ẨN -->
       <button id="btnToggleExamSolution" onclick="toggleExamSolutionsVisibility()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 font-semibold text-xs px-2.5 py-1.5 rounded-lg border border-slate-700 shadow-sm flex items-center gap-1.5 transition cursor-pointer">
         <i class="fa-solid fa-eye" id="toggleExamIcon"></i> <span id="toggleExamText">Hiện Lời Giải</span>
       </button>
@@ -160,6 +161,7 @@
   </header>
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
+    
     <!-- CỘT TRÁI -->
     <aside id="configSidebar" class="w-full md:w-84 lg:w-96 bg-slate-900/90 backdrop-blur-md border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
       <div class="space-y-3">
@@ -325,18 +327,47 @@
       document.getElementById('toggleExamIcon').className = isExamSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
     }
 
-    function renderKaTeXInElement(container) {
-      if (window.renderMathInElement) {
-        renderMathInElement(container, {
-          delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false},
-            {left: '\\[', right: '\\]', display: true},
-            {left: '\\(', right: '\\)', display: false}
-          ],
-          throwOnError: false
-        });
+    function renderMath(text) {
+      if (!text) return '';
+      let s = String(text);
+
+      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
+      s = s.replace(/\^{2,}/g, '^')
+           .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
+           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
+           .replace(/\\text\s*\{([^}]*)\}/g, '$1')
+           .replace(/\\times/g, '×');
+
+      const parts = s.split('$');
+      let rebuilt = [];
+
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i];
+        if (i % 2 === 0) {
+          if (part.includes('\\')) {
+            part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
+              let pfx = prefix || '';
+              let exp = expr.trim();
+              return exp.length > 0 ? `${pfx}$${exp}$` : match;
+            });
+          }
+          rebuilt.push(part);
+        } else {
+          rebuilt.push(`$${part}$`);
+        }
       }
+
+      s = rebuilt.join('');
+      s = s.replace(/\${2,}/g, '$');
+
+      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
+        try { 
+          return katex.renderToString(formula.trim(), { throwOnError: false, displayMode: false }); 
+        } catch (e) { 
+          return formula; 
+        }
+      });
+      return s;
     }
 
     function cleanOptionText(text) {
@@ -344,17 +375,16 @@
       return String(text).replace(/^[A-D]\s*[\.,:]\s*/i, '').trim();
     }
 
-    // BẢO TOÀN ĐỈNH ABCD (Chỉ cắt khi A-D đứng đầu dòng mới)
     function cleanQuestionContent(content) {
       if (!content) return '';
       let s = String(content);
       s = s.replace(/\s*(?:Trang\s*\d+\/\d+|Mã\s*đề(?:\s*thi)?\s*[\d\w]+|\*\*PHẦN\s*[I|V|X]+[\s\S]*).*$/i, '');
-      s = s.replace(/(?:^|\n)\s*(?:\*\*)?[A-D][\.,:]\s*[\s\S]*$/, '');
+      s = s.replace(/\s*(?:[A-D]\.|\b[A-D]\s*[\.,:])\s*[\s\S]*$/, '');
       return s.trim();
     }
 
     function parseMarkdownTables(text) {
-      if (!text || !text.includes('|')) return text;
+      if (!text || !text.includes('|')) return renderMath(text);
       const lines = text.split('\n');
       let inTable = false;
       let tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
@@ -369,7 +399,7 @@
           tableHtml += '<tr>' + cells.map((c, idx) => {
             const isScoreCol = idx === cells.length - 1 && cells.length > 1;
             const alignClass = isScoreCol ? 'text-center font-bold text-emerald-800 bg-emerald-50/50 w-24' : 'text-left';
-            return `<td class="${alignClass}">${c.trim()}</td>`;
+            return `<td class="${alignClass}">${renderMath(c.trim())}</td>`;
           }).join('') + '</tr>';
         } else {
           if (inTable) {
@@ -378,20 +408,24 @@
             tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
             inTable = false;
           }
-          if (trimmed) newLines.push(trimmed);
+          if (trimmed) newLines.push(renderMath(trimmed));
         }
       }
       if (inTable) { tableHtml += '</tbody></table></div>'; newLines.push(tableHtml); }
       return newLines.join('<br/>');
     }
 
-    // BẢO ĐẢM TRẮC NGHIỆM A B C D: 1 DÒNG (4 CỘT), 2 DÒNG (2 CỘT), 4 DÒNG (1 CỘT)
+    function cleanLatexMath(raw) {
+      if (!raw) return '';
+      return parseMarkdownTables(String(raw));
+    }
+
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
       const rawOpts = options.map((o, i) => ({
         letter: letters[i] || `(${i+1})`,
-        text: cleanOptionText(o)
+        text: cleanLatexMath(cleanOptionText(o))
       }));
 
       const maxLen = Math.max(...options.map(o => String(o).length));
@@ -473,7 +507,7 @@
             <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
             <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
           </div>
-          <div class="paper-question-text">${parseMarkdownTables(cleanQuestionContent(q.content || ''))}</div>
+          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
           ${formatTikzHtml(q.tikz_code, q.image_base64)}
           ${renderOptionsTable(q.options)}
 
@@ -482,7 +516,7 @@
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
-              <div class="paper-solution-text">${parseMarkdownTables(q.explanation)}</div>
+              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
             </div>` : ''}
         </div>
       `).join('');
@@ -494,7 +528,7 @@
             <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
             <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M2'}</span>
           </div>
-          <div class="paper-question-text">${parseMarkdownTables(cleanQuestionContent(q.content || ''))}</div>
+          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
           ${formatTikzHtml(q.tikz_code, q.image_base64)}
 
           ${q.explanation ? `
@@ -502,7 +536,7 @@
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
-              <div class="paper-solution-text">${parseMarkdownTables(q.explanation)}</div>
+              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
             </div>` : ''}
         </div>
       `).join('');
@@ -514,7 +548,7 @@
             <span class="font-extrabold text-indigo-950 text-base">Câu ${idx + 1}:</span>
             <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200">${q.cognitive_level || 'M3'}</span>
           </div>
-          <div class="paper-question-text">${parseMarkdownTables(cleanQuestionContent(q.content || ''))}</div>
+          <div class="paper-question-text">${cleanLatexMath(cleanQuestionContent(q.content || ''))}</div>
           ${formatTikzHtml(q.tikz_code, q.image_base64)}
           <p class="italic text-slate-500 font-semibold pt-1 text-xs">Đáp số: .....................................................</p>
 
@@ -523,12 +557,10 @@
               <div class="paper-solution-title">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i> Lời giải chi tiết &amp; Barem:
               </div>
-              <div class="paper-solution-text">${parseMarkdownTables(q.explanation)}</div>
+              <div class="paper-solution-text">${cleanLatexMath(q.explanation)}</div>
             </div>` : ''}
         </div>
       `).join('');
-
-      renderKaTeXInElement(document.getElementById('examBody'));
     }
 
     async function openBankViewerModal() {
@@ -567,12 +599,10 @@
               <span class="font-bold text-indigo-900">#ID ${r.id} | Lớp ${r.grade} | Bài: ${r.lesson || r.topic}</span>
               <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-900 border border-indigo-200 text-xs font-bold">${r.cognitive_level || 'M2'}</span>
             </div>
-            <div class="text-slate-800 font-medium leading-relaxed">${parseMarkdownTables(cleanQuestionContent(r.content))}</div>
+            <div class="text-slate-800 font-medium leading-relaxed">${cleanLatexMath(cleanQuestionContent(r.content))}</div>
           </div>
         </div>
       `).join('');
-
-      renderKaTeXInElement(container);
     }
 
     async function generateExamFromSelectedBank() {
