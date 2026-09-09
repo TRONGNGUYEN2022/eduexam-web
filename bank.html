@@ -8,7 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -128,7 +127,7 @@
           <span>EduExam Studio</span>
           <span class="text-[10px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full font-extrabold uppercase">Quản Trị Kho</span>
         </h1>
-        <p class="text-[10px] text-slate-400 hidden sm:block">Số hóa đề thi Mistral OCR ZIP &amp; Quản trị ma trận GDPT 2018</p>
+        <p class="text-[10px] text-slate-400 hidden sm:block">Số hóa Word .docx, ZIP Mistral OCR &amp; Quản trị ma trận GDPT 2018</p>
       </div>
     </div>
     
@@ -153,17 +152,19 @@
   </header>
 
   <div class="flex flex-col md:flex-row flex-1 h-[calc(100vh-56px)] overflow-hidden">
-    <!-- CỘT TRÁI -->
+    
+    <!-- CỘT TRÁI: ĐIỀU KHIỂN NẠP LIỆU -->
     <aside class="w-full md:w-96 lg:w-[420px] bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 p-4 flex flex-col gap-3.5 shrink-0 h-full overflow-y-auto text-slate-300 text-xs">
       <div class="grid grid-cols-2 gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 font-bold">
         <button id="modeBtnAuto" onclick="switchInputMode('auto')" class="py-2 rounded-lg bg-indigo-600 text-white shadow transition flex items-center justify-center gap-1.5 cursor-pointer">
-          <i class="fa-solid fa-file-zipper"></i> <span>File ZIP OCR</span>
+          <i class="fa-solid fa-file-arrow-up"></i> <span>Nạp DOCX / ZIP</span>
         </button>
         <button id="modeBtnManual" onclick="switchInputMode('manual')" class="py-2 rounded-lg text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5 cursor-pointer">
           <i class="fa-solid fa-pen-to-square"></i> <span>Nhập Thủ Công</span>
         </button>
       </div>
 
+      <!-- CHẾ ĐỘ 1: TỰ ĐỘNG BÓC TÁCH FILE WORD / ZIP -->
       <div id="autoModeSection" class="space-y-3">
         <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2.5">
           <span class="font-bold text-white flex items-center gap-2">
@@ -180,7 +181,8 @@
             </div>
             <div>
               <label class="block font-semibold text-slate-400 mb-1">Khối lớp:</label>
-              <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none"></select>
+              <select id="autoGradeSelect" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-indigo-300 font-bold outline-none">
+              </select>
             </div>
           </div>
           <div>
@@ -193,26 +195,28 @@
           </div>
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Chủ đề mặc định:</label>
-            <input type="text" id="autoTopicInput" placeholder="Ví dụ: Ôn thi tốt nghiệp THPT..." 
+            <input type="text" id="autoTopicInput" placeholder="Ví dụ: Khảo sát hàm số, Hình học Oxyz..." 
                    class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none focus:border-indigo-500">
           </div>
         </div>
 
         <div class="bg-indigo-950/40 p-3.5 rounded-xl border border-indigo-500/30 space-y-2.5">
-          <label class="block font-bold text-indigo-200">
-            <i class="fa-solid fa-cloud-arrow-up text-indigo-400 mr-1"></i> Tệp .zip (Mistral OCR):
+          <label class="block font-bold text-indigo-200 flex items-center justify-between">
+            <span><i class="fa-solid fa-cloud-arrow-up text-indigo-400 mr-1"></i> Tệp đề thi:</span>
+            <span class="text-[10px] bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded font-extrabold">.DOCX &amp; .ZIP</span>
           </label>
-          <input type="file" id="examFileInput" accept=".zip"
+          <input type="file" id="examFileInput" accept=".docx, .zip"
                  class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer bg-slate-950 border border-slate-700 rounded-lg p-1.5">
           <button onclick="startParseExamFile()" id="btnStartParse" 
                   class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-md flex items-center justify-center gap-2 transition cursor-pointer">
             <i class="fa-solid fa-bolt text-amber-300"></i>
-            <span>Bóc Tách &amp; Xem Bản Nháp</span>
+            <span>Bóc Tách &amp; Đưa Vào Khung Lọc</span>
           </button>
           <div id="parseStatusText" class="text-[11px] font-medium text-slate-400 italic text-center min-h-[16px]"></div>
         </div>
       </div>
 
+      <!-- CHẾ ĐỘ 2: THỦ CÔNG -->
       <div id="manualModeSection" class="hidden space-y-2.5">
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -225,11 +229,6 @@
               <option value="8">Lớp 8</option>
               <option value="7">Lớp 7</option>
               <option value="6">Lớp 6</option>
-              <option value="5">Lớp 5</option>
-              <option value="4">Lớp 4</option>
-              <option value="3">Lớp 3</option>
-              <option value="2">Lớp 2</option>
-              <option value="1">Lớp 1</option>
             </select>
           </div>
           <div>
@@ -242,7 +241,7 @@
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-400 mb-1">Bài học cụ thể / Chủ đề:</label>
+          <label class="block font-semibold text-slate-400 mb-1">Chủ đề:</label>
           <input type="text" id="mLesson" placeholder="Nhập tên bài học..." class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-semibold outline-none">
         </div>
 
@@ -259,9 +258,9 @@
           <div>
             <label class="block font-semibold text-slate-400 mb-1">Dạng câu hỏi:</label>
             <select id="mType" class="w-full border border-slate-700 rounded-lg p-2 bg-slate-950 text-white font-medium outline-none">
-              <option value="essay" selected>Tự luận / Trả lời ngắn</option>
-              <option value="single_choice">Trắc nghiệm</option>
+              <option value="single_choice" selected>Trắc nghiệm</option>
               <option value="true_false">Đúng / Sai</option>
+              <option value="essay">Tự luận</option>
             </select>
           </div>
         </div>
@@ -287,7 +286,7 @@
       </div>
     </aside>
 
-    <!-- CỘT PHẢI -->
+    <!-- CỘT PHẢI: KHUNG LỌC BẢN NHÁP & KHO ĐÃ LƯU -->
     <main class="flex-1 bg-slate-950/80 p-4 md:p-6 h-full overflow-y-auto flex flex-col gap-4">
       <div class="bg-slate-900 p-2.5 rounded-2xl shadow-md border border-slate-800 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-1.5">
@@ -309,7 +308,7 @@
         </div>
       </div>
 
-      <!-- TAB 1: BẢN NHÁP -->
+      <!-- TAB 1: KHUNG LỌC BẢN NHÁP -->
       <div id="draftSection" class="space-y-4">
         <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
           <input type="text" id="draftFilterLesson" placeholder="Lọc theo bài học / chủ đề..." oninput="renderDraftView()"
@@ -332,7 +331,7 @@
         <div id="draftContainer" class="space-y-5"></div>
       </div>
 
-      <!-- TAB 2: KHO ĐÃ LƯU -->
+      <!-- TAB 2: KHO ĐÃ LƯU DATABASE -->
       <div id="bankSection" class="hidden space-y-4">
         <div class="bg-slate-900 p-3 rounded-2xl border border-slate-800 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
           <select id="filterGrade" onchange="loadBankQuestions()" class="border border-slate-700 p-2 rounded-xl bg-slate-950 text-white font-medium outline-none">
@@ -400,31 +399,63 @@
       document.getElementById('toggleBankSolIcon').className = isBankSolutionVisible ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
     }
 
-    function renderKaTeXInElement(container) {
-      if (window.renderMathInElement) {
-        renderMathInElement(container, {
-          delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false},
-            {left: '\\[', right: '\\]', display: true},
-            {left: '\\(', right: '\\)', display: false}
-          ],
-          throwOnError: false
-        });
+    function renderMath(text) {
+      if (!text) return '';
+      let s = String(text);
+
+      s = s.replace(/^(?:#+\s*|\*\*\s*)(?:Câu|Bài)\s*\d+[\s.:*]*/gmi, '');
+      s = s.replace(/\^{2,}/g, '^')
+           .replace(/(\d+)\s*\^?\s*\\circ\s*([a-zA-Z]+)/g, '$1^\\circ \\text{ $2}')
+           .replace(/\\circ\s*([a-zA-Z]+)/g, '^\\circ \\text{ $1}')
+           .replace(/\\text\s*\{([^}]*)\}/g, '$1')
+           .replace(/\\times/g, '×');
+
+      const parts = s.split('$');
+      let rebuilt = [];
+
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i];
+        if (i % 2 === 0) {
+          if (part.includes('\\')) {
+            part = part.replace(/([=:]\s*)?([a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|]*\\[a-zA-Z]+[a-zA-Z0-9_^{}\[\]\(\)\s+\-*\/,.<>|\\]*)/g, (match, prefix, expr) => {
+              let pfx = prefix || '';
+              let exp = expr.trim();
+              return exp.length > 0 ? `${pfx}$${exp}$` : match;
+            });
+          }
+          rebuilt.push(part);
+        } else {
+          rebuilt.push(`$${part}$`);
+        }
       }
+
+      s = rebuilt.join('');
+      s = s.replace(/\${2,}/g, '$');
+
+      s = s.replace(/\$([^\$\r\n]+?)\$/g, (m, formula) => {
+        try {
+          return katex.renderToString(formula.trim(), {
+            throwOnError: false,
+            displayMode: false
+          });
+        } catch (e) {
+          return formula;
+        }
+      });
+
+      return s;
     }
 
-    // BẢO TOÀN ĐỈNH ABCD (Chỉ cắt khi A-D đứng đầu dòng mới)
     function cleanQuestionContent(content) {
       if (!content) return '';
       let s = String(content);
       s = s.replace(/\s*(?:Trang\s*\d+\/\d+|Mã\s*đề(?:\s*thi)?\s*[\d\w]+|\*\*PHẦN\s*[I|V|X]+[\s\S]*).*$/i, '');
-      s = s.replace(/(?:^|\n)\s*(?:\*\*)?[A-D][\.,:]\s*[\s\S]*$/, '');
+      s = s.replace(/\s*(?:[A-D]\.|\b[A-D]\s*[\.,:])\s*[\s\S]*$/, '');
       return s.trim();
     }
 
     function parseMarkdownTables(text) {
-      if (!text || !text.includes('|')) return text;
+      if (!text || !text.includes('|')) return renderMath(text);
       const lines = text.split('\n');
       let inTable = false;
       let tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
@@ -439,7 +470,7 @@
           tableHtml += '<tr>' + cells.map((c, idx) => {
             const isScoreCol = idx === cells.length - 1 && cells.length > 1;
             const alignClass = isScoreCol ? 'text-center font-bold text-emerald-800 bg-emerald-50/50 w-24' : 'text-left';
-            return `<td class="${alignClass}">${c.trim()}</td>`;
+            return `<td class="${alignClass}">${renderMath(c.trim())}</td>`;
           }).join('') + '</tr>';
         } else {
           if (inTable) {
@@ -448,24 +479,27 @@
             tableHtml = '<div class="barem-table-wrap"><table class="barem-table">';
             inTable = false;
           }
-          if (trimmed) newLines.push(trimmed);
+          if (trimmed) newLines.push(renderMath(trimmed));
         }
       }
       if (inTable) { tableHtml += '</tbody></table></div>'; newLines.push(tableHtml); }
       return newLines.join('<br/>');
     }
 
-    // BẢO ĐẢM TRẮC NGHIỆM A B C D: 1 DÒNG (4 CỘT), 2 DÒNG (2 CỘT), 4 DÒNG (1 CỘT)
+    function cleanLatexMath(raw) {
+      if (!raw) return '';
+      return parseMarkdownTables(String(raw));
+    }
+
     function renderOptionsTable(options) {
       if (!options || options.length === 0) return '';
       const letters = ['A', 'B', 'C', 'D'];
       const rawOpts = options.map((o, i) => ({
         letter: letters[i] || `(${i+1})`,
-        text: String(o).replace(/^[A-D]\s*[\.,:]\s*/i, '').trim()
+        text: cleanLatexMath(String(o).replace(/^[A-D]\s*[\.,:]\s*/i, ''))
       }));
 
       const maxLen = Math.max(...options.map(o => String(o).length));
-      
       if (maxLen < 20 && rawOpts.length === 4) {
         return `
           <table class="options-table">
@@ -534,10 +568,10 @@
       }
     }
 
-    function getQuestionTypeBadge(t) {
-      if (t === 'single_choice') return `<span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 border border-purple-200">Trắc nghiệm</span>`;
-      if (t === 'true_false') return `<span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-200">Đúng / Sai</span>`;
-      return `<span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-slate-200 text-slate-800 border border-slate-300">Tự luận</span>`;
+    function updateDraftField(idx, field, value) {
+      if (currentDraftQuestions[idx]) {
+        currentDraftQuestions[idx][field] = value;
+      }
     }
 
     function switchInputMode(mode) {
@@ -547,6 +581,174 @@
       document.getElementById('modeBtnManual').className = !isAuto ? "py-2 rounded-lg bg-indigo-600 text-white shadow transition cursor-pointer" : "py-2 rounded-lg text-slate-400 hover:text-white transition cursor-pointer";
       document.getElementById('autoModeSection').classList.toggle('hidden', !isAuto);
       document.getElementById('manualModeSection').classList.toggle('hidden', isAuto);
+    }
+
+    async function startParseExamFile() {
+      const fileInput = document.getElementById('examFileInput');
+      if (!fileInput.files || fileInput.files.length === 0) { 
+        alert("Vui lòng chọn file .docx hoặc .zip!"); 
+        return; 
+      }
+
+      const file = fileInput.files[0];
+      const isDocx = file.name.toLowerCase().endsWith('.docx');
+      const endpoint = isDocx 
+        ? `${API_BASE_URL}/api/upload-word-to-draft` 
+        : `${API_BASE_URL}/api/upload-mistral-zip`;
+
+      const btn = document.getElementById('btnStartParse');
+      const statusText = document.getElementById('parseStatusText');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('level_stage', document.getElementById('autoStageSelect').value);
+      formData.append('grade', document.getElementById('autoGradeSelect').value);
+      formData.append('subject', document.getElementById('autoSubjectSelect').value);
+      formData.append('topic', document.getElementById('autoTopicInput').value.trim() || "Chung");
+      if (!isDocx) formData.append('auto_save', "false");
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang trích xuất ${isDocx ? 'Word' : 'Mistral ZIP'}...</span>`;
+      statusText.innerText = "Đang đọc văn bản, phân giải công thức KaTeX và trích xuất hình ảnh...";
+
+      try {
+        const res = await fetch(endpoint, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.status !== "success") {
+          throw new Error(data.detail || data.message || "Không thể phân giải tệp!");
+        }
+
+        currentDraftQuestions = data.questions || [];
+        statusText.innerText = `Bóc tách thành công ${currentDraftQuestions.length} câu vào khung lọc nháp!`;
+        renderDraftView();
+        switchView('draft');
+      } catch (err) {
+        statusText.innerText = "Lỗi: " + err.message;
+        alert("Lỗi phân giải: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-300"></i> <span>Bóc Tách &amp; Đưa Vào Khung Lọc</span>`;
+      }
+    }
+
+    function renderDraftView() {
+      const container = document.getElementById('draftContainer');
+      const lessonKw = document.getElementById('draftFilterLesson')?.value.trim().toLowerCase() || '';
+      const cogFilter = document.getElementById('draftFilterCognitive')?.value || '';
+      const typeFilter = document.getElementById('draftFilterType')?.value || '';
+
+      const filteredIndices = [];
+      currentDraftQuestions.forEach((q, idx) => {
+        const matchLesson = !lessonKw || (q.lesson || q.topic || '').toLowerCase().includes(lessonKw);
+        const matchCog = !cogFilter || q.cognitive_level === cogFilter;
+        const matchType = !typeFilter || q.q_type === typeFilter;
+        if (matchLesson && matchCog && matchType) {
+          filteredIndices.push(idx);
+        }
+      });
+
+      document.getElementById('draftCountBadge').innerText = `${filteredIndices.length}/${currentDraftQuestions.length}`;
+
+      if (filteredIndices.length === 0) {
+        container.innerHTML = `<div class="bg-slate-900/60 p-12 rounded-2xl border border-dashed border-slate-800 text-center text-slate-500 italic text-sm">Không có câu hỏi nào khớp với bộ lọc (hoặc chưa nạp tệp).</div>`;
+        return;
+      }
+
+      container.innerHTML = filteredIndices.map(idx => {
+        const q = currentDraftQuestions[idx];
+        return `
+          <div class="card-question p-5 md:p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="checkbox" name="draftCheckbox" value="${idx}" checked class="w-4 h-4 accent-indigo-600 cursor-pointer">
+                <span class="font-extrabold text-sm bg-indigo-50 text-indigo-950 border border-indigo-200 px-3 py-1 rounded-xl">Câu ${idx + 1}</span>
+                
+                <select onchange="updateDraftField(${idx}, 'q_type', this.value); renderDraftView();" 
+                        class="text-xs font-bold border border-slate-300 rounded-lg px-2 py-1 bg-white text-slate-800 outline-none">
+                  <option value="single_choice" ${q.q_type === 'single_choice' ? 'selected' : ''}>Trắc nghiệm</option>
+                  <option value="true_false" ${q.q_type === 'true_false' ? 'selected' : ''}>Đúng / Sai</option>
+                  <option value="essay" ${q.q_type === 'essay' ? 'selected' : ''}>Tự luận</option>
+                </select>
+
+                <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-bold border border-slate-200">Lớp ${q.grade || 12}</span>
+                <span class="text-xs bg-blue-50 text-blue-900 border border-blue-200 px-2.5 py-1 rounded-lg font-semibold">Bài: ${q.lesson || q.topic || 'Chung'}</span>
+                ${renderCognitivePicker(idx, q.cognitive_level || 'M2', 'draft')}
+              </div>
+              <button onclick="removeDraftItem(${idx})" class="text-slate-400 hover:text-rose-600 font-bold px-2 py-1 text-sm cursor-pointer" title="Xóa câu này">✕</button>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="question-content pl-2">
+                ${cleanLatexMath(cleanQuestionContent(q.content || ''))}
+              </div>
+              <details class="text-xs text-slate-500 pl-2">
+                <summary class="cursor-pointer hover:text-indigo-600 font-semibold select-none">✏️ Sửa nội dung câu hỏi</summary>
+                <textarea rows="3" onchange="updateDraftField(${idx}, 'content', this.value)" 
+                          class="w-full mt-1.5 p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-900 font-mono text-xs outline-none focus:border-indigo-500 leading-relaxed">${q.content || ''}</textarea>
+              </details>
+            </div>
+
+            <div class="pl-2">
+              ${renderOptionsTable(q.options)}
+            </div>
+
+            ${q.image_base64 ? `
+              <div class="my-3 text-center">
+                <img src="${q.image_base64}" class="max-h-64 rounded-xl border border-slate-200 p-1.5 bg-white shadow-sm inline-block" alt="Hình minh họa">
+              </div>` : ''}
+
+            ${q.explanation ? `
+              <div class="card-solution" style="display: ${isBankSolutionVisible ? 'block' : 'none'};">
+                <div class="solution-header">
+                  <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
+                  <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
+                </div>
+                <div class="solution-body">
+                  ${cleanLatexMath(q.explanation)}
+                </div>
+                <details class="text-xs text-emerald-800 mt-2">
+                  <summary class="cursor-pointer hover:underline font-bold select-none">✏️ Sửa lời giải</summary>
+                  <textarea rows="3" onchange="updateDraftField(${idx}, 'explanation', this.value)" 
+                            class="w-full mt-1.5 p-2 bg-white border border-emerald-300 rounded-lg text-emerald-950 font-mono text-xs outline-none focus:border-emerald-600 leading-relaxed">${q.explanation || ''}</textarea>
+                </details>
+              </div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removeDraftItem(idx) {
+      currentDraftQuestions.splice(idx, 1);
+      renderDraftView();
+    }
+
+    function toggleSelectAllDraft(checked) {
+      document.querySelectorAll('input[name="draftCheckbox"]').forEach(cb => cb.checked = checked);
+    }
+
+    async function saveApprovedDraftsToDb() {
+      const checkedBoxes = document.querySelectorAll('input[name="draftCheckbox"]:checked');
+      if (checkedBoxes.length === 0) { alert("Vui lòng chọn ít nhất 1 câu từ khung lọc!"); return; }
+      const selectedIndices = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+      const questionsToSave = selectedIndices.map(idx => {
+        const q = currentDraftQuestions[idx];
+        return {
+          level_stage: q.level_stage || "thpt", grade: q.grade || 12, subject: q.subject || "Toán học",
+          topic: q.lesson || q.topic || "Chung", lesson: q.lesson || q.topic || "Chung", level: "Thông hiểu",
+          cognitive_level: q.cognitive_level || "M2", q_type: q.q_type || "essay", content: q.content || "",
+          options: q.options || [], correct_answer: "", explanation: q.explanation || "",
+          has_image: q.image_base64 ? 1 : 0, image_base64: q.image_base64 || "", tikz_code: ""
+        };
+      });
+
+      const res = await fetch(`${API_BASE_URL}/api/questions/bulk-save`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ questions: questionsToSave })
+      });
+      const data = await res.json();
+      alert(`Đã nạp thành công ${data.count} câu vào kho Database!`);
+      currentDraftQuestions = currentDraftQuestions.filter((_, i) => !selectedIndices.includes(i));
+      renderDraftView();
+      updateTotalBankCount();
+      switchView('bank');
     }
 
     async function saveManualQuestionDirectly() {
@@ -579,124 +781,6 @@
       } catch (err) { alert("Lỗi kết nối: " + err.message); }
     }
 
-    async function startParseExamFile() {
-      const fileInput = document.getElementById('examFileInput');
-      if (!fileInput.files || fileInput.files.length === 0) { alert("Vui lòng chọn file .zip!"); return; }
-      const btn = document.getElementById('btnStartParse');
-      const statusText = document.getElementById('parseStatusText');
-      const formData = new FormData();
-      formData.append('file', fileInput.files[0]);
-      formData.append('level_stage', document.getElementById('autoStageSelect').value);
-      formData.append('grade', document.getElementById('autoGradeSelect').value);
-      formData.append('subject', document.getElementById('autoSubjectSelect').value);
-      formData.append('topic', document.getElementById('autoTopicInput').value.trim() || "Chung");
-      formData.append('auto_save', "false");
-
-      btn.disabled = true;
-      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang bóc tách...</span>`;
-      statusText.innerText = "Đang trích xuất đề và barem giải...";
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/upload-mistral-zip`, { method: 'POST', body: formData });
-        const data = await res.json();
-        currentDraftQuestions = data.questions || [];
-        statusText.innerText = `Bóc tách thành công ${currentDraftQuestions.length} câu hỏi!`;
-        renderDraftView();
-        switchView('draft');
-      } catch (err) {
-        statusText.innerText = "Lỗi: " + err.message;
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fa-solid fa-bolt text-amber-300"></i> <span>Bóc Tách &amp; Xem Bản Nháp</span>`;
-      }
-    }
-
-    function renderDraftView() {
-      document.getElementById('draftCountBadge').innerText = currentDraftQuestions.length;
-      const container = document.getElementById('draftContainer');
-
-      if (currentDraftQuestions.length === 0) {
-        container.innerHTML = `<div class="bg-slate-900/60 p-12 rounded-2xl border border-dashed border-slate-800 text-center text-slate-500 italic text-sm">Chưa có tài liệu nháp. Hãy nạp file zip ở cột bên trái.</div>`;
-        return;
-      }
-
-      container.innerHTML = currentDraftQuestions.map((q, idx) => `
-        <div class="card-question p-5 md:p-6 space-y-4">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <input type="checkbox" name="draftCheckbox" value="${idx}" checked class="w-4 h-4 accent-indigo-600 cursor-pointer">
-              <span class="font-extrabold text-sm bg-indigo-50 text-indigo-950 border border-indigo-200 px-3 py-1 rounded-xl">Câu ${idx + 1}</span>
-              ${getQuestionTypeBadge(q.q_type)}
-              <span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-bold border border-slate-200">Lớp ${q.grade || 12}</span>
-              <span class="text-xs bg-blue-50 text-blue-900 border border-blue-200 px-2.5 py-1 rounded-lg font-semibold">Chủ đề: ${q.lesson || q.topic || 'Chung'}</span>
-              ${renderCognitivePicker(idx, q.cognitive_level || 'M2', 'draft')}
-            </div>
-            <button onclick="removeDraftItem(${idx})" class="text-slate-400 hover:text-rose-600 font-bold px-2 py-1 text-sm cursor-pointer">✕</button>
-          </div>
-
-          <div class="question-content pl-2">
-            ${parseMarkdownTables(cleanQuestionContent(q.content || ''))}
-          </div>
-
-          <div class="pl-2">
-            ${renderOptionsTable(q.options)}
-          </div>
-
-          ${q.image_base64 ? `
-            <div class="my-3 text-center">
-              <img src="${q.image_base64}" class="max-h-64 rounded-xl border border-slate-200 p-1.5 bg-white shadow-sm inline-block" alt="Hình minh họa">
-            </div>` : ''}
-
-          ${q.explanation ? `
-            <div class="card-solution" style="display: ${isBankSolutionVisible ? 'block' : 'none'};">
-              <div class="solution-header">
-                <i class="fa-solid fa-file-circle-check text-emerald-600 text-base"></i>
-                <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
-              </div>
-              <div class="solution-body">
-                ${parseMarkdownTables(q.explanation)}
-              </div>
-            </div>` : ''}
-        </div>
-      `).join('');
-
-      renderKaTeXInElement(container);
-    }
-
-    function removeDraftItem(idx) {
-      currentDraftQuestions.splice(idx, 1);
-      renderDraftView();
-    }
-    function toggleSelectAllDraft(checked) {
-      document.querySelectorAll('input[name="draftCheckbox"]').forEach(cb => cb.checked = checked);
-    }
-
-    async function saveApprovedDraftsToDb() {
-      const checkedBoxes = document.querySelectorAll('input[name="draftCheckbox"]:checked');
-      if (checkedBoxes.length === 0) { alert("Vui lòng chọn ít nhất 1 câu!"); return; }
-      const selectedIndices = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-      const questionsToSave = selectedIndices.map(idx => {
-        const q = currentDraftQuestions[idx];
-        return {
-          level_stage: q.level_stage || "thpt", grade: q.grade || 12, subject: q.subject || "Toán học",
-          topic: q.lesson || q.topic || "Chung", lesson: q.lesson || q.topic || "Chung", level: "Thông hiểu",
-          cognitive_level: q.cognitive_level || "M2", q_type: q.q_type || "essay", content: q.content || "",
-          options: q.options || [], correct_answer: "", explanation: q.explanation || "",
-          has_image: q.image_base64 ? 1 : 0, image_base64: q.image_base64 || "", tikz_code: ""
-        };
-      });
-
-      const res = await fetch(`${API_BASE_URL}/api/questions/bulk-save`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ questions: questionsToSave })
-      });
-      const data = await res.json();
-      alert(`Đã nạp thành công ${data.count} câu vào kho Database!`);
-      currentDraftQuestions = currentDraftQuestions.filter((_, i) => !selectedIndices.includes(i));
-      renderDraftView();
-      updateTotalBankCount();
-      switchView('bank');
-    }
-
     async function loadBankQuestions() {
       const grade = document.getElementById('filterGrade').value;
       const cog = document.getElementById('filterCognitive').value;
@@ -727,7 +811,7 @@
           <div class="flex items-center justify-between pb-3 border-b border-slate-100 gap-2">
             <div class="flex flex-wrap items-center gap-2">
               <span class="font-extrabold text-sm bg-indigo-50 text-indigo-950 border border-indigo-200 px-3 py-1 rounded-xl">#ID ${r.id} | Lớp ${r.grade}</span>
-              ${getQuestionTypeBadge(r.q_type)}
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-indigo-100 text-indigo-800">${r.q_type}</span>
               <span class="text-xs bg-blue-50 text-blue-900 border border-blue-200 px-2.5 py-1 rounded-lg font-semibold">Bài: ${r.lesson || r.topic}</span>
               ${renderCognitivePicker(i, r.cognitive_level || 'M2', 'bank')}
             </div>
@@ -735,7 +819,7 @@
           </div>
 
           <div class="question-content pl-2">
-            ${parseMarkdownTables(cleanQuestionContent(r.content))}
+            ${cleanLatexMath(cleanQuestionContent(r.content))}
           </div>
 
           <div class="pl-2">
@@ -751,13 +835,11 @@
                 <span>Hướng dẫn giải chi tiết &amp; Thang điểm Barem:</span>
               </div>
               <div class="solution-body">
-                ${parseMarkdownTables(r.explanation)}
+                ${cleanLatexMath(r.explanation)}
               </div>
             </div>` : ''}
         </div>
       `).join('');
-
-      renderKaTeXInElement(container);
     }
 
     async function deleteSavedQuestion(id) {
